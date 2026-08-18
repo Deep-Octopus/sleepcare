@@ -57,6 +57,11 @@ const (
 	EventClientTaskConsented = "ClientTaskConsented"
 	EventTaskAnswerStarted   = "TaskAnswerStarted"
 	EventTaskAnswerSubmitted = "TaskAnswerSubmitted"
+	EventTaskContactRecorded = "TaskContactRecorded"
+
+	ContactChannelPhone   = "PHONE"
+	ContactChannelOffline = "OFFLINE"
+	ContactChannelOther   = "OTHER"
 
 	EventSourceSystem      = "SYSTEM"
 	EventSourceCareSteward = "CARE_STEWARD"
@@ -64,6 +69,15 @@ const (
 	EventSourceSupervisor  = "SUPERVISOR"
 	EventSourceClient      = "CLIENT"
 )
+
+func IsContactChannel(value string) bool {
+	switch value {
+	case ContactChannelPhone, ContactChannelOffline, ContactChannelOther:
+		return true
+	default:
+		return false
+	}
+}
 
 func CanTransitionEnrollment(from, to string) bool {
 	return (from == EnrollmentActive && to == EnrollmentPaused) ||

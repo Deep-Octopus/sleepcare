@@ -7,6 +7,7 @@ import (
 	"github.com/flipped-aurora/gin-vue-admin/server/api/v1/clientaccess"
 	"github.com/flipped-aurora/gin-vue-admin/server/api/v1/example"
 	"github.com/flipped-aurora/gin-vue-admin/server/api/v1/media"
+	"github.com/flipped-aurora/gin-vue-admin/server/api/v1/notification"
 	"github.com/flipped-aurora/gin-vue-admin/server/api/v1/questionnaire"
 	"github.com/flipped-aurora/gin-vue-admin/server/api/v1/supervision"
 	"github.com/flipped-aurora/gin-vue-admin/server/api/v1/system"
@@ -24,4 +25,5 @@ type ApiGroup struct {
 	SystemApiGroup        system.ApiGroup
 	ExampleApiGroup       example.ApiGroup
 	MediaApiGroup         media.ApiGroup
+	NotificationApiGroup  notification.ApiGroup
 }

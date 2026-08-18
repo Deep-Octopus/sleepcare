@@ -2173,17 +2173,31 @@ components:
 
     NotificationAttempt:
       type: object
-      required: [id, taskId, attemptNo, channel, status, requestedAt]
+      required: [id, notificationRequestId, taskId, careClientId, attemptNo, channel, status, requestedAt, version, events]
       properties:
         id:
+          type: integer
+          format: uint64
+        notificationRequestId:
           type: integer
           format: uint64
         taskId:
           type: integer
           format: uint64
+        careClientId:
+          type: integer
+          format: uint64
+        careClientDisplayCode:
+          type: string
+        careClientDisplayName:
+          type: string
         attemptNo:
           type: integer
           minimum: 1
+        retryOfAttemptId:
+          type: integer
+          format: uint64
+          nullable: true
         channel:
           type: string
           enum: [DEMO]
@@ -2192,6 +2206,10 @@ components:
         requestedAt:
           type: string
           format: date-time
+        submittedAt:
+          type: string
+          format: date-time
+          nullable: true
         acceptedAt:
           type: string
           format: date-time
@@ -2207,6 +2225,39 @@ components:
         failureCode:
           type: string
           nullable: true
+        version:
+          type: integer
+          minimum: 1
+        events:
+          type: array
+          items:
+            $ref: '#/components/schemas/NotificationDeliveryEvent'
+
+    NotificationDeliveryEvent:
+      type: object
+      required: [id, eventType, fromStatus, toStatus, occurredAt, failureCode]
+      properties:
+        id:
+          type: integer
+          format: uint64
+        eventType:
+          type: string
+          enum:
+            - NotificationRequested
+            - NotificationSubmittedToProvider
+            - NotificationAccepted
+            - NotificationDelivered
+            - NotificationFailed
+            - NotificationUnknown
+        fromStatus:
+          type: string
+        toStatus:
+          $ref: '#/components/schemas/NotificationAttemptStatus'
+        occurredAt:
+          type: string
+          format: date-time
+        failureCode:
+          type: string
 
     WorkbenchData:
       type: object

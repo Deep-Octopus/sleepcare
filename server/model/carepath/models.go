@@ -202,6 +202,7 @@ type CarePathEvent struct {
 	TaskInstanceID *uint     `json:"taskInstanceId" gorm:"index"`
 	ActorID        uint      `json:"actorId" gorm:"index;not null"`
 	Source         string    `json:"source" gorm:"type:varchar(32);not null"`
+	Channel        string    `json:"channel" gorm:"type:varchar(24)"`
 	Reason         string    `json:"reason" gorm:"type:varchar(1000)"`
 	FromStatus     string    `json:"fromStatus" gorm:"type:varchar(24)"`
 	ToStatus       string    `json:"toStatus" gorm:"type:varchar(24)"`

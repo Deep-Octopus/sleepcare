@@ -132,6 +132,72 @@ func TestPreviewAndStartAreIdempotentAndCreateExactlyD1ToD5(t *testing.T) {
 	}
 }
 
+func TestRecordTaskContactAppendsAuditEventWithoutChangingTaskState(t *testing.T) {
+	service, db, clock, ctx := newCarePathTestService(t)
+	preview, err := service.PreviewPlan(ctx, 301, "contact-preview", pathreq.PreviewPlan{
+		PlanTemplateVersionID: 201,
+		AnchorAt:              clock.value,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	started, err := service.StartPlan(ctx, 301, "contact-start", pathreq.StartPlan{
+		ExpectedClientVersion: 1,
+		PreviewID:             preview.PreviewID,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	taskID := started.TaskIDs[0]
+	request := pathreq.TaskContactRecord{
+		ExpectedVersion: 1,
+		Channel:         pathmodel.ContactChannelPhone,
+		Result:          "已完成固定流程联系，等待后续人工确认。",
+		OccurredAt:      clock.value.Add(20 * time.Minute),
+	}
+	first, err := service.RecordTaskContact(ctx, taskID, "contact-key", request)
+	if err != nil {
+		t.Fatal(err)
+	}
+	replayed, err := service.RecordTaskContact(ctx, taskID, "contact-key", request)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if first.ResourceID != replayed.ResourceID || first.ActionID != replayed.ActionID ||
+		first.Status != replayed.Status || first.Version != replayed.Version ||
+		!first.OccurredAt.Equal(replayed.OccurredAt) ||
+		first.Status != pathmodel.ExecutionOpen || first.Version != 2 {
+		t.Fatalf("unexpected contact result: first=%+v replay=%+v", first, replayed)
+	}
+	var task pathmodel.TaskInstance
+	if err = db.WithContext(ctx).First(&task, taskID).Error; err != nil {
+		t.Fatal(err)
+	}
+	if task.ExecutionStatus != pathmodel.ExecutionOpen || task.Version != 2 {
+		t.Fatalf("contact changed task lifecycle: %+v", task)
+	}
+	var event pathmodel.CarePathEvent
+	if err = db.WithContext(ctx).Where("task_instance_id = ? AND event_type = ?", taskID, pathmodel.EventTaskContactRecorded).
+		First(&event).Error; err != nil {
+		t.Fatal(err)
+	}
+	if event.Channel != pathmodel.ContactChannelPhone || event.Reason != request.Result {
+		t.Fatalf("structured contact event differs: %+v", event)
+	}
+	detail, err := service.GetTask(ctx, taskID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	last := detail.Timeline[len(detail.Timeline)-1]
+	if last.EventType != pathmodel.EventTaskContactRecorded || !strings.Contains(last.Summary, pathmodel.ContactChannelPhone) {
+		t.Fatalf("contact timeline missing: %+v", detail.Timeline)
+	}
+	_, err = service.RecordTaskContact(ctx, taskID, "contact-stale", request)
+	if carePathCode(err) != pathmodel.CodeVersionConflict {
+		t.Fatalf("stale contact version should conflict, got %v", err)
+	}
+}
+
 func TestStartPlanRollsBackWhenOutboxWriteFails(t *testing.T) {
 	service, db, clock, ctx := newCarePathTestService(t)
 	preview, err := service.PreviewPlan(ctx, 301, "preview-rollback", pathreq.PreviewPlan{

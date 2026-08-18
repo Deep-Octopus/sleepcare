@@ -99,6 +99,7 @@ func RegisterTables() {
 	ensureClientAccessFeature()
 	ensureCaseWorkFeature()
 	ensureSupervisionFeature()
+	ensureNotificationFeature()
 	logger.Bg().Mod("system").Info("register table success")
 }
 
@@ -141,5 +142,11 @@ func ensureCaseWorkFeature() {
 func ensureSupervisionFeature() {
 	if err := EnsureSupervisionData(); err != nil {
 		logger.Bg().Mod("supervision").Err(err).Warn("supervision metadata or fixed snapshot seed skipped")
+	}
+}
+
+func ensureNotificationFeature() {
+	if err := EnsureNotificationData(); err != nil {
+		logger.Bg().Mod("notification").Err(err).Warn("notification metadata or fixed fixture seed skipped")
 	}
 }

@@ -7,6 +7,7 @@ import (
 	"github.com/flipped-aurora/gin-vue-admin/server/service/clientaccess"
 	"github.com/flipped-aurora/gin-vue-admin/server/service/example"
 	"github.com/flipped-aurora/gin-vue-admin/server/service/media"
+	"github.com/flipped-aurora/gin-vue-admin/server/service/notification"
 	"github.com/flipped-aurora/gin-vue-admin/server/service/questionnaire"
 	"github.com/flipped-aurora/gin-vue-admin/server/service/supervision"
 	"github.com/flipped-aurora/gin-vue-admin/server/service/system"
@@ -24,4 +25,5 @@ type ServiceGroup struct {
 	SystemServiceGroup        system.ServiceGroup
 	ExampleServiceGroup       example.ServiceGroup
 	MediaServiceGroup         media.ServiceGroup
+	NotificationServiceGroup  notification.ServiceGroup
 }

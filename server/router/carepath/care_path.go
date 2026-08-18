@@ -15,6 +15,7 @@ func (r *CarePathRouter) InitCarePathRouter(router *gin.RouterGroup) {
 		writeGroup.POST("clients/:id/plan-instances", carePathApi.StartPlan)
 		writeGroup.POST("plan-instances/:id/pause", carePathApi.PausePlan)
 		writeGroup.POST("plan-instances/:id/resume", carePathApi.ResumePlan)
+		writeGroup.POST("tasks/:id/contact-records", carePathApi.RecordTaskContact)
 	}
 	{
 		readGroup.GET("plan-versions", carePathApi.ListPlanVersions)

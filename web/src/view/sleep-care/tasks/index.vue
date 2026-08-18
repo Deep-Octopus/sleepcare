@@ -1,9 +1,9 @@
 <template>
   <div>
     <div class="mb-4 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-amber-900">
-      <div class="font-semibold">责任范围内的合成计划任务</div>
+      <div class="font-semibold">责任范围内的固定测试任务</div>
       <div class="mt-1 text-sm leading-6">
-        执行、时效和复核是三个独立状态轴。这里只提供员工只读查询；未开放任务不能提前填写，本任务不启用提交、真实通知或医疗处置。
+        执行、时效和复核是三个独立状态轴。可追加人工联系事实；未开放任务不能提前填写，本阶段不启用真实通知或医疗处置。
       </div>
     </div>
 
@@ -138,7 +138,7 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" fixed="right" width="90">
+        <el-table-column label="操作" fixed="right" width="160">
           <template #default="scope">
             <el-button
               v-if="btnAuth.viewDetail"
@@ -147,6 +147,14 @@
               @click="openDetail(scope.row.id)"
             >
               详情
+            </el-button>
+            <el-button
+              v-if="btnAuth.recordContact"
+              link
+              type="warning"
+              @click="openContact(scope.row)"
+            >
+              记录联系
             </el-button>
           </template>
         </el-table-column>
@@ -179,7 +187,7 @@
             class="mb-4"
             type="warning"
             :closable="false"
-            title="只读合成任务；本页不提供填写、提交、补填、重排或通知动作。"
+            title="固定测试任务；本页不提供填写、提交、补填、重排或真实通知动作。"
           />
 
           <div class="mb-4 overflow-hidden rounded-lg border border-slate-200 bg-slate-50">
@@ -267,15 +275,72 @@
         </template>
       </div>
     </el-drawer>
+
+    <el-dialog
+      v-model="contactVisible"
+      title="追加人工联系记录"
+      width="min(560px, 94vw)"
+    >
+      <el-alert
+        class="mb-4"
+        :closable="false"
+        title="仅记录沟通事实，不填写诊断或医疗结论。该动作不会改变任务执行状态。"
+        type="info"
+      />
+      <el-form
+        label-position="top"
+        :model="contactForm"
+      >
+        <el-form-item label="联系渠道">
+          <el-select
+            v-model="contactForm.channel"
+            class="w-full"
+          >
+            <el-option label="电话" value="PHONE" />
+            <el-option label="线下" value="OFFLINE" />
+            <el-option label="其它" value="OTHER" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="发生时间">
+          <el-date-picker
+            v-model="contactForm.occurredAt"
+            class="w-full"
+            type="datetime"
+          />
+        </el-form-item>
+        <el-form-item label="联系结果">
+          <el-input
+            v-model="contactForm.result"
+            maxlength="2000"
+            placeholder="填写已经发生的沟通结果"
+            show-word-limit
+            type="textarea"
+            :rows="5"
+          />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="contactVisible = false">取消</el-button>
+        <el-button
+          :loading="contactSubmitting"
+          type="primary"
+          @click="submitContact"
+        >
+          保存记录
+        </el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
   import { onMounted, reactive, ref } from 'vue'
+  import { ElMessage } from 'element-plus'
   import { useBtnAuth } from '@/utils/btnAuth'
   import {
     getCareTask,
-    getCareTasks
+    getCareTasks,
+    recordCareTaskContact
   } from '@/api/sleep-care/care-path'
 
   defineOptions({ name: 'CareTasks' })
@@ -309,6 +374,14 @@
   const detailVisible = ref(false)
   const detailLoading = ref(false)
   const detail = ref(null)
+  const contactVisible = ref(false)
+  const contactSubmitting = ref(false)
+  const contactTask = ref(null)
+  const contactForm = reactive({
+    channel: 'PHONE',
+    result: '',
+    occurredAt: new Date()
+  })
 
   const loadTable = async () => {
     loading.value = true
@@ -356,6 +429,38 @@
       }
     } finally {
       detailLoading.value = false
+    }
+  }
+
+  const openContact = (task) => {
+    contactTask.value = task
+    contactForm.channel = 'PHONE'
+    contactForm.result = ''
+    contactForm.occurredAt = new Date()
+    contactVisible.value = true
+  }
+
+  const submitContact = async () => {
+    const result = contactForm.result.trim()
+    if (!contactTask.value || !contactForm.occurredAt || !result) {
+      ElMessage.warning('请完整填写联系渠道、时间和结果')
+      return
+    }
+    contactSubmitting.value = true
+    try {
+      const res = await recordCareTaskContact(contactTask.value.id, {
+        expectedVersion: contactTask.value.version,
+        channel: contactForm.channel,
+        result,
+        occurredAt: new Date(contactForm.occurredAt).toISOString()
+      })
+      if (res.code === 0) {
+        ElMessage.success('联系记录已追加')
+        contactVisible.value = false
+        await loadTable()
+      }
+    } finally {
+      contactSubmitting.value = false
     }
   }
 
@@ -411,7 +516,8 @@
     CarePlanStarted: '计划已启动',
     CarePlanPaused: '计划已暂停',
     CarePlanResumed: '计划已恢复',
-    TaskOpened: '任务已开放'
+    TaskOpened: '任务已开放',
+    TaskContactRecorded: '已记录人工联系'
   }[value] || value)
   const formatDateTime = (value) => value
     ? new Date(value).toLocaleString('zh-CN', { hour12: false })

@@ -28,6 +28,13 @@ type PlanStateAction struct {
 	Reason          string `json:"reason"`
 }
 
+type TaskContactRecord struct {
+	ExpectedVersion uint      `json:"expectedVersion"`
+	Channel         string    `json:"channel"`
+	Result          string    `json:"result"`
+	OccurredAt      time.Time `json:"occurredAt"`
+}
+
 type TaskSearch struct {
 	commonreq.PageInfo
 	CareClientID    uint   `json:"careClientId" form:"careClientId"`

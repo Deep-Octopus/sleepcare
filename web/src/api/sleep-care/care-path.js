@@ -67,3 +67,11 @@ export const getCareTask = (id) =>
     url: `/care/tasks/${id}`,
     method: 'get'
   })
+
+export const recordCareTaskContact = (id, data, idempotencyKey) =>
+  service({
+    url: `/care/tasks/${id}/contact-records`,
+    method: 'post',
+    data,
+    headers: commandHeaders(idempotencyKey)
+  })

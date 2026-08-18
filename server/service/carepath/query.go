@@ -217,7 +217,9 @@ func timelineResponses(events []pathmodel.CarePathEvent) []pathres.TimelineEvent
 	result := make([]pathres.TimelineEvent, 0, len(events))
 	for _, event := range events {
 		summary := event.FromStatus + " → " + event.ToStatus
-		if event.Reason != "" {
+		if event.EventType == pathmodel.EventTaskContactRecorded {
+			summary = "联系渠道：" + event.Channel + "；结果：" + event.Reason
+		} else if event.Reason != "" {
 			summary += "；原因：" + event.Reason
 		}
 		result = append(result, pathres.TimelineEvent{

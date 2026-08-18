@@ -39,6 +39,7 @@ type Service interface {
 	ResumePlan(context.Context, uint, string, carereq.PlanStateAction) (careres.PlanActionResult, error)
 	ListTasks(context.Context, carereq.TaskSearch) ([]careres.TaskSummary, int64, error)
 	GetTask(context.Context, uint) (careres.TaskDetail, error)
+	RecordTaskContact(context.Context, uint, string, carereq.TaskContactRecord) (careres.TaskActionResult, error)
 	ReconcilePlanTasks(context.Context, uint) error
 }
 

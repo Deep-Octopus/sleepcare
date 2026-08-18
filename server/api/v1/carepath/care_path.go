@@ -251,6 +251,36 @@ func (a *CarePathApi) GetTask(c *gin.Context) {
 	commonres.OkWithDetailed(data, "查询成功", c)
 }
 
+// RecordTaskContact
+// @Tags CarePath
+// @Summary 为责任范围内任务追加人工联系记录
+// @Security ApiKeyAuth
+// @Accept application/json
+// @Produce application/json
+// @Param id path int true "任务实例ID"
+// @Param Idempotency-Key header string true "幂等键"
+// @Param data body pathreq.TaskContactRecord true "任务版本、联系渠道、结果和发生时间"
+// @Success 200 {object} commonres.Response{data=pathres.TaskActionResult,msg=string}
+// @Failure 403 {object} commonres.Response
+// @Router /care/tasks/{id}/contact-records [post]
+func (a *CarePathApi) RecordTaskContact(c *gin.Context) {
+	id, ok := pathID(c)
+	if !ok {
+		return
+	}
+	var req pathreq.TaskContactRecord
+	if err := c.ShouldBindJSON(&req); err != nil {
+		commonres.FailWithMessage("请求参数无效", c)
+		return
+	}
+	data, err := carePathService.RecordTaskContact(c.Request.Context(), id, c.GetHeader("Idempotency-Key"), req)
+	if err != nil {
+		handleCarePathError(c, err, "记录人工联系失败")
+		return
+	}
+	commonres.OkWithDetailed(data, "联系记录已追加", c)
+}
+
 func pathID(c *gin.Context) (uint, bool) {
 	value, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil || value == 0 {

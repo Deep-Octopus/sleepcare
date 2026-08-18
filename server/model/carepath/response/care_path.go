@@ -86,6 +86,14 @@ type PlanActionResult struct {
 	Version        uint   `json:"version"`
 }
 
+type TaskActionResult struct {
+	ResourceID uint      `json:"resourceId"`
+	ActionID   uint      `json:"actionId"`
+	Status     string    `json:"status"`
+	Version    uint      `json:"version"`
+	OccurredAt time.Time `json:"occurredAt"`
+}
+
 type TimelineEvent struct {
 	EventType  string    `json:"eventType"`
 	OccurredAt time.Time `json:"occurredAt"`

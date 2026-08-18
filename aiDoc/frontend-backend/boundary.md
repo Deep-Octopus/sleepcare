@@ -92,3 +92,12 @@
 - 两个写接口都要求 `Idempotency-Key`。前端在一次对话中复用同一键，服务端负责相同请求重放、不同请求冲突和事项版本冲突。
 - 五个接口只授权上级角色，并叠加业务身份、DataScope、机构范围和固定测试记录门禁。页面菜单或按钮不可替代后端权限。
 - 当前没有日报生成 HTTP 接口和定时任务；初始化仅幂等提供一条固定历史版本。通知异常写侧仍由 P1-09 负责。
+
+## P1-09 通知尝试、补发与人工联系契约
+
+- `GET /care/deliveries` 使用统一分页，可按 attempt 状态筛选；每项返回 `version`、补发来源、请求/提交/受理/送达/终结时间和按时间排序的 `events`。
+- `ACCEPTED` 的 `deliveredAt` 必须为空，前端必须显示“尚未确认送达”；客户端打开、开始和提交事件不得出现在通知回执时间线中。
+- `POST /care/deliveries/{id}/resend` 只接受 `FAILED|UNKNOWN`，要求 `Idempotency-Key`、旧 attempt 的 `expectedVersion` 和非空原因；响应中的 `resourceId` 是新 attempt ID。
+- `POST /care/tasks/{id}/contact-records` 要求任务 `expectedVersion`、`PHONE|OFFLINE|OTHER`、实际联系结果和带时区发生时间；成功只增加任务版本并追加时间线，不改变执行状态。
+- 通知列表允许管家、医护和上级按责任/管理范围读取；补发仅当前责任管家，联系记录仅当前责任管家或医护。前端按钮不可替代后端责任关系校验。
+- 阶段一 adapter 不访问网络，不接收手机号或通知正文。失败/未知形成统一送达异常待办；同一逻辑请求重试不重复建活动待办，也不改写 D1–D5。

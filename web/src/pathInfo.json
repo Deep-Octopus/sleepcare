@@ -62,6 +62,7 @@
   "/src/view/sleep-care/attention-cases/index.vue": "CareAttentionCases",
   "/src/view/sleep-care/clients/index.vue": "CareClients",
   "/src/view/sleep-care/daily-summaries/index.vue": "CareDailySummaries",
+  "/src/view/sleep-care/deliveries/index.vue": "CareDeliveries",
   "/src/view/sleep-care/plans/index.vue": "CarePlans",
   "/src/view/sleep-care/questionnaires/index.vue": "CareQuestionnaires",
   "/src/view/sleep-care/review-queue/index.vue": "CareReviewQueue",

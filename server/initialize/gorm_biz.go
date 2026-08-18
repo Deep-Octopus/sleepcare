@@ -6,6 +6,7 @@ import (
 	"github.com/flipped-aurora/gin-vue-admin/server/model/carepath"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/casework"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/clientaccess"
+	"github.com/flipped-aurora/gin-vue-admin/server/model/notification"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/questionnaire"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/supervision"
 )
@@ -49,6 +50,9 @@ func bizModel() error {
 		&questionnaire.OutboxEvent{},
 		&supervision.DailySummaryVersion{},
 		&supervision.SupervisorGuidance{},
+		&notification.NotificationRequest{},
+		&notification.NotificationAttempt{},
+		&notification.DeliveryEvent{},
 	)
 	if err != nil {
 		return err
