@@ -488,6 +488,16 @@ func TestRuntimeReadsAllowSupervisorAndDenyUnassignedOrUnmappedRoles(t *testing.
 	if _, err = service.GetTask(unassignedCtx, started.TaskIDs[0]); carePathCode(err) != pathmodel.CodeAccessScopeDenied {
 		t.Fatalf("unassigned steward task detail should fail closed, got %v", err)
 	}
+	contentCtx := identityContext(4, 104, caremodel.AuthorityRoleContentAdmin)
+	if _, _, err = service.ListPlanVersions(contentCtx, pathreq.PlanVersionSearch{}); err != nil {
+		t.Fatalf("content administrator should read plan versions: %v", err)
+	}
+	if _, _, err = service.ListTasks(contentCtx, pathreq.TaskSearch{}); carePathCode(err) != pathmodel.CodeAccessScopeDenied {
+		t.Fatalf("content administrator runtime task read should fail closed, got %v", err)
+	}
+	if _, err = service.ListClientPlans(contentCtx, 301); carePathCode(err) != pathmodel.CodeAccessScopeDenied {
+		t.Fatalf("content administrator runtime plan read should fail closed, got %v", err)
+	}
 
 	adminCtx := identityContext(8, 888, "")
 	if _, _, err = service.ListTasks(adminCtx, pathreq.TaskSearch{}); carePathCode(err) != pathmodel.CodeAccessScopeDenied {
@@ -581,6 +591,7 @@ func newCarePathTestService(t *testing.T) (*CarePathService, *gorm.DB, *mutableC
 		{AuthorityID: 101, RoleType: caremodel.AuthorityRoleCareSteward, Active: true, Synthetic: true},
 		{AuthorityID: 102, RoleType: caremodel.AuthorityRoleClinician, Active: true, Synthetic: true},
 		{AuthorityID: 103, RoleType: caremodel.AuthorityRoleSupervisor, Active: true, Synthetic: true},
+		{AuthorityID: 104, RoleType: caremodel.AuthorityRoleContentAdmin, Active: true, Synthetic: true},
 	}
 	if err := db.WithContext(systemCtx).Create(&profiles).Error; err != nil {
 		t.Fatal(err)

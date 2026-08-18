@@ -100,6 +100,7 @@ func RegisterTables() {
 	ensureCaseWorkFeature()
 	ensureSupervisionFeature()
 	ensureNotificationFeature()
+	ensurePhaseOneAccessControlFeature()
 	logger.Bg().Mod("system").Info("register table success")
 }
 
@@ -148,5 +149,11 @@ func ensureSupervisionFeature() {
 func ensureNotificationFeature() {
 	if err := EnsureNotificationData(); err != nil {
 		logger.Bg().Mod("notification").Err(err).Warn("notification metadata or fixed fixture seed skipped")
+	}
+}
+
+func ensurePhaseOneAccessControlFeature() {
+	if err := EnsurePhaseOneAccessControl(); err != nil {
+		logger.Bg().Mod("care-access").Err(err).Warn("phase-one care access control reconciliation skipped")
 	}
 }

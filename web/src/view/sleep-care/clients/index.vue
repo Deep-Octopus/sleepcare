@@ -400,6 +400,13 @@
 
   defineOptions({ name: 'CareClients' })
 
+  const props = defineProps({
+    initialDetailId: {
+      type: [String, Number],
+      default: ''
+    }
+  })
+
   const btnAuth = useBtnAuth()
   const searchForm = reactive({ keyword: '', status: '' })
   const page = ref(1)
@@ -644,5 +651,11 @@
   const formatDateTime = (value) => value ? new Date(value).toLocaleString('zh-CN', { hour12: false }) : '-'
   const teamName = (id) => options.value.orgUnits.find((item) => item.departmentId === id)?.name || id
 
-  onMounted(loadTable)
+  onMounted(async () => {
+    await loadTable()
+    const detailId = Number(props.initialDetailId)
+    if (Number.isInteger(detailId) && detailId > 0) {
+      await openDetail(detailId)
+    }
+  })
 </script>

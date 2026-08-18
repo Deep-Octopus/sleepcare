@@ -29,9 +29,10 @@ const (
 	OrgUnitTypeOrganization = "ORGANIZATION"
 	OrgUnitTypeTeam         = "TEAM"
 
-	AuthorityRoleCareSteward = "CARE_STEWARD"
-	AuthorityRoleClinician   = "CLINICIAN"
-	AuthorityRoleSupervisor  = "SUPERVISOR"
+	AuthorityRoleCareSteward  = "CARE_STEWARD"
+	AuthorityRoleClinician    = "CLINICIAN"
+	AuthorityRoleSupervisor   = "SUPERVISOR"
+	AuthorityRoleContentAdmin = "CONTENT_ADMIN"
 
 	DataLevelBasic     = "BASIC"
 	DataLevelSensitive = "SENSITIVE"

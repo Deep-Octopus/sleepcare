@@ -303,6 +303,13 @@
 
   defineOptions({ name: 'CareReviewQueue' })
 
+  const props = defineProps({
+    initialAttentionCaseId: {
+      type: [String, Number],
+      default: ''
+    }
+  })
+
   const btnAuth = useBtnAuth()
   const page = ref(1)
   const pageSize = ref(10)
@@ -500,5 +507,12 @@
   }[value] || value)
   const formatTimestamp = (value) => value ? formatDate(value) : '-'
 
-  onMounted(loadTable)
+  onMounted(async () => {
+    await loadTable()
+    const attentionCaseId = Number(props.initialAttentionCaseId)
+    if (Number.isInteger(attentionCaseId) && attentionCaseId > 0) {
+      const review = tableData.value.find((item) => item.attentionCaseId === attentionCaseId)
+      await openDetail(review || { attentionCaseId })
+    }
+  })
 </script>

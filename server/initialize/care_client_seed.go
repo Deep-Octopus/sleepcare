@@ -17,18 +17,20 @@ import (
 )
 
 const (
-	syntheticOrgAID         = 9001
-	syntheticOrgBID         = 9002
-	syntheticTeamAID        = 9101
-	syntheticTeamBID        = 9102
-	syntheticStewardAID     = 9201
-	syntheticClinicianAID   = 9202
-	syntheticSupervisorAID  = 9203
-	syntheticStewardA2ID    = 9204
-	syntheticStewardBID     = 9299
-	syntheticStewardRole    = 9801
-	syntheticClinicianRole  = 9802
-	syntheticSupervisorRole = 9803
+	syntheticOrgAID          = 9001
+	syntheticOrgBID          = 9002
+	syntheticTeamAID         = 9101
+	syntheticTeamBID         = 9102
+	syntheticStewardAID      = 9201
+	syntheticClinicianAID    = 9202
+	syntheticSupervisorAID   = 9203
+	syntheticStewardA2ID     = 9204
+	syntheticStewardBID      = 9299
+	syntheticStewardRole     = 9801
+	syntheticClinicianRole   = 9802
+	syntheticSupervisorRole  = 9803
+	phaseOneContentAdminAID  = 9205
+	phaseOneContentAdminRole = 9804
 )
 
 var careClientAPIs = []system.SysApi{
@@ -154,11 +156,13 @@ func seedCareDepartments(tx *gorm.DB) error {
 func seedCareAuthorities(tx *gorm.DB) error {
 	parentID := uint(888)
 	authorities := []system.SysAuthority{
+		{AuthorityId: phaseOneContentAdminRole, AuthorityName: "[测试] 内容管理员", ParentId: &parentID, DataScope: datascope.ScopeSelf, DefaultRouter: "CareQuestionnaires"},
 		{AuthorityId: syntheticStewardRole, AuthorityName: "[合成] 健康管家", ParentId: &parentID, DataScope: datascope.ScopeDept, DefaultRouter: "CareClients"},
 		{AuthorityId: syntheticClinicianRole, AuthorityName: "[合成] 一线医护", ParentId: &parentID, DataScope: datascope.ScopeDept, DefaultRouter: "CareClients"},
 		{AuthorityId: syntheticSupervisorRole, AuthorityName: "[合成] 上级医师", ParentId: &parentID, DataScope: datascope.ScopeDeptAndChild, DefaultRouter: "CareClients"},
 	}
 	profiles := []caremodel.CareAuthorityProfile{
+		{AuthorityID: phaseOneContentAdminRole, RoleType: caremodel.AuthorityRoleContentAdmin, Synthetic: true, Active: true},
 		{AuthorityID: syntheticStewardRole, RoleType: caremodel.AuthorityRoleCareSteward, Synthetic: true, Active: true},
 		{AuthorityID: syntheticClinicianRole, RoleType: caremodel.AuthorityRoleClinician, Synthetic: true, Active: true},
 		{AuthorityID: syntheticSupervisorRole, RoleType: caremodel.AuthorityRoleSupervisor, Synthetic: true, Active: true},
@@ -186,6 +190,7 @@ func seedCareAuthorities(tx *gorm.DB) error {
 
 func seedCareUsers(tx *gorm.DB, password string) error {
 	users := []system.SysUser{
+		{GVA_MODEL: global.GVA_MODEL{ID: phaseOneContentAdminAID}, UUID: uuid.New(), Username: "test_content_admin_a", NickName: "[测试] 内容管理员甲", AuthorityId: phaseOneContentAdminRole, DeptId: syntheticOrgAID, Enable: 1},
 		{GVA_MODEL: global.GVA_MODEL{ID: syntheticStewardAID}, UUID: uuid.New(), Username: "syn_steward_a", NickName: "[合成] 管家甲", AuthorityId: syntheticStewardRole, DeptId: syntheticTeamAID, Enable: 1},
 		{GVA_MODEL: global.GVA_MODEL{ID: syntheticClinicianAID}, UUID: uuid.New(), Username: "syn_clinician_a", NickName: "[合成] 医护甲", AuthorityId: syntheticClinicianRole, DeptId: syntheticTeamAID, Enable: 1},
 		{GVA_MODEL: global.GVA_MODEL{ID: syntheticSupervisorAID}, UUID: uuid.New(), Username: "syn_supervisor_a", NickName: "[合成] 上级医师甲", AuthorityId: syntheticSupervisorRole, DeptId: syntheticOrgAID, Enable: 1},

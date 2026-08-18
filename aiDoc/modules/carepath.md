@@ -15,6 +15,7 @@
 - 迁移与种子：`server/initialize/gorm_biz.go`、`server/initialize/care_path_seed.go`
 - 共享 outbox：`server/internal/platform/outbox/`
 - 责任范围决策：`server/internal/accesspolicy/careclient.go`
+- 内容只读决策：`server/internal/accesspolicy/content.go`
 
 后端保持 `Router -> API -> Service -> Model`。API 只处理 HTTP 绑定和统一响应；Service 只接收 `context.Context`，并把它传给所有 GORM 操作。运行表的部门和操作人归属由 DataScope 过滤、盖章；系统协调产生的事件必须显式继承计划的 `dept_id`。
 
@@ -91,6 +92,7 @@
 
 - 当前有效责任管家/医护：读取责任用户并执行预览、启动、暂停、恢复。
 - 上级医师：在组织树 DataScope 内只读。
+- 内容管理员：只读方案定义版本；客户计划、任务和全部运行态接口继续拒绝。
 - 同团队未负责人、跨机构角色、普通管理员 `888`、缺身份或未映射角色：fail closed。
 - 菜单、按钮和 Casbin 只是第一层；Service 必须再次校验稳定领域角色、DataScope、当前责任关系、合成用户和合成运行记录。
 

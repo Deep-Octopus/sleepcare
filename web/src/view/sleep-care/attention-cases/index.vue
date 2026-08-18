@@ -489,6 +489,13 @@
 
   defineOptions({ name: 'CareAttentionCases' })
 
+  const props = defineProps({
+    initialDetailId: {
+      type: [String, Number],
+      default: ''
+    }
+  })
+
   const btnAuth = useBtnAuth()
   const statusOptions = [
     { label: '待确认', value: 'PENDING_ACK' },
@@ -750,5 +757,11 @@
   }[value] || value)
   const formatTimestamp = (value) => value ? formatDate(value) : '-'
 
-  onMounted(loadTable)
+  onMounted(async () => {
+    await loadTable()
+    const detailId = Number(props.initialDetailId)
+    if (Number.isInteger(detailId) && detailId > 0) {
+      await openDetail(detailId)
+    }
+  })
 </script>

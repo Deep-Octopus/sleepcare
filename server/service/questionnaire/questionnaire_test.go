@@ -230,12 +230,13 @@ func TestQuestionnaireReadAccessAndDefinitionHash(t *testing.T) {
 		{AuthorityID: 9801, RoleType: careclient.AuthorityRoleCareSteward, Active: true, Synthetic: true},
 		{AuthorityID: 9802, RoleType: careclient.AuthorityRoleClinician, Active: true, Synthetic: true},
 		{AuthorityID: 9803, RoleType: careclient.AuthorityRoleSupervisor, Active: true, Synthetic: true},
+		{AuthorityID: 9804, RoleType: careclient.AuthorityRoleContentAdmin, Active: true, Synthetic: true},
 	}
 	if err := db.Create(&profiles).Error; err != nil {
 		t.Fatal(err)
 	}
 	service := newTestService(db)
-	for _, role := range []uint{9802, 9803} {
+	for _, role := range []uint{9802, 9803, 9804} {
 		ctx := datascope.WithIdentity(context.Background(), &datascope.Identity{UserID: 9202, AuthorityID: role})
 		items, total, err := service.ListVersions(ctx, qreq.QuestionnaireVersionSearch{})
 		if err != nil || total != 1 || len(items) != 1 {

@@ -11,7 +11,7 @@ import (
 )
 
 func (s *CarePathService) ListPlanVersions(ctx context.Context, req pathreq.PlanVersionSearch) ([]pathres.PlanVersionSummary, int64, error) {
-	if _, err := accesspolicy.ResolveCareClient(ctx, s.db()); err != nil {
+	if _, err := accesspolicy.ResolvePlanContent(ctx, s.db()); err != nil {
 		return nil, 0, normalizeCareClientError(err)
 	}
 	query := s.db().WithContext(ctx).Model(&pathmodel.PlanTemplateVersion{}).
@@ -60,7 +60,7 @@ func (s *CarePathService) ListPlanVersions(ctx context.Context, req pathreq.Plan
 }
 
 func (s *CarePathService) GetPlanVersion(ctx context.Context, id uint) (pathres.PlanVersionDetail, error) {
-	if _, err := accesspolicy.ResolveCareClient(ctx, s.db()); err != nil {
+	if _, err := accesspolicy.ResolvePlanContent(ctx, s.db()); err != nil {
 		return pathres.PlanVersionDetail{}, normalizeCareClientError(err)
 	}
 	value, err := s.loadTemplate(ctx, s.db(), id)

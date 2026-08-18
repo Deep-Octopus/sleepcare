@@ -27,6 +27,7 @@
 - `casework.md`: 规则命中到关注事项、员工工作台、追加行动、统一待办、状态机、责任权限、幂等与受控补偿
 - `supervision.md`: 实时汇总、不可变历史版本、复核投影、上级指导/介入、责任链与管理范围
 - `notification.md`: 通知请求/尝试、标准回执、补发、异常待办、任务联系记录与测试 adapter
+- `phase-one-access-control.md`: 阶段一四角色菜单、按钮、Casbin、DataScope、责任关系、内容只读边界与隐藏详情路由收敛
 
 ## 命名建议
 

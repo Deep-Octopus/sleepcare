@@ -345,6 +345,13 @@
 
   defineOptions({ name: 'CareTasks' })
 
+  const props = defineProps({
+    initialDetailId: {
+      type: [String, Number],
+      default: ''
+    }
+  })
+
   const btnAuth = useBtnAuth()
   const dayOptions = ['D1', 'D2', 'D3', 'D4', 'D5']
   const executionOptions = [
@@ -523,5 +530,11 @@
     ? new Date(value).toLocaleString('zh-CN', { hour12: false })
     : '-'
 
-  onMounted(loadTable)
+  onMounted(async () => {
+    await loadTable()
+    const detailId = Number(props.initialDetailId)
+    if (Number.isInteger(detailId) && detailId > 0) {
+      await openDetail(detailId)
+    }
+  })
 </script>

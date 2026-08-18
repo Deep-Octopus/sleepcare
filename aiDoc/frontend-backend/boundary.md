@@ -36,7 +36,7 @@
 - `GET /care/questionnaire-versions/{id}` 返回同一版本摘要，并追加 `questions`、`rules`、`definitionSchemaVersion` 和 `replacesVersionId`。
 - 题目顺序字段统一为 `order`；校验定义使用 `validationSchemaVersion` 和 JSON 对象 `validation`。
 - 规则使用 `lifecycleStatus`、`reviewRecord`、`condition`、`attentionLevel`、`reasonSnapshot`、`recipients` 和 `dedupKeyTemplate`。
-- 两个接口只允许医护和上级医师角色；前端 `CareQuestionnaires` 页面只读，不提供内容发布或答卷提交。
+- 两个接口允许医护、上级医师和内容管理员；前端 `CareQuestionnaires` 页面只读，不提供内容发布或答卷提交。
 - 答卷写侧是后端 Go 服务边界，P1-03 不注册 HTTP 接口；P1-05 接入前不得从前端绕过该边界。
 
 ## P1-04 OSA 路径、计划与任务契约
@@ -51,7 +51,7 @@
 - 任务始终分别返回 `executionStatus`、由后端时钟派生的 `timingStatus`、`reviewStatus`；前端不得把提交、复核和时效合并成单一状态。
 - D1 冻结 `questionnaireVersionId=9401` 与规则版本 `[9501]`；D2–D5 的 `questionnaireVersionId=null`、规则列表为空。所有 P1-04 运行夹具均为 `CARE_CLIENT`，通知策略固定 `DISABLED`。
 - 任务开放事件名严格使用 P1-01 契约的 `TaskOpened`；计划状态事件与任务开放事件都在同一业务事务中写入审计时间线和共享 `outbox_events`。
-- 管家、医护、上级可读计划版本和责任范围任务；只有当前责任管家/医护可预览、启动、暂停、恢复。上级在 P1-04 为只读，普通管理员与缺身份请求 fail-closed。
+- 管家、医护、上级和内容管理员可读计划版本；内容管理员不能读取客户计划或任务。只有当前责任管家/医护可预览、启动、暂停、恢复；上级运行态只读，普通管理员与缺身份请求 fail-closed。
 
 ## P1-05 移动端受限访问与提交契约
 
@@ -101,3 +101,13 @@
 - `POST /care/tasks/{id}/contact-records` 要求任务 `expectedVersion`、`PHONE|OFFLINE|OTHER`、实际联系结果和带时区发生时间；成功只增加任务版本并追加时间线，不改变执行状态。
 - 通知列表允许管家、医护和上级按责任/管理范围读取；补发仅当前责任管家，联系记录仅当前责任管家或医护。前端按钮不可替代后端责任关系校验。
 - 阶段一 adapter 不访问网络，不接收手机号或通知正文。失败/未知形成统一送达异常待办；同一逻辑请求重试不重复建活动待办，也不改写 D1–D5。
+
+## P1-10 完整权限、菜单与数据隔离契约
+
+- P1-10 不新增 HTTP 接口；它在所有阶段一模块登记完成后，以显式白名单收敛四类员工角色的菜单、按钮和 Casbin 策略。
+- 员工菜单固定为工作台、康养用户、执行管理、内容管理和督导中心。内容管理员只收到内容管理下的问卷版本与 OSA 方案；不收到客户、执行、通知或督导路由。
+- `CareClientDetail`、`CareTaskDetail`、`CareAttentionCaseDetail` 和 `CareReviewDetail` 是隐藏动态路由，分别用 `activeName` 指向所属列表；四个组件名稳定且唯一。
+- 默认首页必须是角色已授权的可见叶子：管家/医护为 `CareWorkbench`，上级为 `CareDailySummaries`，内容管理员为 `CareQuestionnaires`。
+- 问卷版本只读允许医护、上级和内容管理员；方案版本只读允许管家、医护、上级和内容管理员。内容管理员仍被客户与所有运行态服务拒绝。
+- 动态菜单与按钮只控制导航和操作可见性。手工输入路由后，后端仍依次要求员工身份、Casbin、DataScope、领域角色和当前责任关系。
+- 固定角色的权限初始化会移除陈旧授权并幂等重建；系统管理角色 `888` 不因可管理 RBAC 而获得 `/care/**` 业务数据权限。

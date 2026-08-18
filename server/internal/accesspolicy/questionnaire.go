@@ -14,9 +14,8 @@ type QuestionnaireDecision struct {
 	RoleType string
 }
 
-// ResolveQuestionnaire fails closed. Content preview is intentionally limited
-// to clinician and supervisor roles; care stewards and unmapped admins are not
-// questionnaire content reviewers in P1-03.
+// ResolveQuestionnaire fails closed. Questionnaire content is available to
+// clinician, supervisor, and content-administrator roles only.
 func ResolveQuestionnaire(ctx context.Context, db *gorm.DB) (*QuestionnaireDecision, error) {
 	id, ok := datascope.FromContext(ctx)
 	if !ok || id == nil || id.IsSystem || id.UserID == 0 || id.AuthorityID == 0 {
@@ -29,7 +28,9 @@ func ResolveQuestionnaire(ctx context.Context, db *gorm.DB) (*QuestionnaireDecis
 	if err != nil {
 		return nil, questionnaire.NewForbiddenError("当前角色未获问卷预览授权")
 	}
-	if profile.RoleType != careclient.AuthorityRoleClinician && profile.RoleType != careclient.AuthorityRoleSupervisor {
+	if profile.RoleType != careclient.AuthorityRoleClinician &&
+		profile.RoleType != careclient.AuthorityRoleSupervisor &&
+		profile.RoleType != careclient.AuthorityRoleContentAdmin {
 		return nil, questionnaire.NewForbiddenError("当前业务角色未获问卷预览授权")
 	}
 	return &QuestionnaireDecision{Identity: id, RoleType: profile.RoleType}, nil

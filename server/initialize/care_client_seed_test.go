@@ -42,7 +42,22 @@ func TestEnsureCareClientSyntheticFixturesIsIdempotentAndDoesNotGrantAdmin(t *te
 	assertCount(&caremodel.CareAssignment{}, 4)
 	assertCount(&caremodel.ConsentRecord{}, 1)
 	assertCount(&caremodel.CareOrgUnitProfile{}, 4)
-	assertCount(&caremodel.CareAuthorityProfile{}, 3)
+	assertCount(&caremodel.CareAuthorityProfile{}, 4)
+
+	var contentProfile caremodel.CareAuthorityProfile
+	if err := db.Where("authority_id = ?", phaseOneContentAdminRole).First(&contentProfile).Error; err != nil {
+		t.Fatal(err)
+	}
+	if contentProfile.RoleType != caremodel.AuthorityRoleContentAdmin || !contentProfile.Active || !contentProfile.Synthetic {
+		t.Fatalf("content administrator profile differs: %+v", contentProfile)
+	}
+	var contentUser system.SysUser
+	if err := db.First(&contentUser, phaseOneContentAdminAID).Error; err != nil {
+		t.Fatal(err)
+	}
+	if contentUser.AuthorityId != phaseOneContentAdminRole || contentUser.Username != "test_content_admin_a" {
+		t.Fatalf("content administrator fixture differs: %+v", contentUser)
+	}
 
 	var adminMenus int64
 	if err := db.Model(&system.SysAuthorityMenu{}).Where("sys_authority_authority_id = ?", "888").Count(&adminMenus).Error; err != nil {
