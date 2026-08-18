@@ -259,11 +259,11 @@ func TestPauseResumeKeepsWindowsAndOnlyOpensDueTasksAfterResume(t *testing.T) {
 	if err = db.WithContext(ctx).Where("plan_instance_id = ?", started.PlanInstanceID).Order("sort ASC").Find(&before).Error; err != nil {
 		t.Fatal(err)
 	}
-	paused, err := service.PausePlan(ctx, started.PlanInstanceID, "pause", pathreq.PlanStateAction{ExpectedVersion: 1, Reason: "合成暂停验证"})
+	paused, err := service.PausePlan(ctx, started.PlanInstanceID, "pause", pathreq.PlanStateAction{ExpectedVersion: 1, Reason: "测试暂停验证"})
 	if err != nil || paused.Status != pathmodel.EnrollmentPaused {
 		t.Fatalf("pause=%+v err=%v", paused, err)
 	}
-	pausedReplay, err := service.PausePlan(ctx, started.PlanInstanceID, "pause", pathreq.PlanStateAction{ExpectedVersion: 1, Reason: "合成暂停验证"})
+	pausedReplay, err := service.PausePlan(ctx, started.PlanInstanceID, "pause", pathreq.PlanStateAction{ExpectedVersion: 1, Reason: "测试暂停验证"})
 	if err != nil || pausedReplay != paused {
 		t.Fatalf("idempotent pause replay=%+v err=%v", pausedReplay, err)
 	}
@@ -278,7 +278,7 @@ func TestPauseResumeKeepsWindowsAndOnlyOpensDueTasksAfterResume(t *testing.T) {
 	if whilePaused.ExecutionStatus != pathmodel.ExecutionScheduled {
 		t.Fatalf("paused plan opened D2: %+v", whilePaused)
 	}
-	resumed, err := service.ResumePlan(ctx, started.PlanInstanceID, "resume", pathreq.PlanStateAction{ExpectedVersion: 2, Reason: "合成恢复验证"})
+	resumed, err := service.ResumePlan(ctx, started.PlanInstanceID, "resume", pathreq.PlanStateAction{ExpectedVersion: 2, Reason: "测试恢复验证"})
 	if err != nil || resumed.Status != pathmodel.EnrollmentActive || resumed.Version != 3 {
 		t.Fatalf("resume=%+v err=%v", resumed, err)
 	}
@@ -371,7 +371,7 @@ func TestPreviewRejectsTamperedPathAndTaskDefinitions(t *testing.T) {
 	t.Run("path hash", func(t *testing.T) {
 		service, db, clock, ctx := newCarePathTestService(t)
 		if err := db.WithContext(datascope.WithSystem(context.Background())).Model(&pathmodel.PathDefinitionVersion{}).
-			Where("id = ?", 200).Update("title", "被篡改的合成路径").Error; err != nil {
+			Where("id = ?", 200).Update("title", "被篡改的测试路径").Error; err != nil {
 			t.Fatal(err)
 		}
 		_, err := service.PreviewPlan(ctx, 301, "tampered-path", pathreq.PreviewPlan{PlanTemplateVersionID: 201, AnchorAt: clock.value})
@@ -383,7 +383,7 @@ func TestPreviewRejectsTamperedPathAndTaskDefinitions(t *testing.T) {
 	t.Run("task hash", func(t *testing.T) {
 		service, db, clock, ctx := newCarePathTestService(t)
 		if err := db.WithContext(datascope.WithSystem(context.Background())).Model(&pathmodel.PlanTaskDefinition{}).
-			Where("id = ?", 210).Update("title", "被篡改的合成任务").Error; err != nil {
+			Where("id = ?", 210).Update("title", "被篡改的测试任务").Error; err != nil {
 			t.Fatal(err)
 		}
 		_, err := service.PreviewPlan(ctx, 301, "tampered-task", pathreq.PreviewPlan{PlanTemplateVersionID: 201, AnchorAt: clock.value})
@@ -442,7 +442,7 @@ func TestPlanWritesRequireCurrentStewardOrClinicianResponsibility(t *testing.T) 
 	clinicianAssignment := caremodel.CareAssignment{
 		CareClientID: 301, OrganizationID: 10, TeamID: 10, AssigneeID: 2,
 		RoleType: caremodel.AssignmentRoleClinician, ValidFrom: clock.value.Add(-time.Hour),
-		Reason: "合成医护责任关系", Synthetic: true, DeptId: 10, CreatedBy: 3,
+		Reason: "测试医护责任关系", Synthetic: true, DeptId: 10, CreatedBy: 3,
 	}
 	if err := db.WithContext(datascope.WithSystem(context.Background())).Create(&clinicianAssignment).Error; err != nil {
 		t.Fatal(err)
@@ -536,7 +536,7 @@ func TestRuntimeQueriesAndCommandsExcludeNonSyntheticRows(t *testing.T) {
 	}
 	task := pathmodel.TaskInstance{
 		GVA_MODEL: global.GVA_MODEL{ID: 804}, PlanInstanceID: plan.ID, CareClientID: 301,
-		TaskDefinitionID: 210, DayCode: "D1", Title: "非合成任务", Sort: 1,
+		TaskDefinitionID: 210, DayCode: "D1", Title: "非测试任务", Sort: 1,
 		ExecutionRole: pathmodel.ExecutionRoleCareClient, ExecutionStatus: pathmodel.ExecutionScheduled,
 		ReviewStatus: pathmodel.ReviewNotRequired, OpenAt: clock.value, DueAt: clock.value.Add(11 * time.Hour),
 		BoundRuleVersionIDsJSON: datatypes.JSON([]byte("[]")), LateSubmissionPolicy: pathmodel.LateSubmissionDeny,
@@ -564,7 +564,7 @@ func TestRuntimeQueriesAndCommandsExcludeNonSyntheticRows(t *testing.T) {
 	if _, err = service.GetTask(ctx, task.ID); carePathCode(err) != pathmodel.CodeAccessScopeDenied {
 		t.Fatalf("non-synthetic task detail should fail closed, got %v", err)
 	}
-	if _, err = service.PausePlan(ctx, plan.ID, "pause-non-synthetic", pathreq.PlanStateAction{ExpectedVersion: 1, Reason: "合成边界验证"}); carePathCode(err) != pathmodel.CodeAccessScopeDenied {
+	if _, err = service.PausePlan(ctx, plan.ID, "pause-non-synthetic", pathreq.PlanStateAction{ExpectedVersion: 1, Reason: "测试边界验证"}); carePathCode(err) != pathmodel.CodeAccessScopeDenied {
 		t.Fatalf("non-synthetic plan action should fail closed, got %v", err)
 	}
 	if err = service.ReconcilePlanTasks(systemCtx, plan.ID); carePathCode(err) != pathmodel.CodeResourceNotFound {
@@ -597,7 +597,7 @@ func newCarePathTestService(t *testing.T) (*CarePathService, *gorm.DB, *mutableC
 		t.Fatal(err)
 	}
 	client := caremodel.CareClient{
-		GVA_MODEL: global.GVA_MODEL{ID: 301}, DisplayCode: "SYN-CLIENT-301", DisplayName: "[合成] 测试用户",
+		GVA_MODEL: global.GVA_MODEL{ID: 301}, DisplayCode: "SYN-CLIENT-301", DisplayName: "[测试] 测试用户",
 		OrganizationID: 10, Status: caremodel.ClientStatusActive, SensitivityLevel: caremodel.SensitivitySensitive,
 		Synthetic: true, Version: 1, DeptId: 10, CreatedBy: 1,
 	}
@@ -607,7 +607,7 @@ func newCarePathTestService(t *testing.T) (*CarePathService, *gorm.DB, *mutableC
 	assignment := caremodel.CareAssignment{
 		CareClientID: client.ID, OrganizationID: 10, TeamID: 10, AssigneeID: 1,
 		RoleType: caremodel.AssignmentRoleCareSteward, ValidFrom: fixed.Add(-time.Hour),
-		Reason: "合成测试责任关系", Synthetic: true, DeptId: 10, CreatedBy: 3,
+		Reason: "固定测试责任关系", Synthetic: true, DeptId: 10, CreatedBy: 3,
 	}
 	if err := db.WithContext(systemCtx).Create(&assignment).Error; err != nil {
 		t.Fatal(err)
@@ -620,7 +620,7 @@ func seedTestDefinition(t *testing.T, db *gorm.DB, fixed time.Time) {
 	t.Helper()
 	path := pathmodel.PathDefinitionVersion{
 		GVA_MODEL: global.GVA_MODEL{ID: 200}, Code: p1PathCode, Version: p1PathVersion,
-		Title: "合成路径", Purpose: "合成软件测试", Status: pathmodel.LifecyclePublished,
+		Title: "测试路径", Purpose: "测试软件测试", Status: pathmodel.LifecyclePublished,
 		UsageScope: pathmodel.UsageScopeTestOnly, Synthetic: true, ReviewType: pathmodel.ReviewTypeEngineering,
 		ReviewedBy: 3, ReviewedAt: &fixed, PublishedAt: &fixed, DefinitionHash: "test", RowVersion: 1,
 	}
@@ -634,7 +634,7 @@ func seedTestDefinition(t *testing.T, db *gorm.DB, fixed time.Time) {
 	path.DefinitionHash = pathHash
 	template := pathmodel.PlanTemplateVersion{
 		GVA_MODEL: global.GVA_MODEL{ID: 201}, PathDefinitionVersionID: path.ID,
-		Code: p1PlanTemplateCode, Version: p1PlanTemplateVersion, Title: "合成计划", Purpose: "合成软件测试",
+		Code: p1PlanTemplateCode, Version: p1PlanTemplateVersion, Title: "测试计划", Purpose: "测试软件测试",
 		Status: pathmodel.LifecyclePublished, UsageScope: pathmodel.UsageScopeTestOnly,
 		Synthetic: true, ReviewType: pathmodel.ReviewTypeEngineering, ReviewedAt: &fixed, PublishedAt: &fixed,
 		ReviewedBy:           3,
@@ -646,7 +646,7 @@ func seedTestDefinition(t *testing.T, db *gorm.DB, fixed time.Time) {
 	for i := 0; i < 5; i++ {
 		definition := pathmodel.PlanTaskDefinition{
 			GVA_MODEL: global.GVA_MODEL{ID: uint(210 + i)}, PlanTemplateVersionID: template.ID,
-			DayCode: fmt.Sprintf("D%d", i+1), Title: fmt.Sprintf("D%d 合成任务", i+1), Sort: i + 1,
+			DayCode: fmt.Sprintf("D%d", i+1), Title: fmt.Sprintf("D%d 测试任务", i+1), Sort: i + 1,
 			ExecutionRole: pathmodel.ExecutionRoleCareClient, OpenOffsetSeconds: int64(i) * 24 * 60 * 60,
 			DueOffsetSeconds:        int64(i)*24*60*60 + 11*60*60,
 			BoundRuleVersionIDsJSON: datatypes.JSON([]byte("[]")), NotificationPolicy: pathmodel.NotificationPolicyDisabled,

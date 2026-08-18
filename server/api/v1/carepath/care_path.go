@@ -18,7 +18,7 @@ type CarePathApi struct{}
 
 // ListPlanVersions
 // @Tags CarePath
-// @Summary 分页获取合成 OSA 计划模板版本
+// @Summary 分页获取测试 OSA 计划模板版本
 // @Security ApiKeyAuth
 // @Produce application/json
 // @Param page query int false "页码"
@@ -26,7 +26,7 @@ type CarePathApi struct{}
 // @Param keyword query string false "编码、版本或标题"
 // @Param status query string false "生命周期状态"
 // @Param usageScope query string false "使用范围"
-// @Param synthetic query bool false "是否合成版本"
+// @Param synthetic query bool false "是否测试版本"
 // @Success 200 {object} commonres.Response{data=commonres.PageResult{list=[]pathres.PlanVersionSummary},msg=string}
 // @Failure 403 {object} commonres.Response
 // @Router /care/plan-versions [get]
@@ -47,7 +47,7 @@ func (a *CarePathApi) ListPlanVersions(c *gin.Context) {
 
 // GetPlanVersion
 // @Tags CarePath
-// @Summary 获取合成 OSA 计划模板版本详情
+// @Summary 获取测试 OSA 计划模板版本详情
 // @Security ApiKeyAuth
 // @Produce application/json
 // @Param id path int true "计划模板版本ID"
@@ -69,13 +69,13 @@ func (a *CarePathApi) GetPlanVersion(c *gin.Context) {
 
 // PreviewPlan
 // @Tags CarePath
-// @Summary 按固定模板版本和 anchorAt 预览合成 D1-D5
+// @Summary 按固定模板版本和 anchorAt 预览测试 D1-D5
 // @Security ApiKeyAuth
 // @Accept application/json
 // @Produce application/json
 // @Param id path int true "康养用户ID"
 // @Param Idempotency-Key header string true "幂等键"
-// @Param data body pathreq.PreviewPlan true "模板版本和合成锚点"
+// @Param data body pathreq.PreviewPlan true "模板版本和测试锚点"
 // @Success 200 {object} commonres.Response{data=pathres.PlanPreview,msg=string}
 // @Failure 403 {object} commonres.Response
 // @Router /care/clients/{id}/plan-previews [post]
@@ -99,7 +99,7 @@ func (a *CarePathApi) PreviewPlan(c *gin.Context) {
 
 // StartPlan
 // @Tags CarePath
-// @Summary 根据已确认预览幂等启动合成计划
+// @Summary 根据已确认预览幂等启动测试计划
 // @Security ApiKeyAuth
 // @Accept application/json
 // @Produce application/json
@@ -151,7 +151,7 @@ func (a *CarePathApi) ListClientPlans(c *gin.Context) {
 
 // PausePlan
 // @Tags CarePath
-// @Summary 追加原因并按 KEEP_WINDOWS 暂停合成计划
+// @Summary 追加原因并按 KEEP_WINDOWS 暂停测试计划
 // @Security ApiKeyAuth
 // @Accept application/json
 // @Produce application/json
@@ -167,7 +167,7 @@ func (a *CarePathApi) PausePlan(c *gin.Context) {
 
 // ResumePlan
 // @Tags CarePath
-// @Summary 追加原因并按 KEEP_WINDOWS 恢复合成计划
+// @Summary 追加原因并按 KEEP_WINDOWS 恢复测试计划
 // @Security ApiKeyAuth
 // @Accept application/json
 // @Produce application/json

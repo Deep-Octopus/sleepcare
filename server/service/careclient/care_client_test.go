@@ -41,10 +41,10 @@ func newCareServiceTest(t *testing.T) (*CareClientService, *gorm.DB) {
 	systemCtx := datascope.WithSystem(context.Background())
 	active := true
 	departments := []system.SysDepartment{
-		{GVA_MODEL: modelID(testOrgA), Name: "[合成] 机构A", Status: &active},
-		{GVA_MODEL: modelID(testTeamA), Name: "[合成] 团队A", ParentId: testOrgA, Status: &active},
-		{GVA_MODEL: modelID(testOrgB), Name: "[合成] 机构B", Status: &active},
-		{GVA_MODEL: modelID(testTeamB), Name: "[合成] 团队B", ParentId: testOrgB, Status: &active},
+		{GVA_MODEL: modelID(testOrgA), Name: "[测试] 机构A", Status: &active},
+		{GVA_MODEL: modelID(testTeamA), Name: "[测试] 团队A", ParentId: testOrgA, Status: &active},
+		{GVA_MODEL: modelID(testOrgB), Name: "[测试] 机构B", Status: &active},
+		{GVA_MODEL: modelID(testTeamB), Name: "[测试] 团队B", ParentId: testOrgB, Status: &active},
 	}
 	if err := db.WithContext(systemCtx).Create(&departments).Error; err != nil {
 		t.Fatal(err)
@@ -89,17 +89,17 @@ func TestCareClientAccessPolicyIsFailClosedAndResponsibilityScoped(t *testing.T)
 	systemCtx := datascope.WithSystem(context.Background())
 	teamA, teamB := uint(testTeamA), uint(testTeamB)
 	clients := []caremodel.CareClient{
-		{DisplayCode: "SYN-A1", DisplayName: "[合成] A1", OrganizationID: testOrgA, TeamID: &teamA, Status: caremodel.ClientStatusActive, Synthetic: true, Version: 1, DeptId: testTeamA},
-		{DisplayCode: "SYN-A2", DisplayName: "[合成] A2", OrganizationID: testOrgA, TeamID: &teamA, Status: caremodel.ClientStatusActive, Synthetic: true, Version: 1, DeptId: testTeamA},
-		{DisplayCode: "SYN-B1", DisplayName: "[合成] B1", OrganizationID: testOrgB, TeamID: &teamB, Status: caremodel.ClientStatusActive, Synthetic: true, Version: 1, DeptId: testTeamB},
+		{DisplayCode: "SYN-A1", DisplayName: "[测试] A1", OrganizationID: testOrgA, TeamID: &teamA, Status: caremodel.ClientStatusActive, Synthetic: true, Version: 1, DeptId: testTeamA},
+		{DisplayCode: "SYN-A2", DisplayName: "[测试] A2", OrganizationID: testOrgA, TeamID: &teamA, Status: caremodel.ClientStatusActive, Synthetic: true, Version: 1, DeptId: testTeamA},
+		{DisplayCode: "SYN-B1", DisplayName: "[测试] B1", OrganizationID: testOrgB, TeamID: &teamB, Status: caremodel.ClientStatusActive, Synthetic: true, Version: 1, DeptId: testTeamB},
 	}
 	if err := db.WithContext(systemCtx).Create(&clients).Error; err != nil {
 		t.Fatal(err)
 	}
 	assignments := []caremodel.CareAssignment{
-		{CareClientID: clients[0].ID, OrganizationID: testOrgA, TeamID: testTeamA, AssigneeID: testStewardA, RoleType: caremodel.AssignmentRoleCareSteward, ValidFrom: testNow.Add(-time.Hour), Reason: "合成", Synthetic: true, DeptId: testTeamA},
-		{CareClientID: clients[1].ID, OrganizationID: testOrgA, TeamID: testTeamA, AssigneeID: testStewardA2, RoleType: caremodel.AssignmentRoleCareSteward, ValidFrom: testNow.Add(-time.Hour), Reason: "合成", Synthetic: true, DeptId: testTeamA},
-		{CareClientID: clients[2].ID, OrganizationID: testOrgB, TeamID: testTeamB, AssigneeID: testStewardB, RoleType: caremodel.AssignmentRoleCareSteward, ValidFrom: testNow.Add(-time.Hour), Reason: "合成", Synthetic: true, DeptId: testTeamB},
+		{CareClientID: clients[0].ID, OrganizationID: testOrgA, TeamID: testTeamA, AssigneeID: testStewardA, RoleType: caremodel.AssignmentRoleCareSteward, ValidFrom: testNow.Add(-time.Hour), Reason: "测试", Synthetic: true, DeptId: testTeamA},
+		{CareClientID: clients[1].ID, OrganizationID: testOrgA, TeamID: testTeamA, AssigneeID: testStewardA2, RoleType: caremodel.AssignmentRoleCareSteward, ValidFrom: testNow.Add(-time.Hour), Reason: "测试", Synthetic: true, DeptId: testTeamA},
+		{CareClientID: clients[2].ID, OrganizationID: testOrgB, TeamID: testTeamB, AssigneeID: testStewardB, RoleType: caremodel.AssignmentRoleCareSteward, ValidFrom: testNow.Add(-time.Hour), Reason: "测试", Synthetic: true, DeptId: testTeamB},
 	}
 	if err := db.WithContext(systemCtx).Create(&assignments).Error; err != nil {
 		t.Fatal(err)
@@ -130,7 +130,7 @@ func TestCareClientWritesAreIdempotentVersionedAndAppendHistory(t *testing.T) {
 	service, db := newCareServiceTest(t)
 	ctx := identityContext(testSupervisor, roleSupervisor, testOrgA, datascope.ScopeDeptAndChild, []uint{testOrgA, testTeamA})
 	teamA := uint(testTeamA)
-	createReq := carereq.CreateCareClient{DisplayCode: "SYN-NEW", DisplayName: "[合成] 新用户", OrganizationID: testOrgA, TeamID: &teamA, Synthetic: true}
+	createReq := carereq.CreateCareClient{DisplayCode: "SYN-NEW", DisplayName: "[测试] 新用户", OrganizationID: testOrgA, TeamID: &teamA, Synthetic: true}
 	created, err := service.Create(ctx, "create-key", createReq)
 	if err != nil {
 		t.Fatal(err)
@@ -140,7 +140,7 @@ func TestCareClientWritesAreIdempotentVersionedAndAppendHistory(t *testing.T) {
 		t.Fatalf("idempotent replay = %+v err=%v, want %+v", replayed, err, created)
 	}
 	changed := createReq
-	changed.DisplayName = "[合成] 另一个请求"
+	changed.DisplayName = "[测试] 另一个请求"
 	if _, err = service.Create(ctx, "create-key", changed); !isDomainCode(err, caremodel.CodeIdempotencyConflict) {
 		t.Fatalf("different payload with same key should conflict, got %v", err)
 	}
@@ -149,11 +149,11 @@ func TestCareClientWritesAreIdempotentVersionedAndAppendHistory(t *testing.T) {
 	if err = db.WithContext(datascope.WithSystem(context.Background())).Create(&realClient).Error; err != nil {
 		t.Fatal(err)
 	}
-	if _, err = service.Update(ctx, realClient.ID, "real-update", carereq.UpdateCareClient{ExpectedVersion: 1, DisplayName: "[合成] 不应写入", TeamID: &teamA, Status: caremodel.ClientStatusActive}); !isDomainCode(err, caremodel.CodeOperationNotAllowed) {
+	if _, err = service.Update(ctx, realClient.ID, "real-update", carereq.UpdateCareClient{ExpectedVersion: 1, DisplayName: "[测试] 不应写入", TeamID: &teamA, Status: caremodel.ClientStatusActive}); !isDomainCode(err, caremodel.CodeOperationNotAllowed) {
 		t.Fatalf("P1-02 must reject writes to non-synthetic clients, got %v", err)
 	}
 
-	initial := caremodel.CareAssignment{CareClientID: created.CareClientID, OrganizationID: testOrgA, TeamID: testTeamA, AssigneeID: testStewardA, RoleType: caremodel.AssignmentRoleCareSteward, ValidFrom: testNow.Add(-time.Hour), Reason: "合成初始责任", Synthetic: true, DeptId: testTeamA}
+	initial := caremodel.CareAssignment{CareClientID: created.CareClientID, OrganizationID: testOrgA, TeamID: testTeamA, AssigneeID: testStewardA, RoleType: caremodel.AssignmentRoleCareSteward, ValidFrom: testNow.Add(-time.Hour), Reason: "测试初始责任", Synthetic: true, DeptId: testTeamA}
 	if err = db.WithContext(datascope.WithSystem(context.Background())).Create(&initial).Error; err != nil {
 		t.Fatal(err)
 	}
@@ -161,7 +161,7 @@ func TestCareClientWritesAreIdempotentVersionedAndAppendHistory(t *testing.T) {
 	if _, err = service.CreateAssignment(ctx, created.CareClientID, "cross-team", crossTeamReq); !isDomainCode(err, caremodel.CodeOperationNotAllowed) {
 		t.Fatalf("P1-02 must reject cross-team assignment, got %v", err)
 	}
-	assignmentReq := carereq.CreateAssignment{ExpectedVersion: 1, RoleType: caremodel.AssignmentRoleCareSteward, AssigneeID: testStewardA2, TeamID: testTeamA, ValidFrom: testNow, ReplacesAssignmentID: &initial.ID, Reason: "合成测试转交"}
+	assignmentReq := carereq.CreateAssignment{ExpectedVersion: 1, RoleType: caremodel.AssignmentRoleCareSteward, AssigneeID: testStewardA2, TeamID: testTeamA, ValidFrom: testNow, ReplacesAssignmentID: &initial.ID, Reason: "固定测试转交"}
 	assigned, err := service.CreateAssignment(ctx, created.CareClientID, "assignment-key", assignmentReq)
 	if err != nil || assigned.Version != 2 {
 		t.Fatalf("assignment result=%+v err=%v", assigned, err)
@@ -176,7 +176,7 @@ func TestCareClientWritesAreIdempotentVersionedAndAppendHistory(t *testing.T) {
 		t.Fatalf("assignment history count=%d, want 2", count)
 	}
 
-	consentReq := carereq.CreateConsentRecord{ExpectedVersion: 2, ConsentType: caremodel.ConsentTypeSyntheticTestParticipation, Action: caremodel.ConsentActionGrant, TextVersion: "SYNTHETIC-V1", OccurredAt: testNow, Source: caremodel.ConsentSourceStaffRecorded, Reason: "合成测试授权"}
+	consentReq := carereq.CreateConsentRecord{ExpectedVersion: 2, ConsentType: caremodel.ConsentTypeSyntheticTestParticipation, Action: caremodel.ConsentActionGrant, TextVersion: "SYNTHETIC-V1", OccurredAt: testNow, Source: caremodel.ConsentSourceStaffRecorded, Reason: "固定测试授权"}
 	consented, err := service.CreateConsent(ctx, created.CareClientID, "consent-key", consentReq)
 	if err != nil || consented.Version != 3 {
 		t.Fatalf("consent result=%+v err=%v", consented, err)

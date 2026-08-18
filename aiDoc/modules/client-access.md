@@ -47,6 +47,8 @@
 
 `care.client-access` 配置会话时长、Cookie 名称/路径/Secure 和允许来源。固定本地数据只创建一个客户端账户，不创建、保存或打印可用 grant。服务测试在内存中创建短期 bearer 值。
 
+固定业务时钟启用时，session 剩余寿命仍以业务时钟计算；API 将这个时长映射到当前 HTTP 时钟的 Cookie `Expires`，不直接把固定日期写入浏览器 Cookie。
+
 ## 验证边界
 
 阶段内执行 clientaccess 服务测试、日志脱敏测试、相关初始化测试、Swagger 契约检查及前端 lint/build。页面点触留到阶段集中验收或用户另行明确要求。

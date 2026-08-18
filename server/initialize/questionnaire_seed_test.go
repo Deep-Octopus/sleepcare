@@ -66,7 +66,7 @@ func TestEnsureQuestionnaireSyntheticFixturesIsStrictIdempotentAndRoleLimited(t 
 		assertSeedCount(t, db, &adapter.CasbinRule{}, "v0 = ? AND v1 LIKE ?", []any{role, "/care/questionnaire-%"}, 0)
 	}
 
-	if err := db.Model(&qmodel.QuestionnaireQuestion{}).Where("id = ?", syntheticQuestionID).Update("title", "被篡改的合成题目").Error; err != nil {
+	if err := db.Model(&qmodel.QuestionnaireQuestion{}).Where("id = ?", syntheticQuestionID).Update("title", "被篡改的测试题目").Error; err != nil {
 		t.Fatal(err)
 	}
 	if err := ensureQuestionnaireSyntheticFixtures(db); err == nil {
@@ -76,7 +76,7 @@ func TestEnsureQuestionnaireSyntheticFixturesIsStrictIdempotentAndRoleLimited(t 
 	if err := db.Where("id = ?", syntheticQuestionID).First(&question).Error; err != nil {
 		t.Fatal(err)
 	}
-	if question.Title != "被篡改的合成题目" {
+	if question.Title != "被篡改的测试题目" {
 		t.Fatal("strict seed unexpectedly overwrote existing content")
 	}
 }

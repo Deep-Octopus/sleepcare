@@ -1,0 +1,36 @@
+package config
+
+import (
+	"testing"
+	"time"
+)
+
+func TestCareNowUsesFixtureInstantOnlyWhenGateIsEnabled(t *testing.T) {
+	const fixtureNow = "2026-08-18T10:00:00+08:00"
+	want, err := time.Parse(time.RFC3339, fixtureNow)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	enabled := Care{SyntheticFixturesEnabled: true, FixtureNow: fixtureNow}
+	if got := enabled.Now(); !got.Equal(want) {
+		t.Fatalf("enabled fixture time = %s, want %s", got, want)
+	}
+
+	disabled := Care{SyntheticFixturesEnabled: false, FixtureNow: fixtureNow}
+	before := time.Now().Add(-time.Second)
+	got := disabled.Now()
+	after := time.Now().Add(time.Second)
+	if got.Before(before) || got.After(after) {
+		t.Fatalf("disabled fixture gate returned non-system time %s", got)
+	}
+}
+
+func TestCareValidateRejectsMalformedFixtureInstant(t *testing.T) {
+	if err := (Care{FixtureNow: "2026-08-18 10:00"}).Validate(); err == nil {
+		t.Fatal("malformed fixture time was accepted")
+	}
+	if err := (Care{FixtureNow: "2026-08-18T10:00:00+08:00"}).Validate(); err != nil {
+		t.Fatalf("valid fixture time was rejected: %v", err)
+	}
+}

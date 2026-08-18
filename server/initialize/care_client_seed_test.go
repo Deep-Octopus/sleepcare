@@ -3,6 +3,7 @@ package initialize
 import (
 	"context"
 	"testing"
+	"time"
 
 	adapter "github.com/casbin/gorm-adapter/v3"
 	"github.com/flipped-aurora/gin-vue-admin/server/internal/testutil"
@@ -43,6 +44,18 @@ func TestEnsureCareClientSyntheticFixturesIsIdempotentAndDoesNotGrantAdmin(t *te
 	assertCount(&caremodel.ConsentRecord{}, 1)
 	assertCount(&caremodel.CareOrgUnitProfile{}, 4)
 	assertCount(&caremodel.CareAuthorityProfile{}, 4)
+
+	notificationFinalAt := time.Date(2026, time.August, 18, 8, 56, 0, 0, time.FixedZone("CST", 8*60*60))
+	var activeScenarioBStewards int64
+	if err := db.Model(&caremodel.CareAssignment{}).
+		Where("care_client_id = ? AND role_type = ? AND valid_from <= ? AND cancelled_at IS NULL", 20002, caremodel.AssignmentRoleCareSteward, notificationFinalAt).
+		Where("valid_until IS NULL OR valid_until > ?", notificationFinalAt).
+		Count(&activeScenarioBStewards).Error; err != nil {
+		t.Fatal(err)
+	}
+	if activeScenarioBStewards != 1 {
+		t.Fatalf("scenario B needs one active steward at the failure instant, got %d", activeScenarioBStewards)
+	}
 
 	var contentProfile caremodel.CareAuthorityProfile
 	if err := db.Where("authority_id = ?", phaseOneContentAdminRole).First(&contentProfile).Error; err != nil {

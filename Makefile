@@ -20,6 +20,8 @@ tools:
 up: init
 	docker compose up -d --build --wait
 	@./scripts/init-database.sh
+	@docker compose restart server
+	@docker compose up -d --wait
 
 down:
 	docker compose down

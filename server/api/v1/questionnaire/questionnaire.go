@@ -28,7 +28,7 @@ var _ qres.QuestionnaireVersionDetail
 // @Param keyword query string false "编码、版本或标题"
 // @Param status query string false "生命周期状态"
 // @Param usageScope query string false "使用范围"
-// @Param synthetic query bool false "是否合成版本"
+// @Param synthetic query bool false "是否测试版本"
 // @Success 200 {object} commonres.Response{data=commonres.PageResult{list=[]qres.QuestionnaireVersionSummary},msg=string}
 // @Failure 403 {object} commonres.Response
 // @Router /care/questionnaire-versions [get]

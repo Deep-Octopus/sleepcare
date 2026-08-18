@@ -24,7 +24,7 @@ func (s *QuestionnaireService) now() time.Time {
 	if s.Now != nil {
 		return s.Now()
 	}
-	return time.Now()
+	return global.GVA_CONFIG.Care.Now()
 }
 
 func (s *QuestionnaireService) syntheticFixturesEnabled() bool {

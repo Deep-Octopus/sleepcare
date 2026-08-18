@@ -49,15 +49,21 @@ func (a *ClientAccessApi) Redeem(c *gin.Context) {
 	if name == "" {
 		name = "gva_client_session"
 	}
-	maxAge := int(time.Until(data.ExpiresAt).Seconds())
-	if maxAge < 1 {
-		maxAge = 1
-	}
+	maxAge, cookieExpiresAt := clientSessionCookieWindow(global.GVA_CONFIG.Care.Now(), data.ExpiresAt, time.Now())
 	http.SetCookie(c.Writer, &http.Cookie{
-		Name: name, Value: sessionToken, Path: path, MaxAge: maxAge, Expires: data.ExpiresAt,
+		Name: name, Value: sessionToken, Path: path, MaxAge: maxAge, Expires: cookieExpiresAt,
 		HttpOnly: true, Secure: global.GVA_CONFIG.Care.ClientAccess.CookieSecure, SameSite: http.SameSiteLaxMode,
 	})
 	commonres.OkWithDetailed(data, "访问已建立", c)
+}
+
+func clientSessionCookieWindow(businessNow, sessionExpiresAt, wallNow time.Time) (int, time.Time) {
+	remaining := sessionExpiresAt.Sub(businessNow)
+	maxAge := int(remaining.Seconds())
+	if maxAge < 1 {
+		maxAge = 1
+	}
+	return maxAge, wallNow.Add(time.Duration(maxAge) * time.Second)
 }
 
 // ListTasks

@@ -96,13 +96,13 @@ func seedSyntheticQuestionnaire(tx *gorm.DB) error {
 	})
 	recipients := mustJSON([]string{"ASSIGNED_CLINICIAN", "SUPERVISOR"})
 	versionDefinition := qmodel.VersionDefinition{
-		Code: "SYN-WORKFLOW-CHECK", Version: "1.0.0-synthetic", Title: "合成流程验证问卷（非医疗内容）",
+		Code: "SYN-WORKFLOW-CHECK", Version: "1.0.0-synthetic", Title: "测试流程验证问卷（非医疗内容）",
 		Purpose:    "仅验证打开、草稿、提交、规则命中和人工闭环的软件行为。",
 		UsageScope: qmodel.UsageScopeTestOnly, Synthetic: true, ProductionEnabled: false,
 		ExpectedMinutes: 1, DefinitionSchemaVersion: "v1",
 		Questions: []qmodel.QuestionDefinition{{
 			Code: "synthetic_process_confirmation", Type: qmodel.QuestionTypeSingleChoice,
-			Title: "是否继续完成本次合成流程验证？（非医疗问题）", Required: true, Sort: 1,
+			Title: "是否继续完成本次测试流程验证？（非医疗问题）", Required: true, Sort: 1,
 			ValidationSchemaVersion: "v1", Validation: validation,
 			Options: []qmodel.OptionDefinition{
 				{Code: "CONTINUE_WITHOUT_ATTENTION", Label: "继续验证，不创建人工关注流程", Sort: 1},
@@ -116,9 +116,9 @@ func seedSyntheticQuestionnaire(tx *gorm.DB) error {
 	}
 	ruleDefinition := qmodel.RuleDefinition{
 		QuestionnaireVersionID: syntheticQuestionnaireVersionID, Code: "SYN-MANUAL-ATTENTION-FLOW", Version: "1.0.0-synthetic",
-		Title: "合成人工关注流程规则（非医疗规则）", UsageScope: qmodel.UsageScopeTestOnly, Synthetic: true, ProductionEnabled: false,
+		Title: "测试人工关注流程规则（非医疗规则）", UsageScope: qmodel.UsageScopeTestOnly, Synthetic: true, ProductionEnabled: false,
 		ConditionSchemaVersion: "v1", Condition: condition, AttentionLevel: "SYNTHETIC_ATTENTION",
-		ReasonSnapshot: "合成流程选项请求创建人工关注链；不表示健康风险或诊断。",
+		ReasonSnapshot: "测试流程选项请求创建人工关注链；不表示健康风险或诊断。",
 		Recipients:     recipients, DedupKeyTemplate: "submission:{submissionId}:rule:9501",
 	}
 	ruleHash, err := qmodel.HashDefinition(ruleDefinition)
@@ -130,7 +130,7 @@ func seedSyntheticQuestionnaire(tx *gorm.DB) error {
 		Code:      versionDefinition.Code, Version: versionDefinition.Version, Title: versionDefinition.Title, Purpose: versionDefinition.Purpose,
 		Status: qmodel.LifecyclePublished, UsageScope: qmodel.UsageScopeTestOnly, Synthetic: true, ProductionEnabled: false,
 		ReviewType: qmodel.ReviewTypeEngineering, ReviewedBy: syntheticSupervisorAID, ReviewedAt: &fixed,
-		ReviewNote: "合成软件流程工程复核；不包含医疗审批。", ExpectedMinutes: 1, PublishedAt: &fixed,
+		ReviewNote: "测试软件流程工程复核；不包含医疗审批。", ExpectedMinutes: 1, PublishedAt: &fixed,
 		DefinitionSchemaVersion: "v1", DefinitionHash: versionHash, RowVersion: 1,
 	}
 	var existing qmodel.QuestionnaireVersion
@@ -165,7 +165,7 @@ func seedSyntheticQuestionnaire(tx *gorm.DB) error {
 		Code: ruleDefinition.Code, Version: ruleDefinition.Version, Title: ruleDefinition.Title,
 		Status: qmodel.LifecyclePublished, UsageScope: qmodel.UsageScopeTestOnly, Synthetic: true, ProductionEnabled: false,
 		ReviewType: qmodel.ReviewTypeEngineering, ReviewedBy: syntheticSupervisorAID, ReviewedAt: &fixed,
-		ReviewNote: "合成规则工程复核；不包含正式医疗审批。", ConditionSchemaVersion: "v1",
+		ReviewNote: "测试规则工程复核；不包含正式医疗审批。", ConditionSchemaVersion: "v1",
 		ConditionJSON: datatypes.JSON(condition), AttentionLevel: ruleDefinition.AttentionLevel,
 		ReasonSnapshot: ruleDefinition.ReasonSnapshot, RecipientsJSON: datatypes.JSON(recipients),
 		DedupKeyTemplate: ruleDefinition.DedupKeyTemplate, PublishedAt: &fixed, DefinitionHash: ruleHash, RowVersion: 1,

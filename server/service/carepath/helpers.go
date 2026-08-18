@@ -75,7 +75,7 @@ func (s *CarePathService) validateTemplate(ctx context.Context, value loadedTemp
 		!value.Template.Synthetic || !value.Path.Synthetic || value.Template.ProductionEnabled || value.Path.ProductionEnabled ||
 		value.Template.ReviewType != pathmodel.ReviewTypeEngineering || value.Path.ReviewType != pathmodel.ReviewTypeEngineering ||
 		!s.syntheticFixturesEnabled() {
-		return pathmodel.NewDomainError(pathmodel.CodeContentDisabled, "P1-04 只允许启用受控合成计划定义")
+		return pathmodel.NewDomainError(pathmodel.CodeContentDisabled, "P1-04 只允许启用受控测试计划定义")
 	}
 	if value.Template.PauseStrategy != pathmodel.PauseStrategyKeepWindows || value.Template.LateSubmissionPolicy != pathmodel.LateSubmissionDeny {
 		return pathmodel.NewDomainError(pathmodel.CodeContentDisabled, "计划模板启用了 P1-04 尚未批准的调度策略")
@@ -98,10 +98,10 @@ func (s *CarePathService) validateTemplate(ctx context.Context, value loadedTemp
 		return pathmodel.NewDomainError(pathmodel.CodeContentDisabled, "路径版本定义哈希校验失败")
 	}
 	if len(value.Tasks) != 5 {
-		return pathmodel.NewDomainError(pathmodel.CodeContentDisabled, "合成 OSA 计划必须严格包含 D1–D5 五项任务")
+		return pathmodel.NewDomainError(pathmodel.CodeContentDisabled, "测试 OSA 计划必须严格包含 D1–D5 五项任务")
 	}
 	if len(value.Dependencies) != 0 {
-		return pathmodel.NewDomainError(pathmodel.CodeContentDisabled, "P1-04 合成计划不启用任务依赖")
+		return pathmodel.NewDomainError(pathmodel.CodeContentDisabled, "P1-04 测试计划不启用任务依赖")
 	}
 	document, err := definitionDocument(value)
 	if err != nil {
@@ -124,7 +124,7 @@ func (s *CarePathService) validateTemplate(ctx context.Context, value loadedTemp
 		expectedDue := expectedOpen + 11*60*60
 		if task.DayCode != expectedDay || task.Sort != index+1 || task.OpenOffsetSeconds != expectedOpen ||
 			task.DueOffsetSeconds != expectedDue || task.ExpiresOffsetSeconds != nil {
-			return pathmodel.NewDomainError(pathmodel.CodeContentDisabled, "P1-04 合成计划的 D1–D5 日序或时间窗无效")
+			return pathmodel.NewDomainError(pathmodel.CodeContentDisabled, "P1-04 测试计划的 D1–D5 日序或时间窗无效")
 		}
 		if task.ExecutionRole != pathmodel.ExecutionRoleCareClient || task.NotificationPolicy != pathmodel.NotificationPolicyDisabled {
 			return pathmodel.NewDomainError(pathmodel.CodeContentDisabled, "P1-04 运行夹具只允许 CARE_CLIENT 任务且通知必须禁用")
@@ -211,7 +211,7 @@ func (s *CarePathService) decisionAndClient(ctx context.Context, clientID uint, 
 		return nil, client, err
 	}
 	if client.Status != caremodel.ClientStatusActive || !client.Synthetic {
-		return nil, client, pathmodel.NewDomainError(pathmodel.CodeCareClientUnavailable, "P1-04 只允许为活动的合成康养用户操作计划")
+		return nil, client, pathmodel.NewDomainError(pathmodel.CodeCareClientUnavailable, "P1-04 只允许为活动的测试康养用户操作计划")
 	}
 	return decision, client, nil
 }

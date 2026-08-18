@@ -47,6 +47,7 @@ func TestBindEnvironmentOverridesWhenPersistedConfigLacksComposeKeys(t *testing.
 	t.Setenv("GVA_REDIS_ADDR", "redis:6379")
 	t.Setenv("GVA_REDIS_PASSWORD", "runtime-secret")
 	t.Setenv("GVA_SYSTEM_USE_REDIS", "true")
+	t.Setenv("GVA_CARE_FIXTURE_NOW", "2026-08-18T10:00:00+08:00")
 
 	v := viper.New()
 	v.SetConfigType("yaml")
@@ -64,6 +65,9 @@ func TestBindEnvironmentOverridesWhenPersistedConfigLacksComposeKeys(t *testing.
 		System struct {
 			UseRedis bool `mapstructure:"use-redis"`
 		} `mapstructure:"system"`
+		Care struct {
+			FixtureNow string `mapstructure:"fixture-now"`
+		} `mapstructure:"care"`
 	}
 	if err := v.Unmarshal(&got); err != nil {
 		t.Fatalf("unmarshal config: %v", err)
@@ -73,5 +77,8 @@ func TestBindEnvironmentOverridesWhenPersistedConfigLacksComposeKeys(t *testing.
 	}
 	if !got.System.UseRedis {
 		t.Fatal("system.use-redis was not bound when absent from YAML")
+	}
+	if got.Care.FixtureNow != "2026-08-18T10:00:00+08:00" {
+		t.Fatalf("care fixture time override = %q", got.Care.FixtureNow)
 	}
 }

@@ -37,7 +37,7 @@ func (s *CareClientService) now() time.Time {
 	if s.Now != nil {
 		return s.Now()
 	}
-	return time.Now()
+	return global.GVA_CONFIG.Care.Now()
 }
 
 func (s *CareClientService) List(ctx context.Context, req carereq.CareClientSearch) ([]careres.CareClientSummary, int64, error) {
@@ -140,7 +140,7 @@ func (s *CareClientService) Create(ctx context.Context, key string, req carereq.
 		return careres.ActionResult{}, err
 	}
 	if !req.Synthetic {
-		return careres.ActionResult{}, caremodel.NewDomainError(caremodel.CodeOperationNotAllowed, "P1-02 仅允许合成数据")
+		return careres.ActionResult{}, caremodel.NewDomainError(caremodel.CodeOperationNotAllowed, "P1-02 仅允许测试数据")
 	}
 	deptID, err := s.validateOrgTeam(ctx, decision, req.OrganizationID, req.TeamID)
 	if err != nil {
@@ -170,8 +170,8 @@ func (s *CareClientService) Update(ctx context.Context, id uint, key string, req
 	if req.ExpectedVersion == 0 || strings.TrimSpace(req.DisplayName) == "" || !validClientStatus(req.Status) {
 		return careres.ActionResult{}, caremodel.NewDomainError(caremodel.CodeInvalidArgument, "expectedVersion、显示名称和有效状态必填")
 	}
-	if !strings.Contains(req.DisplayName, "合成") {
-		return careres.ActionResult{}, caremodel.NewDomainError(caremodel.CodeInvalidArgument, "显示名称必须醒目标注为合成数据")
+	if !strings.Contains(req.DisplayName, "测试") {
+		return careres.ActionResult{}, caremodel.NewDomainError(caremodel.CodeInvalidArgument, "显示名称必须醒目标注为测试数据")
 	}
 	if !sameOptionalID(client.TeamID, req.TeamID) {
 		var openAssignmentCount int64
@@ -281,7 +281,7 @@ func (s *CareClientService) CreateConsent(ctx context.Context, id uint, key stri
 	if !client.Synthetic || req.ExpectedVersion == 0 || req.ConsentType != caremodel.ConsentTypeSyntheticTestParticipation ||
 		(req.Action != caremodel.ConsentActionGrant && req.Action != caremodel.ConsentActionWithdraw) || strings.TrimSpace(req.TextVersion) == "" || req.OccurredAt.IsZero() ||
 		req.Source != caremodel.ConsentSourceStaffRecorded {
-		return careres.ActionResult{}, caremodel.NewDomainError(caremodel.CodeInvalidArgument, "仅允许为合成测试记录有效的授权或撤回事实")
+		return careres.ActionResult{}, caremodel.NewDomainError(caremodel.CodeInvalidArgument, "仅允许为固定测试记录有效的授权或撤回事实")
 	}
 	operation := fmt.Sprintf("CREATE_CONSENT:%d", id)
 	commandCtx := withDepartment(ctx, client.DeptId)
@@ -378,7 +378,7 @@ func (s *CareClientService) manageableClient(ctx context.Context, id uint) (*acc
 		return nil, client, caremodel.NewDomainError(caremodel.CodeResourceNotFound, "康养用户不存在或不在可见范围")
 	}
 	if err == nil && !client.Synthetic {
-		return nil, client, caremodel.NewDomainError(caremodel.CodeOperationNotAllowed, "P1-02 仅允许维护合成数据")
+		return nil, client, caremodel.NewDomainError(caremodel.CodeOperationNotAllowed, "P1-02 仅允许维护测试数据")
 	}
 	return decision, client, err
 }
@@ -562,8 +562,8 @@ func validateCreate(req carereq.CreateCareClient) error {
 	if strings.TrimSpace(req.DisplayCode) == "" || strings.TrimSpace(req.DisplayName) == "" || req.OrganizationID == 0 {
 		return caremodel.NewDomainError(caremodel.CodeInvalidArgument, "显示编码、显示名称和机构必填")
 	}
-	if !strings.HasPrefix(strings.ToUpper(strings.TrimSpace(req.DisplayCode)), "SYN-") || !strings.Contains(req.DisplayName, "合成") {
-		return caremodel.NewDomainError(caremodel.CodeInvalidArgument, "显示编码和名称必须醒目标注为合成数据")
+	if !strings.HasPrefix(strings.ToUpper(strings.TrimSpace(req.DisplayCode)), "SYN-") || !strings.Contains(req.DisplayName, "测试") {
+		return caremodel.NewDomainError(caremodel.CodeInvalidArgument, "显示编码和名称必须醒目标注为测试数据")
 	}
 	return nil
 }

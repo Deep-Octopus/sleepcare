@@ -84,6 +84,86 @@ func TestDailySummaryRealtimeSnapshotRevisionAndScope(t *testing.T) {
 	}
 }
 
+func TestDailySummaryRealtimeIncludesFactsAtCurrentBusinessInstant(t *testing.T) {
+	fixture := newSupervisionFixture(t)
+	var client caremodel.CareClient
+	if err := fixture.db.WithContext(fixture.systemCtx).
+		Where("organization_id = ?", 100).
+		Order("id ASC").
+		First(&client).Error; err != nil {
+		t.Fatal(err)
+	}
+
+	submittedAt := fixture.now
+	task := supervisionTask(
+		client.ID,
+		101,
+		90,
+		fixture.now.Add(-time.Hour),
+		fixture.now.Add(time.Hour),
+		pathmodel.ExecutionSubmitted,
+		&submittedAt,
+	)
+	if err := fixture.db.WithContext(fixture.systemCtx).Create(&task).Error; err != nil {
+		t.Fatal(err)
+	}
+
+	clinicianID := uint(43)
+	attentionCase := supervisionCase(
+		client.ID,
+		101,
+		90,
+		caseworkmodel.CaseStatusWaitingCollaboration,
+		&clinicianID,
+		fixture.now,
+	)
+	if err := fixture.db.WithContext(fixture.systemCtx).Create(&attentionCase).Error; err != nil {
+		t.Fatal(err)
+	}
+
+	list, _, err := fixture.service.ListDailySummaries(
+		fixture.supervisorCtx,
+		supervisionreq.DailySummarySearch{},
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(list) != 1 {
+		t.Fatalf("unexpected realtime page: %+v", list)
+	}
+	assertSummaryMetrics(
+		t,
+		list[0].ServedClients,
+		list[0].DueTasks,
+		list[0].SubmittedTasks,
+		list[0].DeliveryIssues,
+		list[0].OpenAttentionCases,
+		list[0].ResolvedAttentionCases,
+		list[0].ReviewRequired,
+		1,
+		3,
+		2,
+		1,
+		2,
+		1,
+		1,
+	)
+}
+
+func TestSummaryBoundsAdvancesCurrentCutoffByPersistedPrecision(t *testing.T) {
+	now := time.Date(2026, time.August, 18, 10, 0, 0, 0, summaryLocation)
+	start, cutoff, err := summaryBounds(now, now)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !start.Equal(time.Date(2026, time.August, 18, 0, 0, 0, 0, summaryLocation)) {
+		t.Fatalf("unexpected start: %s", start)
+	}
+	if cutoff.Sub(now) != time.Millisecond {
+		t.Fatalf("cutoff=%s want=%s", cutoff, now.Add(time.Millisecond))
+	}
+}
+
 func TestGuidanceIsIdempotentAppendOnlyAndKeepsTodoOpen(t *testing.T) {
 	fixture := newSupervisionFixture(t)
 	req := supervisionreq.Guidance{

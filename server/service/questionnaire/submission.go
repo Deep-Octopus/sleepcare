@@ -264,7 +264,7 @@ func validateSubmissionCommand(binding FrozenTaskBinding, command RecordSubmissi
 		return qmodel.NewDomainError(qmodel.CodeInvalidArgument, "冻结任务绑定缺少必要标识")
 	}
 	if !binding.Synthetic {
-		return qmodel.NewDomainError(qmodel.CodeOperationNotAllowed, "P1-03 仅允许合成任务绑定")
+		return qmodel.NewDomainError(qmodel.CodeOperationNotAllowed, "P1-03 仅允许测试任务绑定")
 	}
 	if strings.TrimSpace(command.IdempotencyKey) == "" || command.ActorID == 0 {
 		return qmodel.NewDomainError(qmodel.CodeInvalidArgument, "幂等键和操作者必填")
@@ -293,7 +293,7 @@ func validateQuestionnaireGate(version qmodel.QuestionnaireVersion, binding Froz
 	}
 	if version.UsageScope == qmodel.UsageScopeTestOnly {
 		if !fixturesEnabled || !version.Synthetic || version.ProductionEnabled || version.ReviewType != qmodel.ReviewTypeEngineering || !binding.Synthetic {
-			return qmodel.NewDomainError(qmodel.CodeContentDisabled, "测试问卷版本不满足合成环境门禁")
+			return qmodel.NewDomainError(qmodel.CodeContentDisabled, "测试问卷版本不满足测试环境门禁")
 		}
 		return nil
 	}

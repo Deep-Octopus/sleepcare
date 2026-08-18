@@ -17,7 +17,7 @@ type Clock interface {
 
 type SystemClock struct{}
 
-func (SystemClock) Now() time.Time { return time.Now() }
+func (SystemClock) Now() time.Time { return global.GVA_CONFIG.Care.Now() }
 
 type FixedClock struct{ Time time.Time }
 

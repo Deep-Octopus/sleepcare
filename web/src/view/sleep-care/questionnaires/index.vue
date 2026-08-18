@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="mb-4 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-amber-900">
-      <div class="font-semibold">合成定义只读预览</div>
+      <div class="font-semibold">测试定义只读预览</div>
       <div class="mt-1 text-sm leading-6">
         P1-03 仅展示软件流程验证用问卷与关注规则版本。页面不采集答卷、不表达医疗判断，也不启用短信或面向用户的 AI。
       </div>
@@ -16,7 +16,7 @@
           <el-input
             v-model="searchForm.keyword"
             clearable
-            placeholder="搜索合成问卷定义"
+            placeholder="搜索测试问卷定义"
             @keyup.enter="search"
           />
         </el-form-item>
@@ -82,7 +82,7 @@
                 type="warning"
                 effect="plain"
               >
-                合成
+                测试
               </el-tag>
               <el-tag
                 :type="scope.row.productionEnabled ? 'danger' : 'info'"
@@ -154,7 +154,7 @@
           class="mb-4"
           type="warning"
           :closable="false"
-          title="该定义只用于合成软件验收，不得解释为医疗问卷或关注建议。"
+          title="该定义只用于测试软件验收，不得解释为医疗问卷或关注建议。"
         />
 
         <el-descriptions
@@ -162,7 +162,7 @@
           border
         >
           <el-descriptions-item label="醒目标识">
-            <el-tag type="warning">合成定义</el-tag>
+            <el-tag type="warning">测试定义</el-tag>
           </el-descriptions-item>
           <el-descriptions-item label="生命周期">
             {{ lifecycleLabel(detail.lifecycleStatus) }}
@@ -285,7 +285,7 @@
               size="small"
               border
             >
-              <el-descriptions-item label="合成关注级别">
+              <el-descriptions-item label="测试关注级别">
                 {{ rule.attentionLevel }}
               </el-descriptions-item>
               <el-descriptions-item label="触发条件">

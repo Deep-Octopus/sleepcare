@@ -17,7 +17,7 @@ type Clock interface {
 
 type SystemClock struct{}
 
-func (SystemClock) Now() time.Time { return time.Now() }
+func (SystemClock) Now() time.Time { return global.GVA_CONFIG.Care.Now() }
 
 type FixedClock struct{ Time time.Time }
 
@@ -55,7 +55,11 @@ func (s *NotificationService) adapter() NotificationPort {
 	if s.Adapter != nil {
 		return s.Adapter
 	}
-	return DemoNotificationAdapter{Outcome: "UNKNOWN", Clock: s.Clock}
+	clock := s.Clock
+	if clock == nil {
+		clock = SystemClock{}
+	}
+	return DemoNotificationAdapter{Outcome: "UNKNOWN", Clock: clock}
 }
 
 func (s *NotificationService) fixturesEnabled() bool {

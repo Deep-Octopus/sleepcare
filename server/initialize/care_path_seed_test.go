@@ -123,7 +123,7 @@ func TestEnsureCarePathSyntheticFixturesIsStrictIdempotentAndRoleLimited(t *test
 		t.Fatalf("seed overwrote runtime plan transition: %+v", transitionedPlan)
 	}
 
-	if err := db.Model(&pathmodel.PlanTaskDefinition{}).Where("id = ?", syntheticTaskDefinitionD1ID).Update("title", "被篡改的合成任务").Error; err != nil {
+	if err := db.Model(&pathmodel.PlanTaskDefinition{}).Where("id = ?", syntheticTaskDefinitionD1ID).Update("title", "被篡改的测试任务").Error; err != nil {
 		t.Fatal(err)
 	}
 	if err := ensureCarePathSyntheticFixtures(db); err == nil {
@@ -133,7 +133,7 @@ func TestEnsureCarePathSyntheticFixturesIsStrictIdempotentAndRoleLimited(t *test
 	if err := db.Where("id = ?", syntheticTaskDefinitionD1ID).First(&task).Error; err != nil {
 		t.Fatal(err)
 	}
-	if task.Title != "被篡改的合成任务" {
+	if task.Title != "被篡改的测试任务" {
 		t.Fatal("strict seed unexpectedly overwrote existing content")
 	}
 }

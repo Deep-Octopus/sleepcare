@@ -4072,7 +4072,7 @@ const docTemplate = `{
                 "tags": [
                     "CareClient"
                 ],
-                "summary": "新建合成康养用户",
+                "summary": "新建测试康养用户",
                 "parameters": [
                     {
                         "type": "string",
@@ -4082,7 +4082,7 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "合成康养用户公开资料",
+                        "description": "测试康养用户公开资料",
                         "name": "data",
                         "in": "body",
                         "required": true,
@@ -4190,7 +4190,7 @@ const docTemplate = `{
                 "tags": [
                     "CareClient"
                 ],
-                "summary": "更新合成康养用户公开资料",
+                "summary": "更新测试康养用户公开资料",
                 "parameters": [
                     {
                         "type": "integer",
@@ -4336,7 +4336,7 @@ const docTemplate = `{
                 "tags": [
                     "CareClient"
                 ],
-                "summary": "追加合成测试授权或撤回记录",
+                "summary": "追加固定测试授权或撤回记录",
                 "parameters": [
                     {
                         "type": "integer",
@@ -4464,7 +4464,7 @@ const docTemplate = `{
                 "tags": [
                     "CarePath"
                 ],
-                "summary": "根据已确认预览幂等启动合成计划",
+                "summary": "根据已确认预览幂等启动测试计划",
                 "parameters": [
                     {
                         "type": "integer",
@@ -4537,7 +4537,7 @@ const docTemplate = `{
                 "tags": [
                     "CarePath"
                 ],
-                "summary": "按固定模板版本和 anchorAt 预览合成 D1-D5",
+                "summary": "按固定模板版本和 anchorAt 预览测试 D1-D5",
                 "parameters": [
                     {
                         "type": "integer",
@@ -4554,7 +4554,7 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "模板版本和合成锚点",
+                        "description": "模板版本和测试锚点",
                         "name": "data",
                         "in": "body",
                         "required": true,
@@ -4897,7 +4897,7 @@ const docTemplate = `{
                 "tags": [
                     "CarePath"
                 ],
-                "summary": "追加原因并按 KEEP_WINDOWS 暂停合成计划",
+                "summary": "追加原因并按 KEEP_WINDOWS 暂停测试计划",
                 "parameters": [
                     {
                         "type": "integer",
@@ -4970,7 +4970,7 @@ const docTemplate = `{
                 "tags": [
                     "CarePath"
                 ],
-                "summary": "追加原因并按 KEEP_WINDOWS 恢复合成计划",
+                "summary": "追加原因并按 KEEP_WINDOWS 恢复测试计划",
                 "parameters": [
                     {
                         "type": "integer",
@@ -5040,7 +5040,7 @@ const docTemplate = `{
                 "tags": [
                     "CarePath"
                 ],
-                "summary": "分页获取合成 OSA 计划模板版本",
+                "summary": "分页获取测试 OSA 计划模板版本",
                 "parameters": [
                     {
                         "type": "integer",
@@ -5074,7 +5074,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "boolean",
-                        "description": "是否合成版本",
+                        "description": "是否测试版本",
                         "name": "synthetic",
                         "in": "query"
                     }
@@ -5138,7 +5138,7 @@ const docTemplate = `{
                 "tags": [
                     "CarePath"
                 ],
-                "summary": "获取合成 OSA 计划模板版本详情",
+                "summary": "获取测试 OSA 计划模板版本详情",
                 "parameters": [
                     {
                         "type": "integer",
@@ -5226,7 +5226,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "boolean",
-                        "description": "是否合成版本",
+                        "description": "是否测试版本",
                         "name": "synthetic",
                         "in": "query"
                     }
@@ -16530,6 +16530,9 @@ const docTemplate = `{
             "properties": {
                 "client-access": {
                     "$ref": "#/definitions/config.ClientAccess"
+                },
+                "fixture-now": {
+                    "type": "string"
                 },
                 "synthetic-fixtures-enabled": {
                     "type": "boolean"

@@ -35,11 +35,11 @@ const (
 var carePathAPIs = []system.SysApi{
 	{ApiGroup: "康养计划", Method: "GET", Path: "/care/plan-versions", Description: "获取计划模板版本列表"},
 	{ApiGroup: "康养计划", Method: "GET", Path: "/care/plan-versions/:id", Description: "获取计划模板版本详情"},
-	{ApiGroup: "康养计划", Method: "POST", Path: "/care/clients/:id/plan-previews", Description: "预览合成计划"},
-	{ApiGroup: "康养计划", Method: "POST", Path: "/care/clients/:id/plan-instances", Description: "幂等启动合成计划"},
+	{ApiGroup: "康养计划", Method: "POST", Path: "/care/clients/:id/plan-previews", Description: "预览测试计划"},
+	{ApiGroup: "康养计划", Method: "POST", Path: "/care/clients/:id/plan-instances", Description: "幂等启动测试计划"},
 	{ApiGroup: "康养计划", Method: "GET", Path: "/care/clients/:id/plan-instances", Description: "获取康养用户计划时间线"},
-	{ApiGroup: "康养计划", Method: "POST", Path: "/care/plan-instances/:id/pause", Description: "暂停合成计划"},
-	{ApiGroup: "康养计划", Method: "POST", Path: "/care/plan-instances/:id/resume", Description: "恢复合成计划"},
+	{ApiGroup: "康养计划", Method: "POST", Path: "/care/plan-instances/:id/pause", Description: "暂停测试计划"},
+	{ApiGroup: "康养计划", Method: "POST", Path: "/care/plan-instances/:id/resume", Description: "恢复测试计划"},
 	{ApiGroup: "康养任务", Method: "GET", Path: "/care/tasks", Description: "获取责任范围任务列表"},
 	{ApiGroup: "康养任务", Method: "GET", Path: "/care/tasks/:id", Description: "获取责任范围任务详情"},
 }
@@ -91,9 +91,9 @@ func ensureCarePathMetadata(db *gorm.DB) error {
 		buttons := []system.SysBaseMenuBtn{
 			{Name: "preview", Desc: "预览计划模板版本", SysBaseMenuID: planMenu.ID},
 			{Name: "viewDetail", Desc: "查看计划任务详情", SysBaseMenuID: taskMenu.ID},
-			{Name: "startPlan", Desc: "预览并启动合成计划", SysBaseMenuID: clientMenu.ID},
-			{Name: "pausePlan", Desc: "暂停合成计划", SysBaseMenuID: clientMenu.ID},
-			{Name: "resumePlan", Desc: "恢复合成计划", SysBaseMenuID: clientMenu.ID},
+			{Name: "startPlan", Desc: "预览并启动测试计划", SysBaseMenuID: clientMenu.ID},
+			{Name: "pausePlan", Desc: "暂停测试计划", SysBaseMenuID: clientMenu.ID},
+			{Name: "resumePlan", Desc: "恢复测试计划", SysBaseMenuID: clientMenu.ID},
 		}
 		for i := range buttons {
 			if err := tx.Where("name = ? AND sys_base_menu_id = ?", buttons[i].Name, buttons[i].SysBaseMenuID).
@@ -208,7 +208,7 @@ func syntheticPlanDefinitions() (syntheticPlanBundle, error) {
 		task := pathmodel.PlanTaskDefinition{
 			GVA_MODEL:             global.GVA_MODEL{ID: uint(syntheticTaskDefinitionD1ID + day - 1)},
 			PlanTemplateVersionID: syntheticPlanTemplateID, DayCode: fmt.Sprintf("D%d", day),
-			Title: fmt.Sprintf("D%d 合成计划节奏验证任务", day), Sort: day,
+			Title: fmt.Sprintf("D%d 测试计划节奏验证任务", day), Sort: day,
 			ExecutionRole:           pathmodel.ExecutionRoleCareClient,
 			OpenOffsetSeconds:       int64(day-1) * 24 * 60 * 60,
 			DueOffsetSeconds:        int64(day-1)*24*60*60 + 11*60*60,
@@ -216,7 +216,7 @@ func syntheticPlanDefinitions() (syntheticPlanBundle, error) {
 			NotificationPolicy:      pathmodel.NotificationPolicyDisabled,
 		}
 		if day == 1 {
-			task.Title = "D1 合成流程确认任务"
+			task.Title = "D1 测试流程确认任务"
 			task.QuestionnaireVersionID = &questionnaireID
 			task.BoundRuleVersionIDsJSON = append(datatypes.JSON(nil), d1Rules...)
 			task.ReviewRequired = true
@@ -240,7 +240,7 @@ func syntheticPlanDefinitions() (syntheticPlanBundle, error) {
 	}
 	planDocument := pathmodel.PlanDefinitionDocument{
 		PathCode: "OSA", Code: "SYN-OSA-D1-D5", Version: "1.0.0-synthetic",
-		Title:      "合成 OSA 流程验证计划（非医疗内容）",
+		Title:      "测试 OSA 流程验证计划（非医疗内容）",
 		Purpose:    "仅验证计划预览、幂等启动、D1–D5 时间窗和暂停恢复的软件行为。",
 		UsageScope: pathmodel.UsageScopeTestOnly, Synthetic: true, ProductionEnabled: false,
 		AnchorDefinition:     pathmodel.AnchorFirstValidSyntheticDeviceUse,
@@ -252,7 +252,7 @@ func syntheticPlanDefinitions() (syntheticPlanBundle, error) {
 		return syntheticPlanBundle{}, err
 	}
 	pathDefinition := pathmodel.PathDefinitionDocument{
-		Code: "OSA", Version: "1.0.0-synthetic", Title: "合成 OSA 软件流程路径（非医疗内容）",
+		Code: "OSA", Version: "1.0.0-synthetic", Title: "测试 OSA 软件流程路径（非医疗内容）",
 		Purpose: "仅用于阶段一软件验收。", UsageScope: pathmodel.UsageScopeTestOnly,
 		Synthetic: true, ProductionEnabled: false,
 	}
@@ -266,7 +266,7 @@ func syntheticPlanDefinitions() (syntheticPlanBundle, error) {
 		Status: pathmodel.LifecyclePublished, UsageScope: pathmodel.UsageScopeTestOnly,
 		Synthetic: true, ProductionEnabled: false, ReviewType: pathmodel.ReviewTypeEngineering,
 		ReviewedBy: syntheticSupervisorAID, ReviewedAt: &fixed,
-		ReviewNote: "合成软件流程工程复核；不包含医疗审批。", PublishedAt: &fixed,
+		ReviewNote: "测试软件流程工程复核；不包含医疗审批。", PublishedAt: &fixed,
 		DefinitionHash: pathHash, RowVersion: 1,
 	}
 	template := pathmodel.PlanTemplateVersion{
@@ -275,7 +275,7 @@ func syntheticPlanDefinitions() (syntheticPlanBundle, error) {
 		Status: pathmodel.LifecyclePublished, UsageScope: planDocument.UsageScope,
 		Synthetic: true, ProductionEnabled: false, ReviewType: pathmodel.ReviewTypeEngineering,
 		ReviewedBy: syntheticSupervisorAID, ReviewedAt: &fixed,
-		ReviewNote: "合成 D1–D5 调度工程复核；不包含医疗任务审批。", PublishedAt: &fixed,
+		ReviewNote: "测试 D1–D5 调度工程复核；不包含医疗任务审批。", PublishedAt: &fixed,
 		AnchorDefinition: planDocument.AnchorDefinition, LateSubmissionPolicy: planDocument.LateSubmissionPolicy,
 		PauseStrategy: planDocument.PauseStrategy, DefinitionSchemaVersion: planDocument.DefinitionSchemaVersion,
 		DefinitionHash: planHash, RowVersion: 1,

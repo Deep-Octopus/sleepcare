@@ -53,7 +53,7 @@ func TestComposeConfigKeepsSafeInitializationSemantics(t *testing.T) {
 	if cfg.System.DisableAutoMigrate {
 		t.Fatal("local compose requires auto-migrate until an explicit migration workflow exists")
 	}
-	if cfg.Care.SyntheticFixturesEnabled || cfg.Care.FixturePassword != "" {
+	if cfg.Care.SyntheticFixturesEnabled || cfg.Care.FixturePassword != "" || cfg.Care.FixtureNow != "" {
 		t.Fatal("compose template must keep synthetic fixtures disabled until Compose injects the local-only gate and password")
 	}
 	if !slices.Contains(cfg.Zap.FileOnlyModules, "http") || !slices.Contains(cfg.Zap.FileOnlyModules, "sql") {

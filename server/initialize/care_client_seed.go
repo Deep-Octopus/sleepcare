@@ -37,10 +37,10 @@ var careClientAPIs = []system.SysApi{
 	{ApiGroup: "康养用户", Method: "GET", Path: "/care/clients", Description: "获取康养用户列表"},
 	{ApiGroup: "康养用户", Method: "GET", Path: "/care/clients/:id", Description: "获取康养用户详情"},
 	{ApiGroup: "康养用户", Method: "GET", Path: "/care/client-options", Description: "获取康养用户维护选项"},
-	{ApiGroup: "康养用户", Method: "POST", Path: "/care/clients", Description: "新建合成康养用户"},
-	{ApiGroup: "康养用户", Method: "PUT", Path: "/care/clients/:id", Description: "更新合成康养用户"},
+	{ApiGroup: "康养用户", Method: "POST", Path: "/care/clients", Description: "新建测试康养用户"},
+	{ApiGroup: "康养用户", Method: "PUT", Path: "/care/clients/:id", Description: "更新测试康养用户"},
 	{ApiGroup: "康养用户", Method: "POST", Path: "/care/clients/:id/assignments", Description: "记录康养用户责任关系"},
-	{ApiGroup: "康养用户", Method: "POST", Path: "/care/clients/:id/consent-records", Description: "记录合成测试授权事实"},
+	{ApiGroup: "康养用户", Method: "POST", Path: "/care/clients/:id/consent-records", Description: "记录固定测试授权事实"},
 }
 
 // EnsureCareClientData keeps metadata available for already initialized GVA
@@ -79,10 +79,10 @@ func ensureCareClientMetadata(db *gorm.DB) error {
 		}
 		buttons := []system.SysBaseMenuBtn{
 			{Name: "viewDetail", Desc: "查看详情", SysBaseMenuID: leaf.ID},
-			{Name: "createClient", Desc: "新建合成康养用户", SysBaseMenuID: leaf.ID},
+			{Name: "createClient", Desc: "新建测试康养用户", SysBaseMenuID: leaf.ID},
 			{Name: "maintainClient", Desc: "维护公开资料", SysBaseMenuID: leaf.ID},
 			{Name: "assignCare", Desc: "记录责任关系", SysBaseMenuID: leaf.ID},
-			{Name: "recordConsent", Desc: "记录合成测试授权", SysBaseMenuID: leaf.ID},
+			{Name: "recordConsent", Desc: "记录固定测试授权", SysBaseMenuID: leaf.ID},
 		}
 		for i := range buttons {
 			if err := tx.Where("name = ? AND sys_base_menu_id = ?", buttons[i].Name, leaf.ID).Attrs(buttons[i]).FirstOrCreate(&buttons[i]).Error; err != nil {
@@ -118,10 +118,10 @@ func ensureCareClientSyntheticFixtures(db *gorm.DB, password string) error {
 func seedCareDepartments(tx *gorm.DB) error {
 	active := true
 	departments := []system.SysDepartment{
-		{GVA_MODEL: global.GVA_MODEL{ID: syntheticOrgAID}, Name: "[合成] 睡眠康养机构A", ParentId: 1, Ancestors: "0,1", Sort: 90, Status: &active},
-		{GVA_MODEL: global.GVA_MODEL{ID: syntheticOrgBID}, Name: "[合成] 睡眠康养机构B", ParentId: 1, Ancestors: "0,1", Sort: 91, Status: &active},
-		{GVA_MODEL: global.GVA_MODEL{ID: syntheticTeamAID}, Name: "[合成] 随访团队A", ParentId: syntheticOrgAID, Ancestors: "0,1,9001", Sort: 1, Status: &active},
-		{GVA_MODEL: global.GVA_MODEL{ID: syntheticTeamBID}, Name: "[合成] 随访团队B", ParentId: syntheticOrgBID, Ancestors: "0,1,9002", Sort: 1, Status: &active},
+		{GVA_MODEL: global.GVA_MODEL{ID: syntheticOrgAID}, Name: "[测试] 睡眠康养机构A", ParentId: 1, Ancestors: "0,1", Sort: 90, Status: &active},
+		{GVA_MODEL: global.GVA_MODEL{ID: syntheticOrgBID}, Name: "[测试] 睡眠康养机构B", ParentId: 1, Ancestors: "0,1", Sort: 91, Status: &active},
+		{GVA_MODEL: global.GVA_MODEL{ID: syntheticTeamAID}, Name: "[测试] 随访团队A", ParentId: syntheticOrgAID, Ancestors: "0,1,9001", Sort: 1, Status: &active},
+		{GVA_MODEL: global.GVA_MODEL{ID: syntheticTeamBID}, Name: "[测试] 随访团队B", ParentId: syntheticOrgBID, Ancestors: "0,1,9002", Sort: 1, Status: &active},
 	}
 	for i := range departments {
 		var existing system.SysDepartment
@@ -157,9 +157,9 @@ func seedCareAuthorities(tx *gorm.DB) error {
 	parentID := uint(888)
 	authorities := []system.SysAuthority{
 		{AuthorityId: phaseOneContentAdminRole, AuthorityName: "[测试] 内容管理员", ParentId: &parentID, DataScope: datascope.ScopeSelf, DefaultRouter: "CareQuestionnaires"},
-		{AuthorityId: syntheticStewardRole, AuthorityName: "[合成] 健康管家", ParentId: &parentID, DataScope: datascope.ScopeDept, DefaultRouter: "CareClients"},
-		{AuthorityId: syntheticClinicianRole, AuthorityName: "[合成] 一线医护", ParentId: &parentID, DataScope: datascope.ScopeDept, DefaultRouter: "CareClients"},
-		{AuthorityId: syntheticSupervisorRole, AuthorityName: "[合成] 上级医师", ParentId: &parentID, DataScope: datascope.ScopeDeptAndChild, DefaultRouter: "CareClients"},
+		{AuthorityId: syntheticStewardRole, AuthorityName: "[测试] 健康管家", ParentId: &parentID, DataScope: datascope.ScopeDept, DefaultRouter: "CareClients"},
+		{AuthorityId: syntheticClinicianRole, AuthorityName: "[测试] 一线医护", ParentId: &parentID, DataScope: datascope.ScopeDept, DefaultRouter: "CareClients"},
+		{AuthorityId: syntheticSupervisorRole, AuthorityName: "[测试] 上级医师", ParentId: &parentID, DataScope: datascope.ScopeDeptAndChild, DefaultRouter: "CareClients"},
 	}
 	profiles := []caremodel.CareAuthorityProfile{
 		{AuthorityID: phaseOneContentAdminRole, RoleType: caremodel.AuthorityRoleContentAdmin, Synthetic: true, Active: true},
@@ -191,11 +191,11 @@ func seedCareAuthorities(tx *gorm.DB) error {
 func seedCareUsers(tx *gorm.DB, password string) error {
 	users := []system.SysUser{
 		{GVA_MODEL: global.GVA_MODEL{ID: phaseOneContentAdminAID}, UUID: uuid.New(), Username: "test_content_admin_a", NickName: "[测试] 内容管理员甲", AuthorityId: phaseOneContentAdminRole, DeptId: syntheticOrgAID, Enable: 1},
-		{GVA_MODEL: global.GVA_MODEL{ID: syntheticStewardAID}, UUID: uuid.New(), Username: "syn_steward_a", NickName: "[合成] 管家甲", AuthorityId: syntheticStewardRole, DeptId: syntheticTeamAID, Enable: 1},
-		{GVA_MODEL: global.GVA_MODEL{ID: syntheticClinicianAID}, UUID: uuid.New(), Username: "syn_clinician_a", NickName: "[合成] 医护甲", AuthorityId: syntheticClinicianRole, DeptId: syntheticTeamAID, Enable: 1},
-		{GVA_MODEL: global.GVA_MODEL{ID: syntheticSupervisorAID}, UUID: uuid.New(), Username: "syn_supervisor_a", NickName: "[合成] 上级医师甲", AuthorityId: syntheticSupervisorRole, DeptId: syntheticOrgAID, Enable: 1},
-		{GVA_MODEL: global.GVA_MODEL{ID: syntheticStewardA2ID}, UUID: uuid.New(), Username: "syn_steward_a2", NickName: "[合成] 管家乙", AuthorityId: syntheticStewardRole, DeptId: syntheticTeamAID, Enable: 1},
-		{GVA_MODEL: global.GVA_MODEL{ID: syntheticStewardBID}, UUID: uuid.New(), Username: "syn_steward_b", NickName: "[合成] 跨机构管家", AuthorityId: syntheticStewardRole, DeptId: syntheticTeamBID, Enable: 1},
+		{GVA_MODEL: global.GVA_MODEL{ID: syntheticStewardAID}, UUID: uuid.New(), Username: "syn_steward_a", NickName: "[测试] 管家甲", AuthorityId: syntheticStewardRole, DeptId: syntheticTeamAID, Enable: 1},
+		{GVA_MODEL: global.GVA_MODEL{ID: syntheticClinicianAID}, UUID: uuid.New(), Username: "syn_clinician_a", NickName: "[测试] 医护甲", AuthorityId: syntheticClinicianRole, DeptId: syntheticTeamAID, Enable: 1},
+		{GVA_MODEL: global.GVA_MODEL{ID: syntheticSupervisorAID}, UUID: uuid.New(), Username: "syn_supervisor_a", NickName: "[测试] 上级医师甲", AuthorityId: syntheticSupervisorRole, DeptId: syntheticOrgAID, Enable: 1},
+		{GVA_MODEL: global.GVA_MODEL{ID: syntheticStewardA2ID}, UUID: uuid.New(), Username: "syn_steward_a2", NickName: "[测试] 管家乙", AuthorityId: syntheticStewardRole, DeptId: syntheticTeamAID, Enable: 1},
+		{GVA_MODEL: global.GVA_MODEL{ID: syntheticStewardBID}, UUID: uuid.New(), Username: "syn_steward_b", NickName: "[测试] 跨机构管家", AuthorityId: syntheticStewardRole, DeptId: syntheticTeamBID, Enable: 1},
 	}
 	passwordHash := utils.BcryptHash(password)
 	for i := range users {
@@ -287,11 +287,12 @@ func grantCareAccess(tx *gorm.DB, root, leaf system.SysBaseMenu, buttons []syste
 
 func seedCareClients(tx *gorm.DB) error {
 	fixed := time.Date(2026, time.August, 18, 9, 0, 0, 0, time.FixedZone("CST", 8*60*60))
+	assignmentValidFrom := time.Date(2026, time.August, 1, 0, 0, 0, 0, time.FixedZone("CST", 8*60*60))
 	teamA, teamB := uint(syntheticTeamAID), uint(syntheticTeamBID)
 	clients := []caremodel.CareClient{
-		{GVA_MODEL: global.GVA_MODEL{ID: 20001}, DisplayCode: "SYN-CLIENT-A001", DisplayName: "[合成] 康养用户甲", ContactMobile: "18800001001", ServiceReason: "合成测试：验证机构内责任关系与授权留痕", ServicePackageCode: "SYN-PACKAGE-A", OrganizationID: syntheticOrgAID, TeamID: &teamA, Status: caremodel.ClientStatusActive, SensitivityLevel: caremodel.SensitivitySensitive, Synthetic: true, Version: 1, DeptId: syntheticTeamAID, CreatedBy: syntheticSupervisorAID},
-		{GVA_MODEL: global.GVA_MODEL{ID: 20002}, DisplayCode: "SYN-CLIENT-A002", DisplayName: "[合成] 康养用户乙", ContactMobile: "18800001002", ServiceReason: "合成测试：验证同机构责任隔离", ServicePackageCode: "SYN-PACKAGE-A", OrganizationID: syntheticOrgAID, TeamID: &teamA, Status: caremodel.ClientStatusActive, SensitivityLevel: caremodel.SensitivitySensitive, Synthetic: true, Version: 1, DeptId: syntheticTeamAID, CreatedBy: syntheticSupervisorAID},
-		{GVA_MODEL: global.GVA_MODEL{ID: 20003}, DisplayCode: "SYN-CLIENT-B001", DisplayName: "[合成] 康养用户丙", ContactMobile: "18800002001", ServiceReason: "合成测试：验证跨机构不可见", ServicePackageCode: "SYN-PACKAGE-B", OrganizationID: syntheticOrgBID, TeamID: &teamB, Status: caremodel.ClientStatusActive, SensitivityLevel: caremodel.SensitivitySensitive, Synthetic: true, Version: 1, DeptId: syntheticTeamBID, CreatedBy: syntheticStewardBID},
+		{GVA_MODEL: global.GVA_MODEL{ID: 20001}, DisplayCode: "SYN-CLIENT-A001", DisplayName: "[测试] 康养用户甲", ContactMobile: "18800001001", ServiceReason: "固定测试：验证机构内责任关系与授权留痕", ServicePackageCode: "SYN-PACKAGE-A", OrganizationID: syntheticOrgAID, TeamID: &teamA, Status: caremodel.ClientStatusActive, SensitivityLevel: caremodel.SensitivitySensitive, Synthetic: true, Version: 1, DeptId: syntheticTeamAID, CreatedBy: syntheticSupervisorAID},
+		{GVA_MODEL: global.GVA_MODEL{ID: 20002}, DisplayCode: "SYN-CLIENT-A002", DisplayName: "[测试] 康养用户乙", ContactMobile: "18800001002", ServiceReason: "固定测试：验证同机构责任隔离", ServicePackageCode: "SYN-PACKAGE-A", OrganizationID: syntheticOrgAID, TeamID: &teamA, Status: caremodel.ClientStatusActive, SensitivityLevel: caremodel.SensitivitySensitive, Synthetic: true, Version: 1, DeptId: syntheticTeamAID, CreatedBy: syntheticSupervisorAID},
+		{GVA_MODEL: global.GVA_MODEL{ID: 20003}, DisplayCode: "SYN-CLIENT-B001", DisplayName: "[测试] 康养用户丙", ContactMobile: "18800002001", ServiceReason: "固定测试：验证跨机构不可见", ServicePackageCode: "SYN-PACKAGE-B", OrganizationID: syntheticOrgBID, TeamID: &teamB, Status: caremodel.ClientStatusActive, SensitivityLevel: caremodel.SensitivitySensitive, Synthetic: true, Version: 1, DeptId: syntheticTeamBID, CreatedBy: syntheticStewardBID},
 	}
 	for i := range clients {
 		var existing caremodel.CareClient
@@ -310,10 +311,10 @@ func seedCareClients(tx *gorm.DB) error {
 		}
 	}
 	assignments := []caremodel.CareAssignment{
-		{CareClientID: 20001, OrganizationID: syntheticOrgAID, TeamID: syntheticTeamAID, AssigneeID: syntheticStewardAID, RoleType: caremodel.AssignmentRoleCareSteward, ValidFrom: fixed, Reason: "合成测试初始责任关系", Synthetic: true, DeptId: syntheticTeamAID, CreatedBy: syntheticSupervisorAID},
-		{CareClientID: 20001, OrganizationID: syntheticOrgAID, TeamID: syntheticTeamAID, AssigneeID: syntheticClinicianAID, RoleType: caremodel.AssignmentRoleClinician, ValidFrom: fixed, Reason: "合成测试初始责任关系", Synthetic: true, DeptId: syntheticTeamAID, CreatedBy: syntheticSupervisorAID},
-		{CareClientID: 20002, OrganizationID: syntheticOrgAID, TeamID: syntheticTeamAID, AssigneeID: syntheticStewardA2ID, RoleType: caremodel.AssignmentRoleCareSteward, ValidFrom: fixed, Reason: "合成测试同机构责任隔离", Synthetic: true, DeptId: syntheticTeamAID, CreatedBy: syntheticSupervisorAID},
-		{CareClientID: 20003, OrganizationID: syntheticOrgBID, TeamID: syntheticTeamBID, AssigneeID: syntheticStewardBID, RoleType: caremodel.AssignmentRoleCareSteward, ValidFrom: fixed, Reason: "合成测试跨机构责任隔离", Synthetic: true, DeptId: syntheticTeamBID, CreatedBy: syntheticStewardBID},
+		{CareClientID: 20001, OrganizationID: syntheticOrgAID, TeamID: syntheticTeamAID, AssigneeID: syntheticStewardAID, RoleType: caremodel.AssignmentRoleCareSteward, ValidFrom: assignmentValidFrom, Reason: "固定测试初始责任关系", Synthetic: true, DeptId: syntheticTeamAID, CreatedBy: syntheticSupervisorAID},
+		{CareClientID: 20001, OrganizationID: syntheticOrgAID, TeamID: syntheticTeamAID, AssigneeID: syntheticClinicianAID, RoleType: caremodel.AssignmentRoleClinician, ValidFrom: assignmentValidFrom, Reason: "固定测试初始责任关系", Synthetic: true, DeptId: syntheticTeamAID, CreatedBy: syntheticSupervisorAID},
+		{CareClientID: 20002, OrganizationID: syntheticOrgAID, TeamID: syntheticTeamAID, AssigneeID: syntheticStewardA2ID, RoleType: caremodel.AssignmentRoleCareSteward, ValidFrom: assignmentValidFrom, Reason: "固定测试同机构责任隔离", Synthetic: true, DeptId: syntheticTeamAID, CreatedBy: syntheticSupervisorAID},
+		{CareClientID: 20003, OrganizationID: syntheticOrgBID, TeamID: syntheticTeamBID, AssigneeID: syntheticStewardBID, RoleType: caremodel.AssignmentRoleCareSteward, ValidFrom: assignmentValidFrom, Reason: "固定测试跨机构责任隔离", Synthetic: true, DeptId: syntheticTeamBID, CreatedBy: syntheticStewardBID},
 	}
 	for i := range assignments {
 		where := caremodel.CareAssignment{CareClientID: assignments[i].CareClientID, AssigneeID: assignments[i].AssigneeID, RoleType: assignments[i].RoleType, Synthetic: true}
@@ -321,6 +322,6 @@ func seedCareClients(tx *gorm.DB) error {
 			return err
 		}
 	}
-	consent := caremodel.ConsentRecord{CareClientID: 20001, ConsentType: caremodel.ConsentTypeSyntheticTestParticipation, Action: caremodel.ConsentActionGrant, TextVersion: "SYNTHETIC-V1", OccurredAt: fixed, Source: caremodel.ConsentSourceStaffRecorded, Reason: "合成测试授权夹具，不代表真实授权", RecordedBy: syntheticSupervisorAID, Synthetic: true, DeptId: syntheticTeamAID, CreatedBy: syntheticSupervisorAID}
+	consent := caremodel.ConsentRecord{CareClientID: 20001, ConsentType: caremodel.ConsentTypeSyntheticTestParticipation, Action: caremodel.ConsentActionGrant, TextVersion: "SYNTHETIC-V1", OccurredAt: fixed, Source: caremodel.ConsentSourceStaffRecorded, Reason: "固定测试授权夹具，不代表真实授权", RecordedBy: syntheticSupervisorAID, Synthetic: true, DeptId: syntheticTeamAID, CreatedBy: syntheticSupervisorAID}
 	return tx.Where("care_client_id = ? AND consent_type = ? AND occurred_at = ?", consent.CareClientID, consent.ConsentType, consent.OccurredAt).Attrs(consent).FirstOrCreate(&consent).Error
 }

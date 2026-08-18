@@ -1,16 +1,16 @@
 <template>
   <div>
     <div class="mb-4 border border-amber-300 rounded-lg bg-amber-50 px-4 py-3 text-amber-900">
-      <div class="font-semibold">合成数据开发区</div>
+      <div class="font-semibold">测试数据开发区</div>
       <div class="mt-1 text-sm">
-        P1-02/P1-04 只承载公开资料、责任关系和合成 D1–D5 计划，不包含医疗内容、真实短信、康养用户账号或 AI 能力。
+        P1-02/P1-04 只承载公开资料、责任关系和测试 D1–D5 计划，不包含医疗内容、真实短信、康养用户账号或 AI 能力。
       </div>
     </div>
 
     <div class="gva-search-box">
       <el-form :inline="true" :model="searchForm">
         <el-form-item label="编码或名称">
-          <el-input v-model="searchForm.keyword" clearable placeholder="仅搜索合成资料" @keyup.enter="search" />
+          <el-input v-model="searchForm.keyword" clearable placeholder="仅搜索测试资料" @keyup.enter="search" />
         </el-form-item>
         <el-form-item label="状态">
           <el-select v-model="searchForm.status" clearable class="w-36">
@@ -27,7 +27,7 @@
 
     <div class="gva-table-box">
       <div class="gva-btn-list">
-        <el-button v-if="btnAuth.createClient" type="primary" @click="openCreate">新建合成用户</el-button>
+        <el-button v-if="btnAuth.createClient" type="primary" @click="openCreate">新建测试用户</el-button>
       </div>
       <el-table v-loading="loading" :data="tableData" row-key="id" empty-text="当前责任或组织范围内暂无康养用户">
         <el-table-column prop="displayCode" label="显示编码" min-width="150" />
@@ -54,7 +54,7 @@
         </el-table-column>
         <el-table-column label="数据" width="90">
           <template #default="scope">
-            <el-tag v-if="scope.row.synthetic" type="warning">合成</el-tag>
+            <el-tag v-if="scope.row.synthetic" type="warning">测试</el-tag>
           </template>
         </el-table-column>
         <el-table-column label="操作" fixed="right" min-width="290">
@@ -82,7 +82,7 @@
     <el-drawer v-model="detailVisible" title="康养用户与计划时间线" size="900px">
       <template v-if="detail">
         <el-descriptions :column="2" border>
-          <el-descriptions-item label="醒目标识"><el-tag type="warning">合成数据</el-tag></el-descriptions-item>
+          <el-descriptions-item label="醒目标识"><el-tag type="warning">测试数据</el-tag></el-descriptions-item>
           <el-descriptions-item label="版本">{{ detail.version }}</el-descriptions-item>
           <el-descriptions-item label="显示编码">{{ detail.displayCode }}</el-descriptions-item>
           <el-descriptions-item label="显示名称">{{ detail.displayName }}</el-descriptions-item>
@@ -103,7 +103,7 @@
           <el-table-column label="生效时间" min-width="170"><template #default="scope">{{ formatDateTime(scope.row.validFrom) }}</template></el-table-column>
         </el-table>
 
-        <h3 class="mt-6 mb-2 font-semibold">合成测试授权历史</h3>
+        <h3 class="mt-6 mb-2 font-semibold">固定测试授权历史</h3>
         <el-alert class="mb-2" type="warning" :closable="false" title="这些记录仅用于技术流程验证，不代表真实用户授权。" />
         <el-table :data="detail.consentRecords" size="small" empty-text="暂无授权记录">
           <el-table-column label="动作" width="90"><template #default="scope">{{ scope.row.action === 'GRANT' ? '授权' : '撤回' }}</template></el-table-column>
@@ -130,7 +130,7 @@
           class="mb-3"
           type="warning"
           :closable="false"
-          title="只允许从明确的合成 anchorAt 启动；通知禁用，暂停/恢复不会平移原时间窗。"
+          title="只允许从明确的测试 anchorAt 启动；通知禁用，暂停/恢复不会平移原时间窗。"
         />
         <div
           v-loading="planLoading"
@@ -138,7 +138,7 @@
         >
           <el-empty
             v-if="!planLoading && !clientPlans.length"
-            description="尚未启动合成计划"
+            description="尚未启动测试计划"
             :image-size="72"
           />
           <div
@@ -228,14 +228,14 @@
       </template>
     </el-drawer>
 
-    <el-dialog v-model="clientDialogVisible" :title="editingId ? '维护合成康养用户' : '新建合成康养用户'" width="620px">
-      <el-alert class="mb-4" type="warning" :closable="false" title="只允许录入合成公开资料，请勿输入真实个人信息或医疗内容。" />
+    <el-dialog v-model="clientDialogVisible" :title="editingId ? '维护测试康养用户' : '新建测试康养用户'" width="620px">
+      <el-alert class="mb-4" type="warning" :closable="false" title="只允许录入测试公开资料，请勿输入真实个人信息或医疗内容。" />
       <el-form :model="clientForm" label-width="110px">
         <el-form-item v-if="!editingId" label="显示编码" required><el-input v-model="clientForm.displayCode" placeholder="例如 SYN-CLIENT-A003" /></el-form-item>
-        <el-form-item label="显示名称" required><el-input v-model="clientForm.displayName" placeholder="必须包含合成标识" /></el-form-item>
-        <el-form-item label="联系电话"><el-input v-model="clientForm.contactMobile" placeholder="仅合成号码" /></el-form-item>
+        <el-form-item label="显示名称" required><el-input v-model="clientForm.displayName" placeholder="必须包含测试标识" /></el-form-item>
+        <el-form-item label="联系电话"><el-input v-model="clientForm.contactMobile" placeholder="仅测试号码" /></el-form-item>
         <el-form-item label="服务包编码"><el-input v-model="clientForm.servicePackageCode" placeholder="非医疗服务包编码" /></el-form-item>
-        <el-form-item label="服务原因"><el-input v-model="clientForm.serviceReason" type="textarea" :rows="3" placeholder="仅非医疗、合成说明" /></el-form-item>
+        <el-form-item label="服务原因"><el-input v-model="clientForm.serviceReason" type="textarea" :rows="3" placeholder="仅非医疗、测试说明" /></el-form-item>
         <template v-if="!editingId">
           <el-form-item label="机构" required>
             <el-select v-model="clientForm.organizationId" class="w-full" @change="clientForm.teamId = undefined">
@@ -269,13 +269,13 @@
           </el-select>
         </el-form-item>
         <el-form-item label="生效时间" required><el-date-picker v-model="assignmentForm.validFrom" type="datetime" class="w-full" /></el-form-item>
-        <el-form-item label="转交原因" required><el-input v-model="assignmentForm.reason" type="textarea" :rows="3" placeholder="合成测试责任调整原因" /></el-form-item>
+        <el-form-item label="转交原因" required><el-input v-model="assignmentForm.reason" type="textarea" :rows="3" placeholder="固定测试责任调整原因" /></el-form-item>
       </el-form>
       <template #footer><el-button @click="assignmentVisible = false">取消</el-button><el-button type="primary" @click="saveAssignment">确认记录</el-button></template>
     </el-dialog>
 
-    <el-dialog v-model="consentVisible" title="合成测试授权留痕" width="560px">
-      <el-alert class="mb-4" type="warning" :closable="false" title="仅记录合成测试参与授权，不得作为真实法律或医疗授权。" />
+    <el-dialog v-model="consentVisible" title="固定测试授权留痕" width="560px">
+      <el-alert class="mb-4" type="warning" :closable="false" title="仅记录固定测试参与授权，不得作为真实法律或医疗授权。" />
       <el-form :model="consentForm" label-width="110px">
         <el-form-item label="动作" required><el-radio-group v-model="consentForm.action"><el-radio value="GRANT">授权</el-radio><el-radio value="WITHDRAW">撤回</el-radio></el-radio-group></el-form-item>
         <el-form-item label="文本版本" required><el-input v-model="consentForm.textVersion" /></el-form-item>
@@ -287,7 +287,7 @@
 
     <el-dialog
       v-model="planStartVisible"
-      title="预览并启动合成 D1–D5 计划"
+      title="预览并启动测试 D1–D5 计划"
       width="820px"
       :close-on-click-modal="false"
     >
@@ -295,7 +295,7 @@
         class="mb-4"
         type="warning"
         :closable="false"
-        title="anchorAt 必须来自明确的合成记录。启动会一次生成 D1–D5，不会发送通知。"
+        title="anchorAt 必须来自明确的测试记录。启动会一次生成 D1–D5，不会发送通知。"
       />
       <el-form
         :model="planStartForm"
@@ -315,12 +315,12 @@
             />
           </el-select>
         </el-form-item>
-        <el-form-item label="合成 anchorAt" required>
+        <el-form-item label="测试 anchorAt" required>
           <el-date-picker
             v-model="planStartForm.anchorAt"
             type="datetime"
             class="w-full"
-            placeholder="请选择明确的合成锚点时间"
+            placeholder="请选择明确的测试锚点时间"
             @change="resetPlanPreview"
           />
         </el-form-item>
@@ -434,10 +434,10 @@
   const planPreviewKey = ref('')
   const planStartKey = ref('')
 
-  const emptyClientForm = () => ({ displayCode: '', displayName: '[合成] ', contactMobile: '', serviceReason: '', servicePackageCode: '', organizationId: undefined, teamId: undefined, status: 'ACTIVE' })
+  const emptyClientForm = () => ({ displayCode: '', displayName: '[测试] ', contactMobile: '', serviceReason: '', servicePackageCode: '', organizationId: undefined, teamId: undefined, status: 'ACTIVE' })
   const clientForm = reactive(emptyClientForm())
   const assignmentForm = reactive({ roleType: 'CARE_STEWARD', assigneeId: undefined, validFrom: new Date(), reason: '' })
-  const consentForm = reactive({ action: 'GRANT', textVersion: 'SYNTHETIC-V1', occurredAt: new Date(), reason: '合成测试授权记录' })
+  const consentForm = reactive({ action: 'GRANT', textVersion: 'SYNTHETIC-V1', occurredAt: new Date(), reason: '固定测试授权记录' })
   const planStartForm = reactive({ planTemplateVersionId: undefined, anchorAt: undefined })
 
   const organizationOptions = computed(() => options.value.orgUnits.filter((item) => item.unitType === 'ORGANIZATION'))
@@ -509,7 +509,7 @@
     clientDialogVisible.value = true
   }
   const saveClient = async () => {
-    if (!clientForm.displayName?.includes('合成')) return ElMessage.warning('显示名称必须醒目标注“合成”')
+    if (!clientForm.displayName?.includes('测试')) return ElMessage.warning('显示名称必须醒目标注“测试”')
     let res
     if (editingId.value) {
       res = await updateCareClient(editingId.value, { expectedVersion: editingVersion.value, displayName: clientForm.displayName, contactMobile: clientForm.contactMobile, serviceReason: clientForm.serviceReason, servicePackageCode: clientForm.servicePackageCode, teamId: clientForm.teamId, status: clientForm.status })
@@ -536,7 +536,7 @@
   const openConsent = async (id) => {
     actionClient.value = await loadDetail(id)
     if (!actionClient.value) return
-    Object.assign(consentForm, { action: actionClient.value.consentStatus === 'GRANTED' ? 'WITHDRAW' : 'GRANT', textVersion: 'SYNTHETIC-V1', occurredAt: new Date(), reason: '合成测试授权记录' })
+    Object.assign(consentForm, { action: actionClient.value.consentStatus === 'GRANTED' ? 'WITHDRAW' : 'GRANT', textVersion: 'SYNTHETIC-V1', occurredAt: new Date(), reason: '固定测试授权记录' })
     consentVisible.value = true
   }
   const saveConsent = async () => {
@@ -558,7 +558,7 @@
     if (res.code !== 0) return
     planVersionOptions.value = res.data.list || []
     if (!planVersionOptions.value.length) {
-      ElMessage.warning('当前没有可用的合成计划模板版本')
+      ElMessage.warning('当前没有可用的测试计划模板版本')
       return
     }
     planStartForm.planTemplateVersionId = planVersionOptions.value[0].id
@@ -568,7 +568,7 @@
   }
   const previewPlan = async () => {
     if (!planStartForm.planTemplateVersionId || !planStartForm.anchorAt) {
-      ElMessage.warning('请选择计划模板版本和明确的合成 anchorAt')
+      ElMessage.warning('请选择计划模板版本和明确的测试 anchorAt')
       return
     }
     planActionLoading.value = true
@@ -593,7 +593,7 @@
         previewId: planPreview.value.previewId
       }, planStartKey.value)
       if (res.code === 0) {
-        ElMessage.success('合成 D1–D5 计划已启动')
+        ElMessage.success('测试 D1–D5 计划已启动')
         planStartVisible.value = false
         await loadDetail(detail.value.id)
         await loadPlans(detail.value.id)
@@ -611,7 +611,7 @@
     try {
       const { value } = await ElMessageBox.prompt(
         `请输入${verb}原因。KEEP_WINDOWS 不会平移 D1–D5 原时间窗。`,
-        `${verb}合成计划`,
+        `${verb}测试计划`,
         {
           confirmButtonText: `确认${verb}`,
           cancelButtonText: '取消',

@@ -6,6 +6,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/flipped-aurora/gin-vue-admin/server/internal/testutil"
 	clientmodel "github.com/flipped-aurora/gin-vue-admin/server/model/clientaccess"
@@ -24,6 +25,30 @@ func TestRedeemRejectsMalformedJSONWithHTTP400(t *testing.T) {
 
 	if response.Code != http.StatusBadRequest || !strings.Contains(response.Body.String(), `"code":41001`) {
 		t.Fatalf("status=%d body=%s", response.Code, response.Body.String())
+	}
+}
+
+func TestClientSessionCookieWindowUsesBusinessClockDuration(t *testing.T) {
+	businessNow := time.Date(2026, time.August, 18, 10, 0, 0, 0, time.FixedZone("CST", 8*60*60))
+	wallNow := time.Date(2026, time.August, 19, 10, 0, 0, 0, time.Local)
+
+	maxAge, cookieExpiresAt := clientSessionCookieWindow(businessNow, businessNow.Add(8*time.Hour), wallNow)
+
+	if maxAge != 8*60*60 {
+		t.Fatalf("maxAge=%d want=%d", maxAge, 8*60*60)
+	}
+	if !cookieExpiresAt.Equal(wallNow.Add(8 * time.Hour)) {
+		t.Fatalf("cookie expires at %s", cookieExpiresAt)
+	}
+}
+
+func TestClientSessionCookieWindowKeepsExpiredSessionShortLived(t *testing.T) {
+	now := time.Date(2026, time.August, 18, 10, 0, 0, 0, time.UTC)
+
+	maxAge, cookieExpiresAt := clientSessionCookieWindow(now, now.Add(-time.Minute), now)
+
+	if maxAge != 1 || !cookieExpiresAt.Equal(now.Add(time.Second)) {
+		t.Fatalf("maxAge=%d expiresAt=%s", maxAge, cookieExpiresAt)
 	}
 }
 

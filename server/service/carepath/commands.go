@@ -126,7 +126,7 @@ func (s *CarePathService) StartPlan(ctx context.Context, careClientID uint, key 
 			return pathres.PlanInstanceResult{}, err
 		}
 		if lockedClient.Status != caremodel.ClientStatusActive || !lockedClient.Synthetic {
-			return pathres.PlanInstanceResult{}, pathmodel.NewDomainError(pathmodel.CodeCareClientUnavailable, "P1-04 只允许为活动的合成康养用户操作计划")
+			return pathres.PlanInstanceResult{}, pathmodel.NewDomainError(pathmodel.CodeCareClientUnavailable, "P1-04 只允许为活动的测试康养用户操作计划")
 		}
 		if lockedClient.Version != req.ExpectedClientVersion {
 			return pathres.PlanInstanceResult{}, pathmodel.NewDomainError(pathmodel.CodeVersionConflict, "康养用户已被其他操作更新")
@@ -265,7 +265,7 @@ func (s *CarePathService) changePlanState(ctx context.Context, planID uint, key 
 		return pathres.PlanActionResult{}, pathmodel.NewDomainError(pathmodel.CodeInvalidArgument, "计划ID、expectedVersion 和不超过 1000 字符的原因必填")
 	}
 	if !s.syntheticFixturesEnabled() {
-		return pathres.PlanActionResult{}, pathmodel.NewDomainError(pathmodel.CodeContentDisabled, "P1-04 合成计划能力未启用")
+		return pathres.PlanActionResult{}, pathmodel.NewDomainError(pathmodel.CodeContentDisabled, "P1-04 测试计划能力未启用")
 	}
 	var visiblePlan pathmodel.PlanInstance
 	if err := s.db().WithContext(ctx).Where("id = ? AND synthetic = ?", planID, true).First(&visiblePlan).Error; err != nil {
@@ -341,12 +341,12 @@ func (s *CarePathService) changePlanState(ctx context.Context, planID uint, key 
 
 func (s *CarePathService) ReconcilePlanTasks(ctx context.Context, planID uint) error {
 	if !s.syntheticFixturesEnabled() {
-		return pathmodel.NewDomainError(pathmodel.CodeContentDisabled, "P1-04 合成计划能力未启用")
+		return pathmodel.NewDomainError(pathmodel.CodeContentDisabled, "P1-04 测试计划能力未启用")
 	}
 	var plan pathmodel.PlanInstance
 	if err := s.db().WithContext(ctx).Where("id = ? AND synthetic = ?", planID, true).First(&plan).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return pathmodel.NewDomainError(pathmodel.CodeResourceNotFound, "合成计划不存在")
+			return pathmodel.NewDomainError(pathmodel.CodeResourceNotFound, "测试计划不存在")
 		}
 		return err
 	}

@@ -39,7 +39,10 @@ func summaryBounds(businessDate, now time.Time) (time.Time, time.Time, error) {
 	}
 	cutoff := start.AddDate(0, 0, 1)
 	if start.Equal(currentStart) {
-		cutoff = now
+		// Queries use half-open intervals and business timestamps are persisted
+		// with millisecond precision. Advance by that precision so facts recorded
+		// exactly at the injected business clock are included in the preview.
+		cutoff = now.Add(time.Millisecond)
 	}
 	return start, cutoff, nil
 }

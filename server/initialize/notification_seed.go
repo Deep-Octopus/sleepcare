@@ -289,33 +289,35 @@ func verifyScenarioBPlan(tx *gorm.DB, plan pathmodel.PlanInstance) error {
 }
 
 func ensureNotificationFixtures(ctx context.Context, db *gorm.DB) error {
-	type fixture struct {
-		requestID uint
-		attemptID uint
-		taskID    uint
-		outcome   string
-		requested time.Time
-		createdBy uint
-	}
-	zone := time.FixedZone("CST", 8*60*60)
-	fixtures := []fixture{
-		{
-			requestID: scenarioARequestID, attemptID: scenarioAAttemptID,
-			taskID: syntheticTaskInstanceD1ID, outcome: notificationmodel.AttemptStatusDelivered,
-			requested: time.Date(2026, time.August, 18, 8, 54, 0, 0, zone), createdBy: syntheticStewardAID,
-		},
-		{
-			requestID: scenarioBRequestID, attemptID: scenarioBAttempt1ID,
-			taskID: scenarioBTaskD1ID, outcome: notificationmodel.AttemptStatusFailed,
-			requested: time.Date(2026, time.August, 18, 8, 54, 0, 0, zone), createdBy: syntheticStewardA2ID,
-		},
-	}
-	for _, item := range fixtures {
-		if err := ensureInitialNotificationFixture(ctx, db, item.requestID, item.attemptID, item.taskID, item.outcome, item.requested, item.createdBy); err != nil {
-			return err
+	return db.Transaction(func(tx *gorm.DB) error {
+		type fixture struct {
+			requestID uint
+			attemptID uint
+			taskID    uint
+			outcome   string
+			requested time.Time
+			createdBy uint
 		}
-	}
-	return ensureRetryNotificationFixture(ctx, db)
+		zone := time.FixedZone("CST", 8*60*60)
+		fixtures := []fixture{
+			{
+				requestID: scenarioARequestID, attemptID: scenarioAAttemptID,
+				taskID: syntheticTaskInstanceD1ID, outcome: notificationmodel.AttemptStatusDelivered,
+				requested: time.Date(2026, time.August, 18, 8, 54, 0, 0, zone), createdBy: syntheticStewardAID,
+			},
+			{
+				requestID: scenarioBRequestID, attemptID: scenarioBAttempt1ID,
+				taskID: scenarioBTaskD1ID, outcome: notificationmodel.AttemptStatusFailed,
+				requested: time.Date(2026, time.August, 18, 8, 54, 0, 0, zone), createdBy: syntheticStewardA2ID,
+			},
+		}
+		for _, item := range fixtures {
+			if err := ensureInitialNotificationFixture(ctx, tx, item.requestID, item.attemptID, item.taskID, item.outcome, item.requested, item.createdBy); err != nil {
+				return err
+			}
+		}
+		return ensureRetryNotificationFixture(ctx, tx)
+	})
 }
 
 func ensureInitialNotificationFixture(ctx context.Context, db *gorm.DB, requestID, attemptID, taskID uint, outcome string, requestedAt time.Time, createdBy uint) error {

@@ -279,6 +279,7 @@ mcp:
 care:
     synthetic-fixtures-enabled: false
     fixture-password: ""
+    fixture-now: ""
     client-access:
         session-ttl-minutes: 480
         cookie-name: gva_client_session

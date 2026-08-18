@@ -40,7 +40,7 @@ func TestValidateAnswersSupportsSixBasicTypes(t *testing.T) {
 		{QuestionID: 2, Code: "A"}, {QuestionID: 2, Code: "B"},
 	}
 	valid, _, err := canonicalAnswers(map[string]any{
-		"single": "A", "multiple": []string{"A", "B"}, "text": "合成", "number": 5,
+		"single": "A", "multiple": []string{"A", "B"}, "text": "测试", "number": 5,
 		"date": "2026-08-18", "boolean": true,
 	})
 	if err != nil {
@@ -51,12 +51,12 @@ func TestValidateAnswersSupportsSixBasicTypes(t *testing.T) {
 	}
 
 	cases := []map[string]any{
-		{"single": "UNKNOWN", "multiple": []string{"A"}, "text": "合成", "number": 5, "date": "2026-08-18", "boolean": true},
-		{"single": "A", "multiple": []string{"A", "A"}, "text": "合成", "number": 5, "date": "2026-08-18", "boolean": true},
-		{"single": "A", "multiple": []string{"A"}, "text": "过长的合成文本", "number": 5, "date": "2026-08-18", "boolean": true},
-		{"single": "A", "multiple": []string{"A"}, "text": "合成", "number": 11, "date": "2026-08-18", "boolean": true},
-		{"single": "A", "multiple": []string{"A"}, "text": "合成", "number": 5, "date": "18-08-2026", "boolean": true},
-		{"single": "A", "multiple": []string{"A"}, "text": "合成", "number": 5, "date": "2026-08-18", "boolean": "true"},
+		{"single": "UNKNOWN", "multiple": []string{"A"}, "text": "测试", "number": 5, "date": "2026-08-18", "boolean": true},
+		{"single": "A", "multiple": []string{"A", "A"}, "text": "测试", "number": 5, "date": "2026-08-18", "boolean": true},
+		{"single": "A", "multiple": []string{"A"}, "text": "过长的测试文本", "number": 5, "date": "2026-08-18", "boolean": true},
+		{"single": "A", "multiple": []string{"A"}, "text": "测试", "number": 11, "date": "2026-08-18", "boolean": true},
+		{"single": "A", "multiple": []string{"A"}, "text": "测试", "number": 5, "date": "18-08-2026", "boolean": true},
+		{"single": "A", "multiple": []string{"A"}, "text": "测试", "number": 5, "date": "2026-08-18", "boolean": "true"},
 	}
 	for i, answers := range cases {
 		normalized, _, normalizeErr := canonicalAnswers(answers)
@@ -114,7 +114,7 @@ func TestRecordSubmissionFreezesRulesIsIdempotentAndRevisionDoesNotReevaluate(t 
 	revision, err := service.AppendAnswerRevision(ctx, AppendAnswerRevisionCommand{
 		IdempotencyKey: "revision-key", SubmissionID: first.SubmissionID, ExpectedRevisionNo: 1,
 		Answers: map[string]any{"synthetic_process_confirmation": "CONTINUE_WITHOUT_ATTENTION"},
-		Reason:  "合成更正验证", ActorKind: qmodel.ActorKindStaff, ActorID: 9202,
+		Reason:  "测试更正验证", ActorKind: qmodel.ActorKindStaff, ActorID: 9202,
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -253,7 +253,7 @@ func TestQuestionnaireReadAccessAndDefinitionHash(t *testing.T) {
 			t.Fatalf("role %d should be denied, got %v", role, err)
 		}
 	}
-	if err := db.Model(&qmodel.QuestionnaireQuestion{}).Where("id = ?", fixture.question.ID).Update("title", "被篡改的合成题目").Error; err != nil {
+	if err := db.Model(&qmodel.QuestionnaireQuestion{}).Where("id = ?", fixture.question.ID).Update("title", "被篡改的测试题目").Error; err != nil {
 		t.Fatal(err)
 	}
 	ctx := datascope.WithIdentity(context.Background(), &datascope.Identity{UserID: 9202, AuthorityID: 9802})
@@ -272,7 +272,7 @@ func TestValidateFrozenBindingRejectsQuestionnaireAndRuleHashMismatches(t *testi
 		t.Fatalf("valid frozen binding rejected: %v", err)
 	}
 	if err := db.Model(&qmodel.QuestionnaireQuestion{}).Where("id = ?", fixture.question.ID).
-		Update("title", "被篡改的合成题目").Error; err != nil {
+		Update("title", "被篡改的测试题目").Error; err != nil {
 		t.Fatal(err)
 	}
 	if err := service.ValidateFrozenBinding(ctx, fixture.version.ID, []uint{fixture.rule.ID}, true); domainCode(err) != qmodel.CodeOperationNotAllowed {
@@ -283,7 +283,7 @@ func TestValidateFrozenBindingRejectsQuestionnaireAndRuleHashMismatches(t *testi
 		t.Fatal(err)
 	}
 	if err := db.Model(&qmodel.QuestionnaireRuleVersion{}).Where("id = ?", fixture.rule.ID).
-		Update("title", "被篡改的合成规则").Error; err != nil {
+		Update("title", "被篡改的测试规则").Error; err != nil {
 		t.Fatal(err)
 	}
 	if err := service.ValidateFrozenBinding(ctx, fixture.version.ID, []uint{fixture.rule.ID}, true); domainCode(err) != qmodel.CodeOperationNotAllowed {
@@ -316,10 +316,10 @@ func seedServiceDefinition(t *testing.T, db *gorm.DB, ruleStatus string) service
 	t.Helper()
 	published := time.Date(2026, time.August, 18, 9, 0, 0, 0, time.UTC)
 	versionDefinition := qmodel.VersionDefinition{
-		Code: "SYN-SERVICE-TEST", Version: "1.0.0", Title: "合成服务测试问卷", Purpose: "合成软件验证",
+		Code: "SYN-SERVICE-TEST", Version: "1.0.0", Title: "测试服务测试问卷", Purpose: "测试软件验证",
 		UsageScope: qmodel.UsageScopeTestOnly, Synthetic: true, ProductionEnabled: false, ExpectedMinutes: 1,
 		DefinitionSchemaVersion: "v1", Questions: []qmodel.QuestionDefinition{{
-			Code: "synthetic_process_confirmation", Type: qmodel.QuestionTypeSingleChoice, Title: "是否继续合成验证？",
+			Code: "synthetic_process_confirmation", Type: qmodel.QuestionTypeSingleChoice, Title: "是否继续测试验证？",
 			Required: true, Sort: 1, ValidationSchemaVersion: "v1", Validation: json.RawMessage(jsonBytes(map[string]any{})),
 			Options: []qmodel.OptionDefinition{{Code: "CONTINUE_WITHOUT_ATTENTION", Label: "不生成关注", Sort: 1}, {Code: "CONTINUE_WITH_ATTENTION", Label: "生成关注", Sort: 2}},
 		}},
@@ -339,7 +339,7 @@ func seedServiceDefinition(t *testing.T, db *gorm.DB, ruleStatus string) service
 	}
 	question := qmodel.QuestionnaireQuestion{
 		QuestionnaireVersionID: version.ID, Code: "synthetic_process_confirmation", Type: qmodel.QuestionTypeSingleChoice,
-		Title: "是否继续合成验证？", Required: true, Sort: 1, ValidationSchemaVersion: "v1", ValidationJSON: jsonBytes(map[string]any{}),
+		Title: "是否继续测试验证？", Required: true, Sort: 1, ValidationSchemaVersion: "v1", ValidationJSON: jsonBytes(map[string]any{}),
 	}
 	if err = db.Create(&question).Error; err != nil {
 		t.Fatal(err)
@@ -361,10 +361,10 @@ func seedRule(t *testing.T, db *gorm.DB, versionID uint, code, status string) qm
 	condition := jsonBytes(map[string]any{"questionCode": "synthetic_process_confirmation", "operator": qmodel.RuleOperatorEquals, "value": "CONTINUE_WITH_ATTENTION"})
 	recipients := jsonBytes([]string{"CLINICIAN"})
 	definition := qmodel.RuleDefinition{
-		QuestionnaireVersionID: versionID, Code: code, Version: "1.0.0", Title: "合成关注规则",
+		QuestionnaireVersionID: versionID, Code: code, Version: "1.0.0", Title: "测试关注规则",
 		UsageScope: qmodel.UsageScopeTestOnly, Synthetic: true, ProductionEnabled: false,
 		ConditionSchemaVersion: "v1", Condition: json.RawMessage(condition), AttentionLevel: "SYNTHETIC_ATTENTION",
-		ReasonSnapshot: "合成规则命中，不表达医疗含义。", Recipients: json.RawMessage(recipients),
+		ReasonSnapshot: "测试规则命中，不表达医疗含义。", Recipients: json.RawMessage(recipients),
 		DedupKeyTemplate: "submission:{submissionId}:rule:" + code,
 	}
 	hash, err := qmodel.HashDefinition(definition)
@@ -374,7 +374,7 @@ func seedRule(t *testing.T, db *gorm.DB, versionID uint, code, status string) qm
 	rule := qmodel.QuestionnaireRuleVersion{
 		QuestionnaireVersionID: versionID, Code: code, Version: "1.0.0", Title: definition.Title,
 		Status: status, UsageScope: qmodel.UsageScopeTestOnly, Synthetic: true, ReviewType: qmodel.ReviewTypeEngineering,
-		ReviewedBy: 9203, ReviewedAt: &published, ReviewNote: "合成工程复核", ConditionSchemaVersion: "v1",
+		ReviewedBy: 9203, ReviewedAt: &published, ReviewNote: "测试工程复核", ConditionSchemaVersion: "v1",
 		ConditionJSON: datatypes.JSON(condition), AttentionLevel: definition.AttentionLevel, ReasonSnapshot: definition.ReasonSnapshot,
 		RecipientsJSON: datatypes.JSON(recipients), DedupKeyTemplate: definition.DedupKeyTemplate,
 		PublishedAt: &published, DefinitionHash: hash, RowVersion: 1,
@@ -394,7 +394,7 @@ func submissionContext() context.Context {
 func submissionCommand(key, answer string) RecordSubmissionCommand {
 	return RecordSubmissionCommand{
 		IdempotencyKey: key, Source: qmodel.SubmissionSourceStaffAssisted, ActorKind: qmodel.ActorKindStaff, ActorID: 9202,
-		SourceReason: "合成代填验证", ConfirmationMethod: "SYNTHETIC_CONFIRMATION",
+		SourceReason: "测试代填验证", ConfirmationMethod: "SYNTHETIC_CONFIRMATION",
 		Answers: map[string]any{"synthetic_process_confirmation": answer}, CorrelationID: "synthetic-correlation",
 	}
 }

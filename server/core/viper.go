@@ -37,6 +37,9 @@ func Viper() *viper.Viper {
 	if err = v.Unmarshal(&global.GVA_CONFIG); err != nil {
 		panic(fmt.Errorf("fatal error unmarshal config: %w", err))
 	}
+	if err = global.GVA_CONFIG.Care.Validate(); err != nil {
+		panic(fmt.Errorf("fatal error validate care config: %w", err))
+	}
 
 	// root 适配性 根据root位置去找到对应迁移位置,保证root路径有效
 	global.GVA_CONFIG.AutoCode.Root, _ = filepath.Abs("..")
@@ -56,6 +59,7 @@ func bindEnvironmentOverrides(v *viper.Viper) {
 	for _, key := range []string{
 		"care.synthetic-fixtures-enabled",
 		"care.fixture-password",
+		"care.fixture-now",
 		"care.client-access.session-ttl-minutes",
 		"care.client-access.cookie-name",
 		"care.client-access.cookie-path",

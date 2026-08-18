@@ -89,6 +89,8 @@ definitions:
     properties:
       client-access:
         $ref: '#/definitions/config.ClientAccess'
+      fixture-now:
+        type: string
       synthetic-fixtures-enabled:
         type: boolean
     type: object
@@ -6904,7 +6906,7 @@ paths:
         name: Idempotency-Key
         required: true
         type: string
-      - description: 合成康养用户公开资料
+      - description: 测试康养用户公开资料
         in: body
         name: data
         required: true
@@ -6930,7 +6932,7 @@ paths:
             $ref: '#/definitions/response.Response'
       security:
       - ApiKeyAuth: []
-      summary: 新建合成康养用户
+      summary: 新建测试康养用户
       tags:
       - CareClient
   /care/clients/{id}:
@@ -7004,7 +7006,7 @@ paths:
             $ref: '#/definitions/response.Response'
       security:
       - ApiKeyAuth: []
-      summary: 更新合成康养用户公开资料
+      summary: 更新测试康养用户公开资料
       tags:
       - CareClient
   /care/clients/{id}/assignments:
@@ -7092,7 +7094,7 @@ paths:
             $ref: '#/definitions/response.Response'
       security:
       - ApiKeyAuth: []
-      summary: 追加合成测试授权或撤回记录
+      summary: 追加固定测试授权或撤回记录
       tags:
       - CareClient
   /care/clients/{id}/plan-instances:
@@ -7168,7 +7170,7 @@ paths:
             $ref: '#/definitions/response.Response'
       security:
       - ApiKeyAuth: []
-      summary: 根据已确认预览幂等启动合成计划
+      summary: 根据已确认预览幂等启动测试计划
       tags:
       - CarePath
   /care/clients/{id}/plan-previews:
@@ -7186,7 +7188,7 @@ paths:
         name: Idempotency-Key
         required: true
         type: string
-      - description: 模板版本和合成锚点
+      - description: 模板版本和测试锚点
         in: body
         name: data
         required: true
@@ -7212,7 +7214,7 @@ paths:
             $ref: '#/definitions/response.Response'
       security:
       - ApiKeyAuth: []
-      summary: 按固定模板版本和 anchorAt 预览合成 D1-D5
+      summary: 按固定模板版本和 anchorAt 预览测试 D1-D5
       tags:
       - CarePath
   /care/daily-summaries:
@@ -7421,7 +7423,7 @@ paths:
             $ref: '#/definitions/response.Response'
       security:
       - ApiKeyAuth: []
-      summary: 追加原因并按 KEEP_WINDOWS 暂停合成计划
+      summary: 追加原因并按 KEEP_WINDOWS 暂停测试计划
       tags:
       - CarePath
   /care/plan-instances/{id}/resume:
@@ -7465,7 +7467,7 @@ paths:
             $ref: '#/definitions/response.Response'
       security:
       - ApiKeyAuth: []
-      summary: 追加原因并按 KEEP_WINDOWS 恢复合成计划
+      summary: 追加原因并按 KEEP_WINDOWS 恢复测试计划
       tags:
       - CarePath
   /care/plan-versions:
@@ -7491,7 +7493,7 @@ paths:
         in: query
         name: usageScope
         type: string
-      - description: 是否合成版本
+      - description: 是否测试版本
         in: query
         name: synthetic
         type: boolean
@@ -7522,7 +7524,7 @@ paths:
             $ref: '#/definitions/response.Response'
       security:
       - ApiKeyAuth: []
-      summary: 分页获取合成 OSA 计划模板版本
+      summary: 分页获取测试 OSA 计划模板版本
       tags:
       - CarePath
   /care/plan-versions/{id}:
@@ -7553,7 +7555,7 @@ paths:
             $ref: '#/definitions/response.Response'
       security:
       - ApiKeyAuth: []
-      summary: 获取合成 OSA 计划模板版本详情
+      summary: 获取测试 OSA 计划模板版本详情
       tags:
       - CarePath
   /care/questionnaire-versions:
@@ -7579,7 +7581,7 @@ paths:
         in: query
         name: usageScope
         type: string
-      - description: 是否合成版本
+      - description: 是否测试版本
         in: query
         name: synthetic
         type: boolean

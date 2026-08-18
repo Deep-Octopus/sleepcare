@@ -36,7 +36,7 @@ func (s *SupervisionService) now() time.Time {
 	if s.Now != nil {
 		return s.Now()
 	}
-	return time.Now()
+	return global.GVA_CONFIG.Care.Now()
 }
 
 func (s *SupervisionService) supervisorScope(ctx context.Context) (*accesspolicy.CareClientDecision, uint, error) {

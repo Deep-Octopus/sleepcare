@@ -1,9 +1,9 @@
 <template>
   <div>
     <div class="mb-4 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-amber-900">
-      <div class="font-semibold">合成 OSA 计划定义</div>
+      <div class="font-semibold">测试 OSA 计划定义</div>
       <div class="mt-1 text-sm leading-6">
-        本页只读展示 D1–D5 软件调度定义。所有任务均为合成流程验证内容，通知保持禁用，不提供医疗解释、真实短信或面向用户的 AI。
+        本页只读展示 D1–D5 软件调度定义。所有任务均为测试流程验证内容，通知保持禁用，不提供医疗解释、真实短信或面向用户的 AI。
       </div>
     </div>
 
@@ -16,7 +16,7 @@
           <el-input
             v-model="searchForm.keyword"
             clearable
-            placeholder="搜索合成计划定义"
+            placeholder="搜索测试计划定义"
             @keyup.enter="search"
           />
         </el-form-item>
@@ -75,7 +75,7 @@
                 type="warning"
                 effect="plain"
               >
-                合成
+                测试
               </el-tag>
               <el-tag type="info" effect="plain">
                 生产未启用
