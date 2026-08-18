@@ -39,4 +39,7 @@ type Server struct {
 
 	// 应用身份（日志静态字段 node/app_id/env）
 	App App `mapstructure:"app" json:"app" yaml:"app"`
+
+	// 睡眠康养业务配置
+	Care Care `mapstructure:"care" json:"care" yaml:"care"`
 }

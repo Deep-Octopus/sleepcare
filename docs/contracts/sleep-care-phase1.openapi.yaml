@@ -1291,6 +1291,7 @@ components:
           type: integer
           format: uint64
           minimum: 1
+          description: P1-02 必须等于康养用户当前团队，跨团队变更需后续独立流程。
           nullable: true
         serviceReason:
           type: string

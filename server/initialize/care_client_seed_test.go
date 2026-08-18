@@ -1,0 +1,61 @@
+package initialize
+
+import (
+	"context"
+	"testing"
+
+	adapter "github.com/casbin/gorm-adapter/v3"
+	"github.com/flipped-aurora/gin-vue-admin/server/internal/testutil"
+	caremodel "github.com/flipped-aurora/gin-vue-admin/server/model/careclient"
+	"github.com/flipped-aurora/gin-vue-admin/server/model/system"
+	"github.com/flipped-aurora/gin-vue-admin/server/utils/datascope"
+)
+
+func TestEnsureCareClientSyntheticFixturesIsIdempotentAndDoesNotGrantAdmin(t *testing.T) {
+	db := testutil.NewMemoryDB(t,
+		&system.SysApi{}, &system.SysBaseMenu{}, &system.SysBaseMenuBtn{}, &system.SysAuthority{}, &system.SysDepartment{},
+		&system.SysUser{}, &system.SysUserAuthority{}, &system.SysUserDepartment{}, &system.SysAuthorityMenu{}, &system.SysAuthorityBtn{},
+		&adapter.CasbinRule{},
+		&caremodel.CareClient{}, &caremodel.CareAssignment{}, &caremodel.ConsentRecord{}, &caremodel.CareOrgUnitProfile{}, &caremodel.CareAuthorityProfile{}, &caremodel.CareClientCommandReceipt{},
+	)
+	db = db.WithContext(datascope.WithSystem(context.Background()))
+	for i := 0; i < 2; i++ {
+		if err := ensureCareClientMetadata(db); err != nil {
+			t.Fatal(err)
+		}
+		if err := ensureCareClientSyntheticFixtures(db, "local-synthetic-password"); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	assertCount := func(model any, want int64) {
+		t.Helper()
+		var got int64
+		if err := db.Model(model).Count(&got).Error; err != nil {
+			t.Fatal(err)
+		}
+		if got != want {
+			t.Fatalf("%T count=%d, want %d", model, got, want)
+		}
+	}
+	assertCount(&caremodel.CareClient{}, 3)
+	assertCount(&caremodel.CareAssignment{}, 4)
+	assertCount(&caremodel.ConsentRecord{}, 1)
+	assertCount(&caremodel.CareOrgUnitProfile{}, 4)
+	assertCount(&caremodel.CareAuthorityProfile{}, 3)
+
+	var adminMenus int64
+	if err := db.Model(&system.SysAuthorityMenu{}).Where("sys_authority_authority_id = ?", "888").Count(&adminMenus).Error; err != nil {
+		t.Fatal(err)
+	}
+	if adminMenus != 0 {
+		t.Fatalf("admin received %d care menu grants", adminMenus)
+	}
+	var adminPolicies int64
+	if err := db.Model(&adapter.CasbinRule{}).Where("v0 = ? AND v1 LIKE ?", "888", "/care/%").Count(&adminPolicies).Error; err != nil {
+		t.Fatal(err)
+	}
+	if adminPolicies != 0 {
+		t.Fatalf("admin received %d care API policies", adminPolicies)
+	}
+}

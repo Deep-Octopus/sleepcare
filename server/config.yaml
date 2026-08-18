@@ -274,3 +274,8 @@ mcp:
     name: GVA_MCP
     version: v1.0.0
     addr: 8889
+
+# sleep care local-development safeguards
+care:
+    synthetic-fixtures-enabled: false
+    fixture-password: ""

@@ -54,6 +54,8 @@ func bindEnvironmentOverrides(v *viper.Viper) {
 	// These keys are supplied by Compose even when an older persisted config
 	// file predates them. Bind them explicitly so nested Unmarshal sees them.
 	for _, key := range []string{
+		"care.synthetic-fixtures-enabled",
+		"care.fixture-password",
 		"redis.addr",
 		"redis.password",
 		"system.use-redis",

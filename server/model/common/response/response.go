@@ -58,6 +58,10 @@ func NoAuth(message string, c *gin.Context) {
 	})
 }
 
+func Forbidden(code int, message string, c *gin.Context) {
+	c.JSON(http.StatusForbidden, Response{Code: code, Data: nil, Msg: message})
+}
+
 func FailWithDetailed(data interface{}, message string, c *gin.Context) {
 	Result(ERROR, data, message, c)
 }

@@ -265,3 +265,8 @@ mcp:
     name: GVA_MCP
     version: v1.0.0
     addr: 8889
+
+# 由 Compose 环境变量选择性启用；模板本身保持关闭
+care:
+    synthetic-fixtures-enabled: false
+    fixture-password: ""

@@ -23,7 +23,7 @@ func CasbinHandler() gin.HandlerFunc {
 		e := utils.GetCasbin() // 判断策略中是否存在
 		success, _ := e.Enforce(sub, obj, act)
 		if !success {
-			response.FailWithDetailed(gin.H{}, "权限不足", c)
+			response.Forbidden(response.ERROR, "权限不足", c)
 			c.Abort()
 			return
 		}

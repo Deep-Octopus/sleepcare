@@ -16,5 +16,5 @@ func initBizRouter(routers ...*gin.RouterGroup) {
 	publicGroup := routers[1]
 
 	holder(publicGroup, privateGroup)
-
+	router.RouterGroupApp.CareClient.CareClientRouter.InitCareClientRouter(privateGroup)
 }

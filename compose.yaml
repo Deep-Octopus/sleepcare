@@ -62,6 +62,8 @@ services:
       GVA_REDIS_ADDR: redis:6379
       GVA_REDIS_PASSWORD: ${REDIS_PASSWORD:?run ./scripts/init-local-env.sh first}
       GVA_SYSTEM_USE_REDIS: "true"
+      GVA_CARE_SYNTHETIC_FIXTURES_ENABLED: "true"
+      GVA_CARE_FIXTURE_PASSWORD: ${GVA_CARE_FIXTURE_PASSWORD:?run ./scripts/init-local-env.sh first}
       TZ: Asia/Shanghai
     depends_on:
       mysql:

@@ -2895,6 +2895,478 @@ const docTemplate = `{
                 }
             }
         },
+        "/care/client-options": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "CareClient"
+                ],
+                "summary": "获取康养用户维护选项",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.ClientOptions"
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/care/clients": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "CareClient"
+                ],
+                "summary": "分页获取授权范围内的康养用户",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页数量，最大100",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "显示编码或名称",
+                        "name": "keyword",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "机构部门ID",
+                        "name": "organizationId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "状态",
+                        "name": "status",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/response.PageResult"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "list": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/definitions/response.CareClientSummary"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "CareClient"
+                ],
+                "summary": "新建合成康养用户",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "幂等键",
+                        "name": "Idempotency-Key",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "合成康养用户公开资料",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.CreateCareClient"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.ActionResult"
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/care/clients/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "CareClient"
+                ],
+                "summary": "获取授权范围内的康养用户详情",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "康养用户ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.CareClientDetail"
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "CareClient"
+                ],
+                "summary": "更新合成康养用户公开资料",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "康养用户ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "幂等键",
+                        "name": "Idempotency-Key",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "公开资料和乐观锁版本",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.UpdateCareClient"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.ActionResult"
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/care/clients/{id}/assignments": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "CareClient"
+                ],
+                "summary": "新增或转交责任关系",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "康养用户ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "幂等键",
+                        "name": "Idempotency-Key",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "责任关系",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.CreateAssignment"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.ActionResult"
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/care/clients/{id}/consent-records": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "CareClient"
+                ],
+                "summary": "追加合成测试授权或撤回记录",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "康养用户ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "幂等键",
+                        "name": "Idempotency-Key",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "授权事实",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.CreateConsentRecord"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.ActionResult"
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/casbin/UpdateCasbin": {
             "post": {
                 "security": [
@@ -13593,6 +14065,14 @@ const docTemplate = `{
                 }
             }
         },
+        "config.Care": {
+            "type": "object",
+            "properties": {
+                "synthetic-fixtures-enabled": {
+                    "type": "boolean"
+                }
+            }
+        },
         "config.CloudflareR2": {
             "type": "object",
             "properties": {
@@ -14140,6 +14620,14 @@ const docTemplate = `{
                 },
                 "aws-s3": {
                     "$ref": "#/definitions/config.AwsS3"
+                },
+                "care": {
+                    "description": "睡眠康养业务配置",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/config.Care"
+                        }
+                    ]
                 },
                 "cloudflare-r2": {
                     "$ref": "#/definitions/config.CloudflareR2"
@@ -15117,6 +15605,90 @@ const docTemplate = `{
                 },
                 "password": {
                     "description": "密码",
+                    "type": "string"
+                }
+            }
+        },
+        "request.CreateAssignment": {
+            "type": "object",
+            "properties": {
+                "assigneeId": {
+                    "type": "integer"
+                },
+                "expectedVersion": {
+                    "type": "integer"
+                },
+                "reason": {
+                    "type": "string"
+                },
+                "replacesAssignmentId": {
+                    "type": "integer"
+                },
+                "roleType": {
+                    "type": "string"
+                },
+                "teamId": {
+                    "type": "integer"
+                },
+                "validFrom": {
+                    "type": "string"
+                },
+                "validUntil": {
+                    "type": "string"
+                }
+            }
+        },
+        "request.CreateCareClient": {
+            "type": "object",
+            "properties": {
+                "contactMobile": {
+                    "type": "string"
+                },
+                "displayCode": {
+                    "type": "string"
+                },
+                "displayName": {
+                    "type": "string"
+                },
+                "organizationId": {
+                    "type": "integer"
+                },
+                "servicePackageCode": {
+                    "type": "string"
+                },
+                "serviceReason": {
+                    "type": "string"
+                },
+                "synthetic": {
+                    "type": "boolean"
+                },
+                "teamId": {
+                    "type": "integer"
+                }
+            }
+        },
+        "request.CreateConsentRecord": {
+            "type": "object",
+            "properties": {
+                "action": {
+                    "type": "string"
+                },
+                "consentType": {
+                    "type": "string"
+                },
+                "expectedVersion": {
+                    "type": "integer"
+                },
+                "occurredAt": {
+                    "type": "string"
+                },
+                "reason": {
+                    "type": "string"
+                },
+                "source": {
+                    "type": "string"
+                },
+                "textVersion": {
                     "type": "string"
                 }
             }
@@ -16307,6 +16879,32 @@ const docTemplate = `{
                 }
             }
         },
+        "request.UpdateCareClient": {
+            "type": "object",
+            "properties": {
+                "contactMobile": {
+                    "type": "string"
+                },
+                "displayName": {
+                    "type": "string"
+                },
+                "expectedVersion": {
+                    "type": "integer"
+                },
+                "servicePackageCode": {
+                    "type": "string"
+                },
+                "serviceReason": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "teamId": {
+                    "type": "integer"
+                }
+            }
+        },
         "request.UpdateSysCliRequest": {
             "type": "object",
             "properties": {
@@ -16430,6 +17028,245 @@ const docTemplate = `{
                 },
                 "name": {
                     "description": "版本名称",
+                    "type": "string"
+                }
+            }
+        },
+        "response.ActionResult": {
+            "type": "object",
+            "properties": {
+                "careClientId": {
+                    "type": "integer"
+                },
+                "resourceId": {
+                    "type": "integer"
+                },
+                "version": {
+                    "type": "integer"
+                }
+            }
+        },
+        "response.AssigneeOption": {
+            "type": "object",
+            "properties": {
+                "displayName": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "roleType": {
+                    "type": "string"
+                },
+                "teamId": {
+                    "type": "integer"
+                }
+            }
+        },
+        "response.CareAssignmentSummary": {
+            "type": "object",
+            "properties": {
+                "assigneeDisplayName": {
+                    "type": "string"
+                },
+                "assigneeId": {
+                    "type": "integer"
+                },
+                "endReason": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "reason": {
+                    "type": "string"
+                },
+                "replacesAssignmentId": {
+                    "type": "integer"
+                },
+                "roleType": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "teamId": {
+                    "type": "integer"
+                },
+                "teamName": {
+                    "type": "string"
+                },
+                "validFrom": {
+                    "type": "string"
+                },
+                "validUntil": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.CareClientDetail": {
+            "type": "object",
+            "properties": {
+                "assignments": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.CareAssignmentSummary"
+                    }
+                },
+                "consentRecords": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.ConsentRecordSummary"
+                    }
+                },
+                "consentStatus": {
+                    "type": "string"
+                },
+                "contactMobile": {
+                    "type": "string"
+                },
+                "currentAssignments": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.CareAssignmentSummary"
+                    }
+                },
+                "displayCode": {
+                    "type": "string"
+                },
+                "displayName": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "organizationId": {
+                    "type": "integer"
+                },
+                "organizationName": {
+                    "type": "string"
+                },
+                "sensitivityLevel": {
+                    "type": "string"
+                },
+                "servicePackageCode": {
+                    "type": "string"
+                },
+                "serviceReason": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "synthetic": {
+                    "type": "boolean"
+                },
+                "teamId": {
+                    "type": "integer"
+                },
+                "teamName": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "integer"
+                }
+            }
+        },
+        "response.CareClientSummary": {
+            "type": "object",
+            "properties": {
+                "contactMobile": {
+                    "type": "string"
+                },
+                "currentAssignments": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.CareAssignmentSummary"
+                    }
+                },
+                "displayCode": {
+                    "type": "string"
+                },
+                "displayName": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "organizationId": {
+                    "type": "integer"
+                },
+                "organizationName": {
+                    "type": "string"
+                },
+                "sensitivityLevel": {
+                    "type": "string"
+                },
+                "servicePackageCode": {
+                    "type": "string"
+                },
+                "serviceReason": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "synthetic": {
+                    "type": "boolean"
+                },
+                "teamId": {
+                    "type": "integer"
+                },
+                "teamName": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "integer"
+                }
+            }
+        },
+        "response.ClientOptions": {
+            "type": "object",
+            "properties": {
+                "assignees": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.AssigneeOption"
+                    }
+                },
+                "orgUnits": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.OrgUnitOption"
+                    }
+                }
+            }
+        },
+        "response.ConsentRecordSummary": {
+            "type": "object",
+            "properties": {
+                "action": {
+                    "type": "string"
+                },
+                "consentType": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "occurredAt": {
+                    "type": "string"
+                },
+                "reason": {
+                    "type": "string"
+                },
+                "recordedBy": {
+                    "type": "integer"
+                },
+                "source": {
+                    "type": "string"
+                },
+                "textVersion": {
                     "type": "string"
                 }
             }
@@ -16569,6 +17406,26 @@ const docTemplate = `{
                 },
                 "user": {
                     "$ref": "#/definitions/system.SysUser"
+                }
+            }
+        },
+        "response.OrgUnitOption": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "departmentId": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "organizationId": {
+                    "type": "integer"
+                },
+                "unitType": {
+                    "type": "string"
                 }
             }
         },
