@@ -40,4 +40,5 @@ const (
 	EventAttentionCaseResolved     = "AttentionCaseResolved"
 	EventAttentionCaseClosed       = "AttentionCaseClosed"
 	EventAttentionCaseReopened     = "AttentionCaseReopened"
+	EventSupervisorGuidanceAdded   = "SupervisorGuidanceAdded"
 )

@@ -98,6 +98,7 @@ func RegisterTables() {
 	ensureCarePathFeature()
 	ensureClientAccessFeature()
 	ensureCaseWorkFeature()
+	ensureSupervisionFeature()
 	logger.Bg().Mod("system").Info("register table success")
 }
 
@@ -134,5 +135,11 @@ func ensureClientAccessFeature() {
 func ensureCaseWorkFeature() {
 	if err := EnsureCaseWorkData(); err != nil {
 		logger.Bg().Mod("casework").Err(err).Warn("attention case metadata or retained-record reconciliation skipped")
+	}
+}
+
+func ensureSupervisionFeature() {
+	if err := EnsureSupervisionData(); err != nil {
+		logger.Bg().Mod("supervision").Err(err).Warn("supervision metadata or fixed snapshot seed skipped")
 	}
 }

@@ -1721,6 +1721,23 @@ definitions:
       username:
         type: string
     type: object
+  request.Guidance:
+    properties:
+      dueAt:
+        type: string
+      expectedVersion:
+        type: integer
+      guidance:
+        maxLength: 4000
+        type: string
+      responsibleAssigneeId:
+        type: integer
+    required:
+    - dueAt
+    - expectedVersion
+    - guidance
+    - responsibleAssigneeId
+    type: object
   request.HandlingRecord:
     properties:
       actionType:
@@ -1813,6 +1830,23 @@ definitions:
     required:
     - adminPassword
     - dbName
+    type: object
+  request.Intervene:
+    properties:
+      dueAt:
+        type: string
+      expectedVersion:
+        type: integer
+      responsibleAssigneeId:
+        type: integer
+      result:
+        maxLength: 4000
+        type: string
+    required:
+    - dueAt
+    - expectedVersion
+    - responsibleAssigneeId
+    - result
     type: object
   request.ListOssFilesReq:
     properties:
@@ -2783,6 +2817,60 @@ definitions:
       textVersion:
         type: string
     type: object
+  response.DailySummary:
+    properties:
+      businessDate:
+        type: string
+      deliveryIssues:
+        type: integer
+      dueTasks:
+        type: integer
+      id:
+        type: integer
+      openAttentionCases:
+        type: integer
+      resolvedAttentionCases:
+        type: integer
+      reviewRequired:
+        type: integer
+      servedClients:
+        type: integer
+      submittedTasks:
+        type: integer
+      summaryType:
+        type: string
+      version:
+        type: integer
+    type: object
+  response.DailySummaryDetail:
+    properties:
+      businessDate:
+        type: string
+      deliveryIssues:
+        type: integer
+      dueTasks:
+        type: integer
+      focusCases:
+        items:
+          $ref: '#/definitions/response.AttentionCaseSummary'
+        type: array
+      id:
+        type: integer
+      openAttentionCases:
+        type: integer
+      resolvedAttentionCases:
+        type: integer
+      reviewRequired:
+        type: integer
+      servedClients:
+        type: integer
+      submittedTasks:
+        type: integer
+      summaryType:
+        type: string
+      version:
+        type: integer
+    type: object
   response.Draft:
     properties:
       answers:
@@ -3337,6 +3425,19 @@ definitions:
         type: integer
       data: {}
       msg:
+        type: string
+    type: object
+  response.ReviewItem:
+    properties:
+      attentionCaseId:
+        type: integer
+      id:
+        type: integer
+      requestedAt:
+        type: string
+      requestedBy:
+        type: integer
+      status:
         type: string
     type: object
   response.RuleHitSummary:
@@ -7027,6 +7128,82 @@ paths:
       summary: 按固定模板版本和 anchorAt 预览合成 D1-D5
       tags:
       - CarePath
+  /care/daily-summaries:
+    get:
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页数量，最大100
+        in: query
+        name: pageSize
+        type: integer
+      - description: 业务日期，YYYY-MM-DD
+        in: query
+        name: businessDate
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.PageResult'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/response.DailySummary'
+                        type: array
+                    type: object
+                msg:
+                  type: string
+              type: object
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: 查询今日实时预览与授权范围历史日报版本
+      tags:
+      - Supervision
+  /care/daily-summaries/{id}:
+    get:
+      parameters:
+      - description: 日报版本ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.DailySummaryDetail'
+                msg:
+                  type: string
+              type: object
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: 查询授权范围历史日报版本详情
+      tags:
+      - Supervision
   /care/plan-instances/{id}/pause:
     post:
       consumes:
@@ -7291,6 +7468,135 @@ paths:
       summary: 获取问卷、题目和绑定关注规则版本详情
       tags:
       - Questionnaire
+  /care/reviews:
+    get:
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页数量，最大100
+        in: query
+        name: pageSize
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.PageResult'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/response.ReviewItem'
+                        type: array
+                    type: object
+                msg:
+                  type: string
+              type: object
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: 查询授权管理范围内的上级复核队列
+      tags:
+      - Supervision
+  /care/reviews/{id}/guidance:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 复核事项ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 幂等键
+        in: header
+        name: Idempotency-Key
+        required: true
+        type: string
+      - description: 指导、责任医护、截止时间和事项版本
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.Guidance'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_flipped-aurora_gin-vue-admin_server_model_casework_response.ActionResult'
+                msg:
+                  type: string
+              type: object
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: 追加上级指导或讨论安排
+      tags:
+      - Supervision
+  /care/reviews/{id}/intervene:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 复核事项ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 幂等键
+        in: header
+        name: Idempotency-Key
+        required: true
+        type: string
+      - description: 介入结果、责任医护、截止时间和事项版本
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.Intervene'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_flipped-aurora_gin-vue-admin_server_model_casework_response.ActionResult'
+                msg:
+                  type: string
+              type: object
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: 上级直接介入并指定责任医护与截止时间
+      tags:
+      - Supervision
   /care/tasks:
     get:
       parameters:

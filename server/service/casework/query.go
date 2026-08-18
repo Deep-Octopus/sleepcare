@@ -69,12 +69,17 @@ func (s *CaseWorkService) Get(ctx context.Context, id uint) (caseworkres.Attenti
 	}
 
 	var hits []qmodel.QuestionnaireRuleHit
-	if err = s.db().WithContext(ctx).Where("id = ? AND submission_id = ?", attentionCase.SourceRuleHitID, attentionCase.SubmissionID).
+	// Child facts inherit access from the already-authorized aggregate. Explicitly
+	// bypass their actor-owned department stamps so a responsible clinician can
+	// see guidance recorded by a supervisor in an ancestor department.
+	if err = s.db().WithContext(ctx).Set("data_scope:skip", true).
+		Where("id = ? AND submission_id = ?", attentionCase.SourceRuleHitID, attentionCase.SubmissionID).
 		Order("occurred_at ASC, id ASC").Find(&hits).Error; err != nil {
 		return caseworkres.AttentionCaseDetail{}, err
 	}
 	var actions []caseworkmodel.CaseAction
-	if err = s.db().WithContext(ctx).Where("attention_case_id = ?", attentionCase.ID).
+	if err = s.db().WithContext(ctx).Set("data_scope:skip", true).
+		Where("attention_case_id = ?", attentionCase.ID).
 		Order("occurred_at ASC, id ASC").Find(&actions).Error; err != nil {
 		return caseworkres.AttentionCaseDetail{}, err
 	}

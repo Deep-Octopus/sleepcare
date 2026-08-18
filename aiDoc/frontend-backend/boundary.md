@@ -80,3 +80,15 @@
 - 关注事项列表只展示最小摘要，详情只追加规则命中快照与行动时间线，不展示原始答卷。
 - 管家使用 `CONTACT` 记录联系，医护使用 `HANDLING` 记录处置；医护请求上级复核时写入 `WAITING_SUPERVISOR`，活动待办继续保持开放。
 - P1-07 不新增指导、日报或通知写接口；相关指标只读取现有任务、事项和待办投影。
+
+## P1-08 上级督导与每日汇总契约
+
+- `GET /care/daily-summaries` 使用统一分页；今天的第一页首项可返回 `id=0`、无 `version` 的 `REALTIME_PREVIEW`，其余项目为有稳定 ID 和版本号的 `VERSIONED_SNAPSHOT`。
+- `businessDate` 使用 `YYYY-MM-DD` 和 `Asia/Shanghai` 自然日。实时项由当前授权记录计算且不持久化；历史项只追加新版本，不更新旧版本。
+- `GET /care/daily-summaries/{id}` 只接受历史版本 ID，返回冻结指标和 `focusCases`；前端不得把实时预览冒充历史日报，也不得自行拼接历史重点事项。
+- `GET /care/reviews` 返回 `PENDING|GUIDED|INTERVENED|COMPLETED` 复核投影、原请求时间与请求人。详情继续通过已授权的关注事项详情接口读取，不返回原始答卷。
+- `POST /care/reviews/{id}/guidance` 接收 `expectedVersion`、`guidance`、`responsibleAssigneeId` 和未来 `dueAt`；指导和讨论安排均追加 `GUIDANCE` 事实，事项继续处于 `WAITING_SUPERVISOR`。
+- `POST /care/reviews/{id}/intervene` 接收 `expectedVersion`、`result`、`responsibleAssigneeId` 和未来 `dueAt`；成功后事项进入 `HANDLING`。
+- 两个写接口都要求 `Idempotency-Key`。前端在一次对话中复用同一键，服务端负责相同请求重放、不同请求冲突和事项版本冲突。
+- 五个接口只授权上级角色，并叠加业务身份、DataScope、机构范围和固定测试记录门禁。页面菜单或按钮不可替代后端权限。
+- 当前没有日报生成 HTTP 接口和定时任务；初始化仅幂等提供一条固定历史版本。通知异常写侧仍由 P1-09 负责。

@@ -4594,6 +4594,140 @@ const docTemplate = `{
                 }
             }
         },
+        "/care/daily-summaries": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Supervision"
+                ],
+                "summary": "查询今日实时预览与授权范围历史日报版本",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页数量，最大100",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "业务日期，YYYY-MM-DD",
+                        "name": "businessDate",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/response.PageResult"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "list": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/definitions/response.DailySummary"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/care/daily-summaries/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Supervision"
+                ],
+                "summary": "查询授权范围历史日报版本详情",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "日报版本ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.DailySummaryDetail"
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/care/plan-instances/{id}/pause": {
             "post": {
                 "security": [
@@ -5026,6 +5160,226 @@ const docTemplate = `{
                                     "properties": {
                                         "data": {
                                             "$ref": "#/definitions/response.QuestionnaireVersionDetail"
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/care/reviews": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Supervision"
+                ],
+                "summary": "查询授权管理范围内的上级复核队列",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页数量，最大100",
+                        "name": "pageSize",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/response.PageResult"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "list": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/definitions/response.ReviewItem"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/care/reviews/{id}/guidance": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Supervision"
+                ],
+                "summary": "追加上级指导或讨论安排",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "复核事项ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "幂等键",
+                        "name": "Idempotency-Key",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "指导、责任医护、截止时间和事项版本",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.Guidance"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/github_com_flipped-aurora_gin-vue-admin_server_model_casework_response.ActionResult"
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/care/reviews/{id}/intervene": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Supervision"
+                ],
+                "summary": "上级直接介入并指定责任医护与截止时间",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "复核事项ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "幂等键",
+                        "name": "Idempotency-Key",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "介入结果、责任医护、截止时间和事项版本",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.Intervene"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/github_com_flipped-aurora_gin-vue-admin_server_model_casework_response.ActionResult"
                                         },
                                         "msg": {
                                             "type": "string"
@@ -18307,6 +18661,30 @@ const docTemplate = `{
                 }
             }
         },
+        "request.Guidance": {
+            "type": "object",
+            "required": [
+                "dueAt",
+                "expectedVersion",
+                "guidance",
+                "responsibleAssigneeId"
+            ],
+            "properties": {
+                "dueAt": {
+                    "type": "string"
+                },
+                "expectedVersion": {
+                    "type": "integer"
+                },
+                "guidance": {
+                    "type": "string",
+                    "maxLength": 4000
+                },
+                "responsibleAssigneeId": {
+                    "type": "integer"
+                }
+            }
+        },
         "request.HandlingRecord": {
             "type": "object",
             "required": [
@@ -18439,6 +18817,30 @@ const docTemplate = `{
                 "userName": {
                     "description": "数据库用户名",
                     "type": "string"
+                }
+            }
+        },
+        "request.Intervene": {
+            "type": "object",
+            "required": [
+                "dueAt",
+                "expectedVersion",
+                "responsibleAssigneeId",
+                "result"
+            ],
+            "properties": {
+                "dueAt": {
+                    "type": "string"
+                },
+                "expectedVersion": {
+                    "type": "integer"
+                },
+                "responsibleAssigneeId": {
+                    "type": "integer"
+                },
+                "result": {
+                    "type": "string",
+                    "maxLength": 4000
                 }
             }
         },
@@ -19881,6 +20283,88 @@ const docTemplate = `{
                 }
             }
         },
+        "response.DailySummary": {
+            "type": "object",
+            "properties": {
+                "businessDate": {
+                    "type": "string"
+                },
+                "deliveryIssues": {
+                    "type": "integer"
+                },
+                "dueTasks": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "openAttentionCases": {
+                    "type": "integer"
+                },
+                "resolvedAttentionCases": {
+                    "type": "integer"
+                },
+                "reviewRequired": {
+                    "type": "integer"
+                },
+                "servedClients": {
+                    "type": "integer"
+                },
+                "submittedTasks": {
+                    "type": "integer"
+                },
+                "summaryType": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "integer"
+                }
+            }
+        },
+        "response.DailySummaryDetail": {
+            "type": "object",
+            "properties": {
+                "businessDate": {
+                    "type": "string"
+                },
+                "deliveryIssues": {
+                    "type": "integer"
+                },
+                "dueTasks": {
+                    "type": "integer"
+                },
+                "focusCases": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.AttentionCaseSummary"
+                    }
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "openAttentionCases": {
+                    "type": "integer"
+                },
+                "resolvedAttentionCases": {
+                    "type": "integer"
+                },
+                "reviewRequired": {
+                    "type": "integer"
+                },
+                "servedClients": {
+                    "type": "integer"
+                },
+                "submittedTasks": {
+                    "type": "integer"
+                },
+                "summaryType": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "integer"
+                }
+            }
+        },
         "response.Draft": {
             "type": "object",
             "properties": {
@@ -20723,6 +21207,26 @@ const docTemplate = `{
                 },
                 "data": {},
                 "msg": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.ReviewItem": {
+            "type": "object",
+            "properties": {
+                "attentionCaseId": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "requestedAt": {
+                    "type": "string"
+                },
+                "requestedBy": {
+                    "type": "integer"
+                },
+                "status": {
                     "type": "string"
                 }
             }

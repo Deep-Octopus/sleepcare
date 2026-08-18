@@ -7,6 +7,7 @@ import (
 	"github.com/flipped-aurora/gin-vue-admin/server/model/casework"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/clientaccess"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/questionnaire"
+	"github.com/flipped-aurora/gin-vue-admin/server/model/supervision"
 )
 
 func bizModel() error {
@@ -46,6 +47,8 @@ func bizModel() error {
 		&questionnaire.QuestionnaireRuleHit{},
 		&questionnaire.QuestionnaireCommandReceipt{},
 		&questionnaire.OutboxEvent{},
+		&supervision.DailySummaryVersion{},
+		&supervision.SupervisorGuidance{},
 	)
 	if err != nil {
 		return err

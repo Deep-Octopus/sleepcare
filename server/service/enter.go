@@ -8,6 +8,7 @@ import (
 	"github.com/flipped-aurora/gin-vue-admin/server/service/example"
 	"github.com/flipped-aurora/gin-vue-admin/server/service/media"
 	"github.com/flipped-aurora/gin-vue-admin/server/service/questionnaire"
+	"github.com/flipped-aurora/gin-vue-admin/server/service/supervision"
 	"github.com/flipped-aurora/gin-vue-admin/server/service/system"
 )
 
@@ -19,6 +20,7 @@ type ServiceGroup struct {
 	ClientAccessServiceGroup  clientaccess.ServiceGroup
 	CareClientServiceGroup    careclient.ServiceGroup
 	QuestionnaireServiceGroup questionnaire.ServiceGroup
+	SupervisionServiceGroup   supervision.ServiceGroup
 	SystemServiceGroup        system.ServiceGroup
 	ExampleServiceGroup       example.ServiceGroup
 	MediaServiceGroup         media.ServiceGroup

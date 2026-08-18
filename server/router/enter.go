@@ -8,6 +8,7 @@ import (
 	"github.com/flipped-aurora/gin-vue-admin/server/router/example"
 	"github.com/flipped-aurora/gin-vue-admin/server/router/media"
 	"github.com/flipped-aurora/gin-vue-admin/server/router/questionnaire"
+	"github.com/flipped-aurora/gin-vue-admin/server/router/supervision"
 	"github.com/flipped-aurora/gin-vue-admin/server/router/system"
 )
 
@@ -19,6 +20,7 @@ type RouterGroup struct {
 	ClientAccess  clientaccess.RouterGroup
 	CareClient    careclient.RouterGroup
 	Questionnaire questionnaire.RouterGroup
+	Supervision   supervision.RouterGroup
 	System        system.RouterGroup
 	Example       example.RouterGroup
 	Media         media.RouterGroup
