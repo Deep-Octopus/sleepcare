@@ -4,7 +4,7 @@
 
 > 以下条目均作为 R2 第 16 节的工程实施基线执行；涉及真实数据、医疗内容、正式通知或 AI 的能力，仍须通过对应启用门禁。
 
-- [睡眠康养：阶段一 OSA 展示闭环](active/sleep-care-phase1-demo.md) — `active` — 用虚构数据走通康养用户提交、关注事项、医护处置和上级督导。
+- [睡眠康养：阶段一 OSA 展示闭环](active/sleep-care-phase1-demo.md) — `active` — 用醒目标注的合成夹具走通康养用户提交、关注事项、医护处置和上级督导。
 - [睡眠康养：用户公共资料与授权](active/sleep-care-client-consent.md) — `active` — 建立唯一公共资料、服务授权和责任关系历史。
 - [睡眠康养：组织角色与数据权限](active/sleep-care-access-control.md) — `active` — 组合菜单、API、按钮、DataScope、机构和责任关系权限。
 - [睡眠康养：OSA 路径与 D1–D5 计划](active/sleep-care-osa-plan.md) — `active` — 建立版本化 OSA 方案、计划实例和任务时间线。

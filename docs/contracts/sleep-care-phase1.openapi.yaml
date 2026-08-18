@@ -1,0 +1,2500 @@
+openapi: 3.0.3
+info:
+  title: Sleep Care Phase 1 Contract
+  version: P1-01-v1
+  description: >-
+    阶段一契约草案。只允许醒目标注的合成夹具；未批准医疗内容、真实通知、
+    真实数据和面向康养用户的 AI 均保持禁用。成功与错误均使用 GVA
+    {code,data,msg} 响应结构。
+servers:
+  - url: /api
+    description: Web/Nginx 对外入口；后端与 Casbin 路径不含 /api 前缀
+tags:
+  - name: ClientAccess
+  - name: ClientTasks
+  - name: Workbench
+  - name: CareClients
+  - name: StaffTasks
+  - name: AttentionCases
+  - name: Deliveries
+  - name: Supervision
+  - name: ContentRead
+paths:
+  /care/client-access/redeem:
+    post:
+      tags: [ClientAccess]
+      operationId: redeemClientAccess
+      summary: 一次性 grant 兑换康养用户受限会话
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RedeemAccessRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/RedeemAccessResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /care/client/tasks:
+    get:
+      tags: [ClientTasks]
+      operationId: listClientTasks
+      summary: 查询当前受限会话允许访问的任务
+      description: 不接受 clientId、organizationId 或 assigneeId 扩大范围。
+      security:
+        - ClientSession: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          $ref: '#/components/responses/TaskListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /care/client/tasks/{taskId}:
+    get:
+      tags: [ClientTasks]
+      operationId: getClientTask
+      summary: 查询受限会话内的任务详情
+      security:
+        - ClientSession: []
+      parameters:
+        - $ref: '#/components/parameters/TaskId'
+      responses:
+        '200':
+          $ref: '#/components/responses/TaskDetailResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /care/client/tasks/{taskId}/questionnaire:
+    get:
+      tags: [ClientTasks]
+      operationId: getClientTaskQuestionnaire
+      summary: 获取任务冻结的问卷版本
+      security:
+        - ClientSession: []
+      parameters:
+        - $ref: '#/components/parameters/TaskId'
+      responses:
+        '200':
+          $ref: '#/components/responses/QuestionnaireResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /care/client/tasks/{taskId}/interactions:
+    post:
+      tags: [ClientTasks]
+      operationId: recordClientTaskInteraction
+      summary: 幂等记录打开、同意或开始交互
+      description: 交互事件与通知回执、答卷提交和事项处理相互独立。
+      security:
+        - ClientSession: []
+      parameters:
+        - $ref: '#/components/parameters/TaskId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecordTaskInteractionRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/ActionResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /care/client/tasks/{taskId}/draft:
+    put:
+      tags: [ClientTasks]
+      operationId: saveClientTaskDraft
+      summary: 幂等保存任务草稿
+      security:
+        - ClientSession: []
+      parameters:
+        - $ref: '#/components/parameters/TaskId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SaveDraftRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/DraftResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /care/client/tasks/{taskId}/submit:
+    post:
+      tags: [ClientTasks]
+      operationId: submitClientTask
+      summary: 幂等提交任务答卷
+      description: 提交成功不等于复核、处置或关闭完成。
+      security:
+        - ClientSession: []
+      parameters:
+        - $ref: '#/components/parameters/TaskId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubmitTaskRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/SubmitTaskResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /care/workbench:
+    get:
+      tags: [Workbench]
+      operationId: getCareWorkbench
+      summary: 查询当前员工责任范围工作台
+      security:
+        - EmployeeToken: []
+      responses:
+        '200':
+          $ref: '#/components/responses/WorkbenchResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /care/clients:
+    get:
+      tags: [CareClients]
+      operationId: listCareClients
+      summary: 按员工授权范围查询康养用户
+      security:
+        - EmployeeToken: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - name: keyword
+          in: query
+          schema:
+            type: string
+            maxLength: 80
+        - name: organizationId
+          in: query
+          description: 只能缩小服务端授权范围
+          schema:
+            type: integer
+            format: uint64
+            minimum: 1
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [ACTIVE, INACTIVE]
+      responses:
+        '200':
+          $ref: '#/components/responses/CareClientListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      tags: [CareClients]
+      operationId: createCareClient
+      summary: 创建康养用户公共资料
+      description: 阶段一只允许创建 synthetic=true 的合成用户。
+      security:
+        - EmployeeToken: []
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCareClientRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/CareClientActionResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /care/clients/{id}:
+    get:
+      tags: [CareClients]
+      operationId: getCareClient
+      summary: 查询授权范围内的康养用户详情
+      security:
+        - EmployeeToken: []
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+      responses:
+        '200':
+          $ref: '#/components/responses/CareClientDetailResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    put:
+      tags: [CareClients]
+      operationId: updateCareClient
+      summary: 更新康养用户公共资料
+      description: 疑似重复记录不得通过本接口静默合并。
+      security:
+        - EmployeeToken: []
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCareClientRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/CareClientActionResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /care/clients/{id}/assignments:
+    post:
+      tags: [CareClients]
+      operationId: createCareAssignment
+      summary: 追加有有效期的责任关系
+      security:
+        - EmployeeToken: []
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAssignmentRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/CareClientActionResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /care/clients/{id}/consent-records:
+    post:
+      tags: [CareClients]
+      operationId: createConsentRecord
+      summary: 追加服务授权或撤回记录
+      description: 阶段一合成场景只能记录 SYNTHETIC_TEST_PARTICIPATION，不代表正式授权文本已批准。
+      security:
+        - EmployeeToken: []
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateConsentRecordRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/CareClientActionResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /care/client-options:
+    get:
+      tags: [CareClients]
+      operationId: getCareClientOptions
+      summary: 获取督导可管理范围内的机构、团队和责任人选项
+      description: 仅供 P1-02 最小维护页面使用；普通管家、医护和技术管理员无权读取。
+      security:
+        - EmployeeToken: []
+      responses:
+        '200':
+          $ref: '#/components/responses/CareClientOptionsResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /care/clients/{id}/plan-previews:
+    post:
+      tags: [CareClients]
+      operationId: previewCarePlan
+      summary: 按固定模板版本和 anchorAt 预览任务
+      security:
+        - EmployeeToken: []
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PreviewPlanRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/PlanPreviewResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /care/clients/{id}/plan-instances:
+    post:
+      tags: [CareClients]
+      operationId: startCarePlan
+      summary: 根据已确认预览幂等启动计划
+      security:
+        - EmployeeToken: []
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StartPlanRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/PlanInstanceResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /care/plan-instances/{id}/pause:
+    post:
+      tags: [StaffTasks]
+      operationId: pauseCarePlan
+      summary: 追加原因并暂停计划
+      security:
+        - EmployeeToken: []
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PlanStateActionRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/ActionResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /care/plan-instances/{id}/resume:
+    post:
+      tags: [StaffTasks]
+      operationId: resumeCarePlan
+      summary: 追加原因并恢复计划
+      security:
+        - EmployeeToken: []
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PlanStateActionRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/ActionResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /care/tasks:
+    get:
+      tags: [StaffTasks]
+      operationId: listStaffTasks
+      summary: 查询员工责任范围任务
+      security:
+        - EmployeeToken: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - name: executionStatus
+          in: query
+          schema:
+            $ref: '#/components/schemas/TaskExecutionStatus'
+        - name: attentionOnly
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          $ref: '#/components/responses/TaskListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /care/tasks/{id}:
+    get:
+      tags: [StaffTasks]
+      operationId: getStaffTask
+      summary: 查询员工授权范围任务详情
+      security:
+        - EmployeeToken: []
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+      responses:
+        '200':
+          $ref: '#/components/responses/TaskDetailResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /care/tasks/{id}/contact-records:
+    post:
+      tags: [StaffTasks]
+      operationId: createTaskContactRecord
+      summary: 追加联系记录
+      security:
+        - EmployeeToken: []
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContactRecordRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/ActionResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /care/tasks/{id}/device-records:
+    post:
+      tags: [StaffTasks]
+      operationId: createTaskDeviceRecord
+      summary: 追加人工设备观察记录
+      description: 只记录来源和观察值，不产生诊断结论。
+      security:
+        - EmployeeToken: []
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeviceRecordRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/ActionResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /care/attention-cases:
+    get:
+      tags: [AttentionCases]
+      operationId: listAttentionCases
+      summary: 查询授权范围关注事项
+      security:
+        - EmployeeToken: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/AttentionCaseStatus'
+        - name: assigneeId
+          in: query
+          description: 只能缩小服务端授权范围
+          schema:
+            type: integer
+            format: uint64
+            minimum: 1
+      responses:
+        '200':
+          $ref: '#/components/responses/AttentionCaseListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /care/attention-cases/{id}:
+    get:
+      tags: [AttentionCases]
+      operationId: getAttentionCase
+      summary: 查询授权范围关注事项详情
+      security:
+        - EmployeeToken: []
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+      responses:
+        '200':
+          $ref: '#/components/responses/AttentionCaseDetailResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /care/attention-cases/{id}/acknowledge:
+    post:
+      tags: [AttentionCases]
+      operationId: acknowledgeAttentionCase
+      summary: 确认关注事项
+      security:
+        - EmployeeToken: []
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcknowledgeRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/ActionResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /care/attention-cases/{id}/handling-records:
+    post:
+      tags: [AttentionCases]
+      operationId: createAttentionHandlingRecord
+      summary: 追加关注事项处理记录
+      security:
+        - EmployeeToken: []
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HandlingRecordRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/ActionResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /care/attention-cases/{id}/escalate:
+    post:
+      tags: [AttentionCases]
+      operationId: escalateAttentionCase
+      summary: 升级关注事项并保留原责任链
+      security:
+        - EmployeeToken: []
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EscalateRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/ActionResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /care/attention-cases/{id}/close:
+    post:
+      tags: [AttentionCases]
+      operationId: closeAttentionCase
+      summary: 在处理结果和关闭理由完整后关闭事项
+      security:
+        - EmployeeToken: []
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CloseCaseRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/ActionResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /care/deliveries:
+    get:
+      tags: [Deliveries]
+      operationId: listDeliveries
+      summary: 查询授权范围通知尝试和回执
+      security:
+        - EmployeeToken: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/NotificationAttemptStatus'
+      responses:
+        '200':
+          $ref: '#/components/responses/DeliveryListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /care/deliveries/{id}/resend:
+    post:
+      tags: [Deliveries]
+      operationId: resendDelivery
+      summary: 创建新的通知尝试
+      security:
+        - EmployeeToken: []
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResendRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/ActionResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /care/daily-summaries:
+    get:
+      tags: [Supervision]
+      operationId: listDailySummaries
+      summary: 查询实时预览或历史日报版本
+      security:
+        - EmployeeToken: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - name: businessDate
+          in: query
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          $ref: '#/components/responses/DailySummaryListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /care/daily-summaries/{id}:
+    get:
+      tags: [Supervision]
+      operationId: getDailySummary
+      summary: 查询授权范围日报详情
+      security:
+        - EmployeeToken: []
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+      responses:
+        '200':
+          $ref: '#/components/responses/DailySummaryDetailResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /care/reviews:
+    get:
+      tags: [Supervision]
+      operationId: listCareReviews
+      summary: 查询上级管理范围待复核事项
+      security:
+        - EmployeeToken: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          $ref: '#/components/responses/ReviewListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /care/reviews/{id}/guidance:
+    post:
+      tags: [Supervision]
+      operationId: addReviewGuidance
+      summary: 追加上级指导
+      security:
+        - EmployeeToken: []
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GuidanceRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/ActionResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /care/reviews/{id}/intervene:
+    post:
+      tags: [Supervision]
+      operationId: interveneCareReview
+      summary: 上级直接介入并指定责任人与截止时间
+      security:
+        - EmployeeToken: []
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InterveneRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/ActionResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /care/questionnaire-versions/{id}:
+    get:
+      tags: [ContentRead]
+      operationId: getQuestionnaireVersion
+      summary: 只读查询问卷版本
+      security:
+        - EmployeeToken: []
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+      responses:
+        '200':
+          $ref: '#/components/responses/QuestionnaireResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /care/plan-versions/{id}:
+    get:
+      tags: [ContentRead]
+      operationId: getPlanVersion
+      summary: 只读查询计划模板版本
+      security:
+        - EmployeeToken: []
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+      responses:
+        '200':
+          $ref: '#/components/responses/PlanVersionResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+components:
+  securitySchemes:
+    EmployeeToken:
+      type: apiKey
+      in: header
+      name: x-token
+      description: GVA 后台员工令牌；不得用于康养用户访问。
+    ClientSession:
+      type: apiKey
+      in: cookie
+      name: care_client_session
+      description: 一次性 grant 兑换的 HttpOnly 受限会话。
+
+  parameters:
+    Page:
+      name: page
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    PageSize:
+      name: pageSize
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 10
+    ResourceId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: uint64
+        minimum: 1
+    TaskId:
+      name: taskId
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: uint64
+        minimum: 1
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      description: 调用方生成并在同一逻辑动作重试时复用的 UUID/ULID。
+      schema:
+        type: string
+        minLength: 16
+        maxLength: 80
+
+  responses:
+    BadRequest:
+      description: 请求体无法解析或字段结构不合法
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+    Unauthorized:
+      description: 员工令牌或康养用户受限会话无效
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+    Forbidden:
+      description: 已认证但角色、组织、责任或敏感范围不允许
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+    RedeemAccessResponse:
+      description: 兑换结果；成功时通过 Set-Cookie 写入受限会话
+      headers:
+        Set-Cookie:
+          schema:
+            type: string
+          description: care_client_session；生产必须 HttpOnly、Secure、SameSite=Lax。
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/RedeemAccessEnvelope'
+    TaskListResponse:
+      description: 任务分页
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/TaskListEnvelope'
+    TaskDetailResponse:
+      description: 任务详情
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/TaskDetailEnvelope'
+    QuestionnaireResponse:
+      description: 问卷冻结版本
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/QuestionnaireEnvelope'
+    DraftResponse:
+      description: 草稿保存结果
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DraftEnvelope'
+    SubmitTaskResponse:
+      description: 提交结果；不表示已处理
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/SubmitTaskEnvelope'
+    WorkbenchResponse:
+      description: 工作台投影
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/WorkbenchEnvelope'
+    CareClientListResponse:
+      description: 康养用户分页
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/CareClientListEnvelope'
+    CareClientDetailResponse:
+      description: 康养用户详情
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/CareClientDetailEnvelope'
+    CareClientActionResponse:
+      description: 康养用户聚合写操作结果
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/CareClientActionEnvelope'
+    CareClientOptionsResponse:
+      description: 督导可维护的机构、团队和责任人选项
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/CareClientOptionsEnvelope'
+    AttentionCaseListResponse:
+      description: 关注事项分页
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AttentionCaseListEnvelope'
+    AttentionCaseDetailResponse:
+      description: 关注事项详情
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AttentionCaseDetailEnvelope'
+    DeliveryListResponse:
+      description: 通知尝试分页
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DeliveryListEnvelope'
+    DailySummaryListResponse:
+      description: 每日汇总分页
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DailySummaryListEnvelope'
+    DailySummaryDetailResponse:
+      description: 每日汇总详情
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DailySummaryDetailEnvelope'
+    ReviewListResponse:
+      description: 待复核分页
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ReviewListEnvelope'
+    PlanVersionResponse:
+      description: 计划模板版本
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/PlanVersionEnvelope'
+    PlanPreviewResponse:
+      description: 固定模板版本和锚点计算出的计划预览
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/PlanPreviewEnvelope'
+    PlanInstanceResponse:
+      description: 幂等启动计划的结果
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/PlanInstanceEnvelope'
+    ActionResponse:
+      description: 追加动作结果
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ActionEnvelope'
+
+  schemas:
+    ErrorEnvelope:
+      type: object
+      required: [code, data, msg]
+      properties:
+        code:
+          type: integer
+          example: 41104
+        data:
+          nullable: true
+        msg:
+          type: string
+          example: 无权执行该操作
+
+    SuccessFields:
+      type: object
+      required: [code, msg]
+      properties:
+        code:
+          type: integer
+          enum: [0]
+        msg:
+          type: string
+          example: success
+
+    TaskExecutionStatus:
+      type: string
+      enum: [SCHEDULED, OPEN, IN_PROGRESS, SUBMITTED, CANCELLED]
+    TaskTimingStatus:
+      type: string
+      enum: [NOT_OPEN, WITHIN_WINDOW, OVERDUE, EXPIRED]
+    TaskReviewStatus:
+      type: string
+      enum: [NOT_READY, NOT_REQUIRED, PENDING, REVIEWING, REVIEWED, RETURNED]
+    AttentionCaseStatus:
+      type: string
+      enum:
+        - PENDING_ACK
+        - ACKNOWLEDGED
+        - HANDLING
+        - WAITING_CLIENT
+        - WAITING_COLLABORATION
+        - WAITING_SUPERVISOR
+        - RESOLVED
+        - CLOSED
+    NotificationAttemptStatus:
+      type: string
+      enum: [PENDING, SUBMITTED_TO_PROVIDER, ACCEPTED, DELIVERED, FAILED, UNKNOWN]
+    ContentLifecycleStatus:
+      type: string
+      enum: [DRAFT, IN_REVIEW, APPROVED, PUBLISHED, DISABLED]
+    ContentReviewRecord:
+      type: object
+      required: [reviewType, reviewedBy, reviewedAt, formalMedicalApproval]
+      properties:
+        reviewType:
+          type: string
+          enum: [ENGINEERING_FIXTURE_REVIEW, FORMAL_MEDICAL_REVIEW]
+        reviewedBy:
+          type: string
+        reviewedAt:
+          type: string
+          format: date-time
+        formalMedicalApproval:
+          type: boolean
+
+    RedeemAccessRequest:
+      type: object
+      additionalProperties: false
+      required: [grant]
+      properties:
+        grant:
+          type: string
+          minLength: 24
+          maxLength: 512
+          writeOnly: true
+    RedeemAccessData:
+      type: object
+      required: [expiresAt, allowedTaskCount]
+      properties:
+        expiresAt:
+          type: string
+          format: date-time
+        allowedTaskCount:
+          type: integer
+          minimum: 0
+    RedeemAccessEnvelope:
+      allOf:
+        - $ref: '#/components/schemas/SuccessFields'
+        - type: object
+          required: [data]
+          properties:
+            data:
+              $ref: '#/components/schemas/RedeemAccessData'
+
+    AnswerInput:
+      type: object
+      additionalProperties: false
+      required: [questionCode, value]
+      properties:
+        questionCode:
+          type: string
+          maxLength: 80
+        value:
+          description: 值类型由冻结问卷版本决定。
+          oneOf:
+            - type: string
+            - type: number
+            - type: boolean
+            - type: array
+              items:
+                type: string
+    SaveDraftRequest:
+      type: object
+      additionalProperties: false
+      required: [expectedVersion, answers]
+      properties:
+        expectedVersion:
+          type: integer
+          minimum: 1
+        answers:
+          type: array
+          items:
+            $ref: '#/components/schemas/AnswerInput'
+    SubmitTaskRequest:
+      type: object
+      additionalProperties: false
+      required: [expectedTaskVersion, source, answers]
+      properties:
+        expectedTaskVersion:
+          type: integer
+          minimum: 1
+        source:
+          type: string
+          enum: [CLIENT_SELF, STAFF_ASSISTED]
+        sourceReason:
+          type: string
+          maxLength: 500
+        clientOccurredAt:
+          type: string
+          format: date-time
+          description: 可选审计元数据；不能替代服务器提交时间。
+        answers:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/AnswerInput'
+    RecordTaskInteractionRequest:
+      type: object
+      additionalProperties: false
+      required: [expectedVersion, interactionType]
+      properties:
+        expectedVersion:
+          type: integer
+          minimum: 1
+        interactionType:
+          type: string
+          enum: [OPENED, CONSENTED, STARTED]
+        clientOccurredAt:
+          type: string
+          format: date-time
+          description: 可选审计元数据；服务器接收时间仍单独记录。
+
+    CreateCareClientRequest:
+      type: object
+      additionalProperties: false
+      required: [displayCode, displayName, organizationId, synthetic]
+      properties:
+        displayCode:
+          type: string
+          maxLength: 64
+        displayName:
+          type: string
+          maxLength: 100
+        contactMobile:
+          type: string
+          maxLength: 32
+        organizationId:
+          type: integer
+          format: uint64
+          minimum: 1
+        teamId:
+          type: integer
+          format: uint64
+          minimum: 1
+          nullable: true
+        serviceReason:
+          type: string
+          maxLength: 500
+        servicePackageCode:
+          type: string
+          maxLength: 64
+        synthetic:
+          type: boolean
+          enum: [true]
+    UpdateCareClientRequest:
+      type: object
+      additionalProperties: false
+      required: [expectedVersion]
+      properties:
+        expectedVersion:
+          type: integer
+          minimum: 1
+        displayName:
+          type: string
+          maxLength: 100
+        contactMobile:
+          type: string
+          maxLength: 32
+        teamId:
+          type: integer
+          format: uint64
+          minimum: 1
+          nullable: true
+        serviceReason:
+          type: string
+          maxLength: 500
+        servicePackageCode:
+          type: string
+          maxLength: 64
+        status:
+          type: string
+          enum: [ACTIVE, INACTIVE]
+    CreateAssignmentRequest:
+      type: object
+      additionalProperties: false
+      required: [expectedVersion, roleType, assigneeId, teamId, validFrom, reason]
+      properties:
+        expectedVersion:
+          type: integer
+          minimum: 1
+        roleType:
+          type: string
+          enum: [CARE_STEWARD, CLINICIAN]
+        assigneeId:
+          type: integer
+          format: uint64
+          minimum: 1
+        teamId:
+          type: integer
+          format: uint64
+          minimum: 1
+        validFrom:
+          type: string
+          format: date-time
+        validUntil:
+          type: string
+          format: date-time
+          nullable: true
+        replacesAssignmentId:
+          type: integer
+          format: uint64
+          minimum: 1
+          nullable: true
+          description: 同角色已有生效责任关系时必填，并精确指向被替代关系。
+        reason:
+          type: string
+          maxLength: 1000
+    CreateConsentRecordRequest:
+      type: object
+      additionalProperties: false
+      required: [expectedVersion, consentType, action, textVersion, occurredAt, source]
+      properties:
+        expectedVersion:
+          type: integer
+          minimum: 1
+        consentType:
+          type: string
+          enum: [SYNTHETIC_TEST_PARTICIPATION]
+        action:
+          type: string
+          enum: [GRANT, WITHDRAW]
+        textVersion:
+          type: string
+          maxLength: 80
+        occurredAt:
+          type: string
+          format: date-time
+        source:
+          type: string
+          enum: [STAFF_RECORDED]
+        reason:
+          type: string
+          maxLength: 1000
+
+    CareAssignmentSummary:
+      type: object
+      required: [id, roleType, assigneeId, assigneeDisplayName, teamId, status, validFrom]
+      properties:
+        id:
+          type: integer
+          format: uint64
+        roleType:
+          type: string
+          enum: [CARE_STEWARD, CLINICIAN]
+        assigneeId:
+          type: integer
+          format: uint64
+        assigneeDisplayName:
+          type: string
+        teamId:
+          type: integer
+          format: uint64
+        teamName:
+          type: string
+        status:
+          type: string
+          enum: [SCHEDULED, ACTIVE, ENDED, CANCELLED]
+        validFrom:
+          type: string
+          format: date-time
+        validUntil:
+          type: string
+          format: date-time
+          nullable: true
+        replacesAssignmentId:
+          type: integer
+          format: uint64
+          nullable: true
+        reason:
+          type: string
+        endReason:
+          type: string
+    CareClientSummary:
+      type: object
+      required: [id, displayCode, displayName, organizationId, status, sensitivityLevel, synthetic, version, currentAssignments]
+      properties:
+        id:
+          type: integer
+          format: uint64
+        displayCode:
+          type: string
+        displayName:
+          type: string
+          description: 按当前权限脱敏后的显示名。
+        contactMobile:
+          type: string
+          description: 管家角色仅返回掩码，医护和督导返回授权字段。
+        serviceReason:
+          type: string
+        servicePackageCode:
+          type: string
+        organizationId:
+          type: integer
+          format: uint64
+        organizationName:
+          type: string
+        teamId:
+          type: integer
+          format: uint64
+          nullable: true
+        teamName:
+          type: string
+        status:
+          type: string
+          enum: [ACTIVE, INACTIVE]
+        sensitivityLevel:
+          type: string
+          enum: [BASIC, SENSITIVE, HIGHLY_SENSITIVE]
+        synthetic:
+          type: boolean
+        version:
+          type: integer
+          minimum: 1
+        currentAssignments:
+          type: array
+          items:
+            $ref: '#/components/schemas/CareAssignmentSummary'
+    CareClientDetail:
+      allOf:
+        - $ref: '#/components/schemas/CareClientSummary'
+        - type: object
+          required: [assignments, consentStatus, consentRecords]
+          properties:
+            assignments:
+              type: array
+              items:
+                $ref: '#/components/schemas/CareAssignmentSummary'
+            consentStatus:
+              type: string
+              enum: [PENDING, GRANTED, WITHDRAWN]
+            consentRecords:
+              type: array
+              items:
+                $ref: '#/components/schemas/ConsentRecordSummary'
+
+    ConsentRecordSummary:
+      type: object
+      required: [id, consentType, action, textVersion, occurredAt, source, recordedBy]
+      properties:
+        id: {type: integer, format: uint64}
+        consentType: {type: string, enum: [SYNTHETIC_TEST_PARTICIPATION]}
+        action: {type: string, enum: [GRANT, WITHDRAW]}
+        textVersion: {type: string}
+        occurredAt: {type: string, format: date-time}
+        source: {type: string, enum: [STAFF_RECORDED]}
+        reason: {type: string}
+        recordedBy: {type: integer, format: uint64}
+
+    CareClientActionData:
+      type: object
+      required: [careClientId, resourceId, version]
+      properties:
+        careClientId: {type: integer, format: uint64}
+        resourceId: {type: integer, format: uint64}
+        version: {type: integer, minimum: 1}
+
+    CareClientOptions:
+      type: object
+      required: [orgUnits, assignees]
+      properties:
+        orgUnits:
+          type: array
+          items:
+            type: object
+            required: [departmentId, organizationId, code, name, unitType]
+            properties:
+              departmentId: {type: integer, format: uint64}
+              organizationId: {type: integer, format: uint64}
+              code: {type: string}
+              name: {type: string}
+              unitType: {type: string, enum: [ORGANIZATION, TEAM]}
+        assignees:
+          type: array
+          items:
+            type: object
+            required: [id, displayName, roleType, teamId]
+            properties:
+              id: {type: integer, format: uint64}
+              displayName: {type: string}
+              roleType: {type: string, enum: [CARE_STEWARD, CLINICIAN]}
+              teamId: {type: integer, format: uint64}
+
+    TaskSummary:
+      type: object
+      required:
+        - id
+        - careClientId
+        - title
+        - dayCode
+        - executionRole
+        - executionStatus
+        - timingStatus
+        - reviewStatus
+        - openAt
+        - dueAt
+        - version
+      properties:
+        id:
+          type: integer
+          format: uint64
+        careClientId:
+          type: integer
+          format: uint64
+        title:
+          type: string
+        dayCode:
+          type: string
+          pattern: '^D[1-9][0-9]*$'
+        executionRole:
+          type: string
+          enum: [CARE_CLIENT, CARE_STEWARD, CLINICIAN]
+        executionStatus:
+          $ref: '#/components/schemas/TaskExecutionStatus'
+        timingStatus:
+          $ref: '#/components/schemas/TaskTimingStatus'
+        reviewStatus:
+          $ref: '#/components/schemas/TaskReviewStatus'
+        openAt:
+          type: string
+          format: date-time
+        dueAt:
+          type: string
+          format: date-time
+        submittedAt:
+          type: string
+          format: date-time
+          nullable: true
+        attentionCount:
+          type: integer
+          minimum: 0
+        version:
+          type: integer
+          minimum: 1
+    TaskDetail:
+      allOf:
+        - $ref: '#/components/schemas/TaskSummary'
+        - type: object
+          required: [planInstanceId, questionnaireVersionId, timeline]
+          properties:
+            planInstanceId:
+              type: integer
+              format: uint64
+            questionnaireVersionId:
+              type: integer
+              format: uint64
+            ruleVersionIds:
+              type: array
+              items:
+                type: integer
+                format: uint64
+            lateSubmissionPolicy:
+              type: string
+              enum: [DENY, ALLOW_UNTIL_EXPIRES, REVIEW_REQUIRED]
+            timeline:
+              type: array
+              items:
+                $ref: '#/components/schemas/TimelineEvent'
+    TimelineEvent:
+      type: object
+      required: [eventType, occurredAt, source]
+      properties:
+        eventType:
+          type: string
+        occurredAt:
+          type: string
+          format: date-time
+        source:
+          type: string
+          enum: [SYSTEM, CLIENT, CARE_STEWARD, CLINICIAN, SUPERVISOR, NOTIFICATION_ADAPTER]
+        summary:
+          type: string
+
+    QuestionOption:
+      type: object
+      required: [code, label]
+      properties:
+        code:
+          type: string
+        label:
+          type: string
+    Question:
+      type: object
+      required: [code, type, title, required, order]
+      properties:
+        code:
+          type: string
+        type:
+          type: string
+          enum: [SINGLE_CHOICE, MULTIPLE_CHOICE, TEXT, NUMBER, DATE, BOOLEAN]
+        title:
+          type: string
+        required:
+          type: boolean
+        order:
+          type: integer
+          minimum: 1
+        options:
+          type: array
+          items:
+            $ref: '#/components/schemas/QuestionOption'
+    QuestionnaireVersion:
+      type: object
+      required:
+        - id
+        - code
+        - version
+        - title
+        - lifecycleStatus
+        - usageScope
+        - synthetic
+        - productionEnabled
+        - reviewRecord
+        - questions
+      properties:
+        id:
+          type: integer
+          format: uint64
+        code:
+          type: string
+        version:
+          type: string
+        title:
+          type: string
+        lifecycleStatus:
+          $ref: '#/components/schemas/ContentLifecycleStatus'
+        usageScope:
+          type: string
+          enum: [TEST_ONLY, FORMAL]
+        synthetic:
+          type: boolean
+        productionEnabled:
+          type: boolean
+        reviewRecord:
+          $ref: '#/components/schemas/ContentReviewRecord'
+        expectedMinutes:
+          type: integer
+          minimum: 1
+        questions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Question'
+
+    RuleHitSummary:
+      type: object
+      required: [id, ruleVersionId, reasonSnapshot, occurredAt]
+      properties:
+        id:
+          type: integer
+          format: uint64
+        ruleVersionId:
+          type: integer
+          format: uint64
+        reasonSnapshot:
+          type: string
+          description: 关注原因快照，不得写诊断结论。
+        occurredAt:
+          type: string
+          format: date-time
+    SubmitTaskData:
+      type: object
+      required:
+        - submissionId
+        - taskId
+        - taskStatus
+        - reviewStatus
+        - ruleHitIds
+        - attentionCaseIds
+        - submittedAt
+        - version
+      properties:
+        submissionId:
+          type: integer
+          format: uint64
+        taskId:
+          type: integer
+          format: uint64
+        taskStatus:
+          type: string
+          enum: [SUBMITTED]
+        reviewStatus:
+          $ref: '#/components/schemas/TaskReviewStatus'
+        ruleHitIds:
+          type: array
+          items:
+            type: integer
+            format: uint64
+        attentionCaseIds:
+          type: array
+          items:
+            type: integer
+            format: uint64
+        submittedAt:
+          type: string
+          format: date-time
+        version:
+          type: integer
+          minimum: 1
+    DraftData:
+      type: object
+      required: [taskId, savedAt, version]
+      properties:
+        taskId:
+          type: integer
+          format: uint64
+        savedAt:
+          type: string
+          format: date-time
+        version:
+          type: integer
+          minimum: 1
+
+    AttentionCaseSummary:
+      type: object
+      required:
+        - id
+        - careClientId
+        - taskId
+        - status
+        - attentionLevel
+        - reasonSummary
+        - openedAt
+        - version
+      properties:
+        id:
+          type: integer
+          format: uint64
+        careClientId:
+          type: integer
+          format: uint64
+        taskId:
+          type: integer
+          format: uint64
+        status:
+          $ref: '#/components/schemas/AttentionCaseStatus'
+        attentionLevel:
+          type: string
+          description: 仅使用获批等级；合成夹具使用 SYNTHETIC_ATTENTION。
+        reasonSummary:
+          type: string
+        assigneeId:
+          type: integer
+          format: uint64
+          nullable: true
+        openedAt:
+          type: string
+          format: date-time
+        dueAt:
+          type: string
+          format: date-time
+          nullable: true
+        version:
+          type: integer
+          minimum: 1
+    CaseAction:
+      type: object
+      required: [id, actionType, actorRole, result, occurredAt]
+      properties:
+        id:
+          type: integer
+          format: uint64
+        actionType:
+          type: string
+          enum: [ACKNOWLEDGE, CONTACT, HANDLING, ESCALATE, GUIDANCE, INTERVENE, RESOLVE, CLOSE, REOPEN]
+        actorRole:
+          type: string
+        result:
+          type: string
+        reason:
+          type: string
+          nullable: true
+        occurredAt:
+          type: string
+          format: date-time
+    AttentionCaseDetail:
+      allOf:
+        - $ref: '#/components/schemas/AttentionCaseSummary'
+        - type: object
+          required: [ruleHits, actions]
+          properties:
+            ruleHits:
+              type: array
+              items:
+                $ref: '#/components/schemas/RuleHitSummary'
+            actions:
+              type: array
+              items:
+                $ref: '#/components/schemas/CaseAction'
+            handlingResult:
+              type: string
+              nullable: true
+            closeReason:
+              type: string
+              nullable: true
+
+    NotificationAttempt:
+      type: object
+      required: [id, taskId, attemptNo, channel, status, requestedAt]
+      properties:
+        id:
+          type: integer
+          format: uint64
+        taskId:
+          type: integer
+          format: uint64
+        attemptNo:
+          type: integer
+          minimum: 1
+        channel:
+          type: string
+          enum: [DEMO]
+        status:
+          $ref: '#/components/schemas/NotificationAttemptStatus'
+        requestedAt:
+          type: string
+          format: date-time
+        acceptedAt:
+          type: string
+          format: date-time
+          nullable: true
+        deliveredAt:
+          type: string
+          format: date-time
+          nullable: true
+        finalizedAt:
+          type: string
+          format: date-time
+          nullable: true
+        failureCode:
+          type: string
+          nullable: true
+
+    WorkbenchData:
+      type: object
+      required: [dueToday, waitingClient, deliveryIssues, attentionCases, assignedToMe, reviewRequired]
+      properties:
+        dueToday:
+          type: integer
+          minimum: 0
+        waitingClient:
+          type: integer
+          minimum: 0
+        deliveryIssues:
+          type: integer
+          minimum: 0
+        attentionCases:
+          type: integer
+          minimum: 0
+        assignedToMe:
+          type: integer
+          minimum: 0
+        reviewRequired:
+          type: integer
+          minimum: 0
+
+    DailySummary:
+      type: object
+      required:
+        - id
+        - businessDate
+        - summaryType
+        - servedClients
+        - dueTasks
+        - submittedTasks
+        - openAttentionCases
+        - resolvedAttentionCases
+        - reviewRequired
+      properties:
+        id:
+          type: integer
+          format: uint64
+        businessDate:
+          type: string
+          format: date
+        summaryType:
+          type: string
+          enum: [REALTIME_PREVIEW, VERSIONED_SNAPSHOT]
+        version:
+          type: integer
+          minimum: 1
+          nullable: true
+        servedClients:
+          type: integer
+          minimum: 0
+        dueTasks:
+          type: integer
+          minimum: 0
+        submittedTasks:
+          type: integer
+          minimum: 0
+        deliveryIssues:
+          type: integer
+          minimum: 0
+        openAttentionCases:
+          type: integer
+          minimum: 0
+        resolvedAttentionCases:
+          type: integer
+          minimum: 0
+        reviewRequired:
+          type: integer
+          minimum: 0
+    DailySummaryDetail:
+      allOf:
+        - $ref: '#/components/schemas/DailySummary'
+        - type: object
+          required: [focusCases]
+          properties:
+            focusCases:
+              type: array
+              items:
+                $ref: '#/components/schemas/AttentionCaseSummary'
+
+    ReviewItem:
+      type: object
+      required: [id, attentionCaseId, status, requestedAt, requestedBy]
+      properties:
+        id:
+          type: integer
+          format: uint64
+        attentionCaseId:
+          type: integer
+          format: uint64
+        status:
+          type: string
+          enum: [PENDING, GUIDED, INTERVENED, COMPLETED]
+        requestedAt:
+          type: string
+          format: date-time
+        requestedBy:
+          type: integer
+          format: uint64
+
+    PlanTaskDefinition:
+      type: object
+      required: [dayCode, executionRole, openOffset, dueOffset]
+      properties:
+        dayCode:
+          type: string
+        executionRole:
+          type: string
+          enum: [CARE_CLIENT, CARE_STEWARD, CLINICIAN]
+        openOffset:
+          type: string
+          description: ISO 8601 duration
+        dueOffset:
+          type: string
+          description: ISO 8601 duration
+        questionnaireVersionId:
+          type: integer
+          format: uint64
+          nullable: true
+    PreviewPlanRequest:
+      type: object
+      additionalProperties: false
+      required: [planTemplateVersionId, anchorAt]
+      properties:
+        planTemplateVersionId:
+          type: integer
+          format: uint64
+          minimum: 1
+        anchorAt:
+          type: string
+          format: date-time
+    PlanPreviewData:
+      type: object
+      required: [previewId, careClientId, planTemplateVersionId, anchorAt, expiresAt, tasks]
+      properties:
+        previewId:
+          type: string
+          minLength: 16
+          maxLength: 120
+        careClientId:
+          type: integer
+          format: uint64
+        planTemplateVersionId:
+          type: integer
+          format: uint64
+        anchorAt:
+          type: string
+          format: date-time
+        expiresAt:
+          type: string
+          format: date-time
+        tasks:
+          type: array
+          items:
+            $ref: '#/components/schemas/PlanTaskDefinition'
+    StartPlanRequest:
+      type: object
+      additionalProperties: false
+      required: [expectedClientVersion, previewId]
+      properties:
+        expectedClientVersion:
+          type: integer
+          minimum: 1
+        previewId:
+          type: string
+          minLength: 16
+          maxLength: 120
+    PlanInstanceData:
+      type: object
+      required: [enrollmentId, planInstanceId, careClientId, anchorAt, status, taskIds, version]
+      properties:
+        enrollmentId:
+          type: integer
+          format: uint64
+        planInstanceId:
+          type: integer
+          format: uint64
+        careClientId:
+          type: integer
+          format: uint64
+        anchorAt:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum: [ACTIVE]
+        taskIds:
+          type: array
+          minItems: 1
+          items:
+            type: integer
+            format: uint64
+        version:
+          type: integer
+          minimum: 1
+    PlanStateActionRequest:
+      type: object
+      additionalProperties: false
+      required: [expectedVersion, reason]
+      properties:
+        expectedVersion:
+          type: integer
+          minimum: 1
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 1000
+    PlanVersion:
+      type: object
+      required: [id, code, version, lifecycleStatus, usageScope, synthetic, productionEnabled, reviewRecord, tasks]
+      properties:
+        id:
+          type: integer
+          format: uint64
+        code:
+          type: string
+        version:
+          type: string
+        lifecycleStatus:
+          $ref: '#/components/schemas/ContentLifecycleStatus'
+        usageScope:
+          type: string
+          enum: [TEST_ONLY, FORMAL]
+        synthetic:
+          type: boolean
+        productionEnabled:
+          type: boolean
+        reviewRecord:
+          $ref: '#/components/schemas/ContentReviewRecord'
+        tasks:
+          type: array
+          items:
+            $ref: '#/components/schemas/PlanTaskDefinition'
+
+    ContactRecordRequest:
+      type: object
+      additionalProperties: false
+      required: [expectedVersion, channel, result, occurredAt]
+      properties:
+        expectedVersion:
+          type: integer
+          minimum: 1
+        channel:
+          type: string
+          enum: [PHONE, OFFLINE, OTHER]
+        result:
+          type: string
+          maxLength: 2000
+        occurredAt:
+          type: string
+          format: date-time
+    DeviceRecordRequest:
+      type: object
+      additionalProperties: false
+      required: [expectedVersion, metricCode, value, unit, observedAt, source]
+      properties:
+        expectedVersion:
+          type: integer
+          minimum: 1
+        metricCode:
+          type: string
+          maxLength: 80
+        value:
+          type: number
+        unit:
+          type: string
+          maxLength: 32
+        deviceCode:
+          type: string
+          maxLength: 80
+          nullable: true
+        observedAt:
+          type: string
+          format: date-time
+        source:
+          type: string
+          enum: [MANUAL_SYNTHETIC]
+    AcknowledgeRequest:
+      type: object
+      additionalProperties: false
+      required: [expectedVersion, result]
+      properties:
+        expectedVersion:
+          type: integer
+          minimum: 1
+        result:
+          type: string
+          maxLength: 1000
+    HandlingRecordRequest:
+      type: object
+      additionalProperties: false
+      required: [expectedVersion, result]
+      properties:
+        expectedVersion:
+          type: integer
+          minimum: 1
+        result:
+          type: string
+          maxLength: 4000
+        nextAction:
+          type: string
+          maxLength: 1000
+        nextStatus:
+          type: string
+          enum: [HANDLING, WAITING_CLIENT, WAITING_COLLABORATION, WAITING_SUPERVISOR, RESOLVED]
+    EscalateRequest:
+      type: object
+      additionalProperties: false
+      required: [expectedVersion, targetAssigneeId, reason]
+      properties:
+        expectedVersion:
+          type: integer
+          minimum: 1
+        targetAssigneeId:
+          type: integer
+          format: uint64
+          minimum: 1
+        reason:
+          type: string
+          maxLength: 2000
+        dueAt:
+          type: string
+          format: date-time
+    CloseCaseRequest:
+      type: object
+      additionalProperties: false
+      required: [expectedVersion, closeReason]
+      properties:
+        expectedVersion:
+          type: integer
+          minimum: 1
+        closeReason:
+          type: string
+          minLength: 1
+          maxLength: 2000
+    ResendRequest:
+      type: object
+      additionalProperties: false
+      required: [expectedVersion, reason]
+      properties:
+        expectedVersion:
+          type: integer
+          minimum: 1
+        reason:
+          type: string
+          maxLength: 1000
+    GuidanceRequest:
+      type: object
+      additionalProperties: false
+      required: [expectedVersion, guidance, responsibleAssigneeId, dueAt]
+      properties:
+        expectedVersion:
+          type: integer
+          minimum: 1
+        guidance:
+          type: string
+          maxLength: 4000
+        responsibleAssigneeId:
+          type: integer
+          format: uint64
+          minimum: 1
+        dueAt:
+          type: string
+          format: date-time
+    InterveneRequest:
+      type: object
+      additionalProperties: false
+      required: [expectedVersion, result, responsibleAssigneeId, dueAt]
+      properties:
+        expectedVersion:
+          type: integer
+          minimum: 1
+        result:
+          type: string
+          maxLength: 4000
+        responsibleAssigneeId:
+          type: integer
+          format: uint64
+          minimum: 1
+        dueAt:
+          type: string
+          format: date-time
+
+    ActionData:
+      type: object
+      required: [resourceId, actionId, status, version, occurredAt]
+      properties:
+        resourceId:
+          type: integer
+          format: uint64
+        actionId:
+          type: integer
+          format: uint64
+        status:
+          type: string
+        version:
+          type: integer
+          minimum: 1
+        occurredAt:
+          type: string
+          format: date-time
+
+    TaskPageData:
+      type: object
+      required: [page, pageSize, total, list]
+      properties:
+        page: {type: integer, minimum: 1}
+        pageSize: {type: integer, minimum: 1, maximum: 100}
+        total: {type: integer, format: int64, minimum: 0}
+        list:
+          type: array
+          items:
+            $ref: '#/components/schemas/TaskSummary'
+    CareClientPageData:
+      type: object
+      required: [page, pageSize, total, list]
+      properties:
+        page: {type: integer, minimum: 1}
+        pageSize: {type: integer, minimum: 1, maximum: 100}
+        total: {type: integer, format: int64, minimum: 0}
+        list:
+          type: array
+          items:
+            $ref: '#/components/schemas/CareClientSummary'
+    AttentionCasePageData:
+      type: object
+      required: [page, pageSize, total, list]
+      properties:
+        page: {type: integer, minimum: 1}
+        pageSize: {type: integer, minimum: 1, maximum: 100}
+        total: {type: integer, format: int64, minimum: 0}
+        list:
+          type: array
+          items:
+            $ref: '#/components/schemas/AttentionCaseSummary'
+    DeliveryPageData:
+      type: object
+      required: [page, pageSize, total, list]
+      properties:
+        page: {type: integer, minimum: 1}
+        pageSize: {type: integer, minimum: 1, maximum: 100}
+        total: {type: integer, format: int64, minimum: 0}
+        list:
+          type: array
+          items:
+            $ref: '#/components/schemas/NotificationAttempt'
+    DailySummaryPageData:
+      type: object
+      required: [page, pageSize, total, list]
+      properties:
+        page: {type: integer, minimum: 1}
+        pageSize: {type: integer, minimum: 1, maximum: 100}
+        total: {type: integer, format: int64, minimum: 0}
+        list:
+          type: array
+          items:
+            $ref: '#/components/schemas/DailySummary'
+    ReviewPageData:
+      type: object
+      required: [page, pageSize, total, list]
+      properties:
+        page: {type: integer, minimum: 1}
+        pageSize: {type: integer, minimum: 1, maximum: 100}
+        total: {type: integer, format: int64, minimum: 0}
+        list:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReviewItem'
+
+    TaskListEnvelope:
+      allOf:
+        - $ref: '#/components/schemas/SuccessFields'
+        - type: object
+          required: [data]
+          properties:
+            data: {$ref: '#/components/schemas/TaskPageData'}
+    TaskDetailEnvelope:
+      allOf:
+        - $ref: '#/components/schemas/SuccessFields'
+        - type: object
+          required: [data]
+          properties:
+            data: {$ref: '#/components/schemas/TaskDetail'}
+    QuestionnaireEnvelope:
+      allOf:
+        - $ref: '#/components/schemas/SuccessFields'
+        - type: object
+          required: [data]
+          properties:
+            data: {$ref: '#/components/schemas/QuestionnaireVersion'}
+    DraftEnvelope:
+      allOf:
+        - $ref: '#/components/schemas/SuccessFields'
+        - type: object
+          required: [data]
+          properties:
+            data: {$ref: '#/components/schemas/DraftData'}
+    SubmitTaskEnvelope:
+      allOf:
+        - $ref: '#/components/schemas/SuccessFields'
+        - type: object
+          required: [data]
+          properties:
+            data: {$ref: '#/components/schemas/SubmitTaskData'}
+    WorkbenchEnvelope:
+      allOf:
+        - $ref: '#/components/schemas/SuccessFields'
+        - type: object
+          required: [data]
+          properties:
+            data: {$ref: '#/components/schemas/WorkbenchData'}
+    CareClientListEnvelope:
+      allOf:
+        - $ref: '#/components/schemas/SuccessFields'
+        - type: object
+          required: [data]
+          properties:
+            data: {$ref: '#/components/schemas/CareClientPageData'}
+    CareClientDetailEnvelope:
+      allOf:
+        - $ref: '#/components/schemas/SuccessFields'
+        - type: object
+          required: [data]
+          properties:
+            data: {$ref: '#/components/schemas/CareClientDetail'}
+    CareClientActionEnvelope:
+      allOf:
+        - $ref: '#/components/schemas/SuccessFields'
+        - type: object
+          required: [data]
+          properties:
+            data: {$ref: '#/components/schemas/CareClientActionData'}
+    CareClientOptionsEnvelope:
+      allOf:
+        - $ref: '#/components/schemas/SuccessFields'
+        - type: object
+          required: [data]
+          properties:
+            data: {$ref: '#/components/schemas/CareClientOptions'}
+    AttentionCaseListEnvelope:
+      allOf:
+        - $ref: '#/components/schemas/SuccessFields'
+        - type: object
+          required: [data]
+          properties:
+            data: {$ref: '#/components/schemas/AttentionCasePageData'}
+    AttentionCaseDetailEnvelope:
+      allOf:
+        - $ref: '#/components/schemas/SuccessFields'
+        - type: object
+          required: [data]
+          properties:
+            data: {$ref: '#/components/schemas/AttentionCaseDetail'}
+    DeliveryListEnvelope:
+      allOf:
+        - $ref: '#/components/schemas/SuccessFields'
+        - type: object
+          required: [data]
+          properties:
+            data: {$ref: '#/components/schemas/DeliveryPageData'}
+    DailySummaryListEnvelope:
+      allOf:
+        - $ref: '#/components/schemas/SuccessFields'
+        - type: object
+          required: [data]
+          properties:
+            data: {$ref: '#/components/schemas/DailySummaryPageData'}
+    DailySummaryDetailEnvelope:
+      allOf:
+        - $ref: '#/components/schemas/SuccessFields'
+        - type: object
+          required: [data]
+          properties:
+            data: {$ref: '#/components/schemas/DailySummaryDetail'}
+    ReviewListEnvelope:
+      allOf:
+        - $ref: '#/components/schemas/SuccessFields'
+        - type: object
+          required: [data]
+          properties:
+            data: {$ref: '#/components/schemas/ReviewPageData'}
+    PlanVersionEnvelope:
+      allOf:
+        - $ref: '#/components/schemas/SuccessFields'
+        - type: object
+          required: [data]
+          properties:
+            data: {$ref: '#/components/schemas/PlanVersion'}
+    PlanPreviewEnvelope:
+      allOf:
+        - $ref: '#/components/schemas/SuccessFields'
+        - type: object
+          required: [data]
+          properties:
+            data: {$ref: '#/components/schemas/PlanPreviewData'}
+    PlanInstanceEnvelope:
+      allOf:
+        - $ref: '#/components/schemas/SuccessFields'
+        - type: object
+          required: [data]
+          properties:
+            data: {$ref: '#/components/schemas/PlanInstanceData'}
+    ActionEnvelope:
+      allOf:
+        - $ref: '#/components/schemas/SuccessFields'
+        - type: object
+          required: [data]
+          properties:
+            data: {$ref: '#/components/schemas/ActionData'}

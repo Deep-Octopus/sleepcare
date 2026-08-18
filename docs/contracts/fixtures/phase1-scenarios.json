@@ -1,0 +1,460 @@
+{
+  "fixtureVersion": "P1-01-v1",
+  "classification": "SYNTHETIC_TEST_ONLY_NON_MEDICAL",
+  "notices": [
+    "本文件全部数据均为合成夹具，不对应任何真实个人、机构、设备或医疗记录。",
+    "题目、规则、处置和指导只验证软件流程，不构成医疗内容、诊断、建议或阈值。",
+    "productionEnabled=false；生产模式不得加载或静默回退到本夹具。"
+  ],
+  "synthetic": true,
+  "productionEnabled": false,
+  "clock": {
+    "timeZone": "Asia/Shanghai",
+    "fixedNow": "2026-08-18T09:00:00+08:00",
+    "businessDate": "2026-08-18"
+  },
+  "organizations": [
+    {
+      "id": 9001,
+      "code": "SYN-ORG-A",
+      "name": "合成演示机构甲",
+      "synthetic": true
+    },
+    {
+      "id": 9002,
+      "code": "SYN-ORG-B",
+      "name": "合成越权校验机构乙",
+      "synthetic": true
+    }
+  ],
+  "teams": [
+    {
+      "id": 9101,
+      "organizationId": 9001,
+      "code": "SYN-TEAM-A",
+      "name": "合成服务团队甲",
+      "synthetic": true
+    },
+    {
+      "id": 9102,
+      "organizationId": 9002,
+      "code": "SYN-TEAM-B",
+      "name": "合成隔离团队乙",
+      "synthetic": true
+    }
+  ],
+  "staffActors": [
+    {
+      "id": 9201,
+      "organizationId": 9001,
+      "teamId": 9101,
+      "role": "CARE_STEWARD",
+      "displayName": "合成健康管家甲",
+      "synthetic": true
+    },
+    {
+      "id": 9202,
+      "organizationId": 9001,
+      "teamId": 9101,
+      "role": "CLINICIAN",
+      "displayName": "合成一线医护甲",
+      "synthetic": true
+    },
+    {
+      "id": 9203,
+      "organizationId": 9001,
+      "teamId": 9101,
+      "role": "SUPERVISOR",
+      "displayName": "合成上级医师甲",
+      "synthetic": true
+    },
+    {
+      "id": 9299,
+      "organizationId": 9002,
+      "teamId": 9102,
+      "role": "CARE_STEWARD",
+      "displayName": "合成跨机构未授权账号乙",
+      "synthetic": true
+    }
+  ],
+  "content": {
+    "planTemplateVersion": {
+      "id": 9301,
+      "code": "SYN-OSA-D1-D5",
+      "version": "1.0.0-synthetic",
+      "title": "合成 OSA 流程验证计划（非医疗内容）",
+      "lifecycleStatus": "PUBLISHED",
+      "usageScope": "TEST_ONLY",
+      "synthetic": true,
+      "productionEnabled": false,
+      "medicalApproved": false,
+      "reviewRecord": {
+        "reviewType": "ENGINEERING_FIXTURE_REVIEW",
+        "reviewedBy": "P1-01 契约负责人",
+        "reviewedAt": "2026-08-18T08:30:00+08:00",
+        "formalMedicalApproval": false
+      },
+      "anchorDefinition": "FIRST_VALID_SYNTHETIC_DEVICE_USE_AT",
+      "lateSubmissionPolicy": "DENY",
+      "tasks": [
+        {
+          "templateTaskId": 9311,
+          "dayCode": "D1",
+          "title": "D1 合成流程验证任务（非医疗内容）",
+          "executionRole": "CARE_CLIENT",
+          "openOffset": "PT0S",
+          "dueOffset": "PT11H",
+          "questionnaireVersionId": 9401
+        },
+        {
+          "templateTaskId": 9312,
+          "dayCode": "D2",
+          "title": "D2 合成占位任务（正式内容禁用）",
+          "executionRole": "CARE_CLIENT",
+          "openOffset": "P1D",
+          "dueOffset": "P1DT11H",
+          "questionnaireVersionId": null
+        },
+        {
+          "templateTaskId": 9313,
+          "dayCode": "D3",
+          "title": "D3 合成占位任务（正式内容禁用）",
+          "executionRole": "CARE_CLIENT",
+          "openOffset": "P2D",
+          "dueOffset": "P2DT11H",
+          "questionnaireVersionId": null
+        },
+        {
+          "templateTaskId": 9314,
+          "dayCode": "D4",
+          "title": "D4 合成占位任务（正式内容禁用）",
+          "executionRole": "CARE_CLIENT",
+          "openOffset": "P3D",
+          "dueOffset": "P3DT11H",
+          "questionnaireVersionId": null
+        },
+        {
+          "templateTaskId": 9315,
+          "dayCode": "D5",
+          "title": "D5 合成占位任务（正式内容禁用）",
+          "executionRole": "CARE_CLIENT",
+          "openOffset": "P4D",
+          "dueOffset": "P4DT11H",
+          "questionnaireVersionId": null
+        }
+      ]
+    },
+    "questionnaireVersion": {
+      "id": 9401,
+      "code": "SYN-WORKFLOW-CHECK",
+      "version": "1.0.0-synthetic",
+      "title": "合成流程验证问卷（非医疗内容）",
+      "purpose": "仅验证打开、草稿、提交、规则命中和人工闭环的软件行为。",
+      "lifecycleStatus": "PUBLISHED",
+      "usageScope": "TEST_ONLY",
+      "synthetic": true,
+      "productionEnabled": false,
+      "medicalApproved": false,
+      "reviewRecord": {
+        "reviewType": "ENGINEERING_FIXTURE_REVIEW",
+        "reviewedBy": "P1-01 契约负责人",
+        "reviewedAt": "2026-08-18T08:30:00+08:00",
+        "formalMedicalApproval": false
+      },
+      "expectedMinutes": 1,
+      "questions": [
+        {
+          "code": "synthetic_process_confirmation",
+          "type": "SINGLE_CHOICE",
+          "title": "是否继续完成本次合成流程验证？（非医疗问题）",
+          "required": true,
+          "order": 1,
+          "options": [
+            {
+              "code": "CONTINUE_WITHOUT_ATTENTION",
+              "label": "继续验证，不创建人工关注流程"
+            },
+            {
+              "code": "CONTINUE_WITH_ATTENTION",
+              "label": "继续验证，并创建人工关注流程"
+            }
+          ]
+        }
+      ]
+    },
+    "ruleVersion": {
+      "id": 9501,
+      "code": "SYN-MANUAL-ATTENTION-FLOW",
+      "version": "1.0.0-synthetic",
+      "title": "合成人工关注流程规则（非医疗规则）",
+      "lifecycleStatus": "PUBLISHED",
+      "usageScope": "TEST_ONLY",
+      "synthetic": true,
+      "productionEnabled": false,
+      "medicalApproved": false,
+      "condition": {
+        "questionCode": "synthetic_process_confirmation",
+        "operator": "EQUALS",
+        "value": "CONTINUE_WITH_ATTENTION"
+      },
+      "attentionLevel": "SYNTHETIC_ATTENTION",
+      "reasonSnapshot": "合成流程选项请求创建人工关注链；不表示健康风险或诊断。",
+      "deduplicationKeyTemplate": "submission:{submissionId}:rule:9501",
+      "reviewRecord": {
+        "reviewType": "ENGINEERING_FIXTURE_REVIEW",
+        "reviewedBy": "P1-01 契约负责人",
+        "reviewedAt": "2026-08-18T08:30:00+08:00",
+        "formalMedicalApproval": false
+      }
+    }
+  },
+  "scenarios": [
+    {
+      "id": "SCENARIO-A",
+      "name": "正常送达并触发合成人工关注闭环",
+      "synthetic": true,
+      "productionEnabled": false,
+      "careClient": {
+        "id": 20001,
+        "organizationId": 9001,
+        "teamId": 9101,
+        "displayCode": "SYN-CLIENT-A",
+        "displayName": "合成康养用户甲",
+        "status": "ACTIVE",
+        "synthetic": true
+      },
+      "assignments": [
+        {
+          "id": 21001,
+          "roleType": "CARE_STEWARD",
+          "assigneeId": 9201,
+          "validFrom": "2026-08-01T00:00:00+08:00",
+          "validUntil": null,
+          "status": "ACTIVE"
+        },
+        {
+          "id": 21002,
+          "roleType": "CLINICIAN",
+          "assigneeId": 9202,
+          "validFrom": "2026-08-01T00:00:00+08:00",
+          "validUntil": null,
+          "status": "ACTIVE"
+        }
+      ],
+      "plan": {
+        "enrollmentId": 22001,
+        "planInstanceId": 23001,
+        "planTemplateVersionId": 9301,
+        "anchorAt": "2026-08-18T09:00:00+08:00",
+        "idempotencyKey": "fixture-scenario-a-plan-v1",
+        "tasks": [
+          {
+            "id": 24001,
+            "dayCode": "D1",
+            "executionStatus": "OPEN",
+            "timingStatus": "WITHIN_WINDOW",
+            "reviewStatus": "NOT_READY",
+            "openAt": "2026-08-18T09:00:00+08:00",
+            "dueAt": "2026-08-18T20:00:00+08:00",
+            "questionnaireVersionId": 9401,
+            "ruleVersionIds": [9501],
+            "version": 1
+          },
+          {
+            "id": 24002,
+            "dayCode": "D2",
+            "executionStatus": "SCHEDULED",
+            "timingStatus": "NOT_OPEN",
+            "reviewStatus": "NOT_REQUIRED",
+            "openAt": "2026-08-19T09:00:00+08:00",
+            "dueAt": "2026-08-19T20:00:00+08:00",
+            "questionnaireVersionId": null,
+            "ruleVersionIds": [],
+            "version": 1
+          },
+          {
+            "id": 24003,
+            "dayCode": "D3",
+            "executionStatus": "SCHEDULED",
+            "timingStatus": "NOT_OPEN",
+            "reviewStatus": "NOT_REQUIRED",
+            "openAt": "2026-08-20T09:00:00+08:00",
+            "dueAt": "2026-08-20T20:00:00+08:00",
+            "questionnaireVersionId": null,
+            "ruleVersionIds": [],
+            "version": 1
+          },
+          {
+            "id": 24004,
+            "dayCode": "D4",
+            "executionStatus": "SCHEDULED",
+            "timingStatus": "NOT_OPEN",
+            "reviewStatus": "NOT_REQUIRED",
+            "openAt": "2026-08-21T09:00:00+08:00",
+            "dueAt": "2026-08-21T20:00:00+08:00",
+            "questionnaireVersionId": null,
+            "ruleVersionIds": [],
+            "version": 1
+          },
+          {
+            "id": 24005,
+            "dayCode": "D5",
+            "executionStatus": "SCHEDULED",
+            "timingStatus": "NOT_OPEN",
+            "reviewStatus": "NOT_REQUIRED",
+            "openAt": "2026-08-22T09:00:00+08:00",
+            "dueAt": "2026-08-22T20:00:00+08:00",
+            "questionnaireVersionId": null,
+            "ruleVersionIds": [],
+            "version": 1
+          }
+        ]
+      },
+      "clientAccess": {
+        "grantFixtureReference": "fixture://scenario-a/one-time-grant",
+        "grantIsUsableCredential": false,
+        "sessionScope": {
+          "careClientId": 20001,
+          "taskIds": [24001, 24002, 24003, 24004, 24005]
+        }
+      },
+      "submission": {
+        "id": 25001,
+        "taskId": 24001,
+        "questionnaireVersionId": 9401,
+        "source": "CLIENT_SELF",
+        "idempotencyKey": "fixture-scenario-a-submit-v1",
+        "answers": [
+          {
+            "questionCode": "synthetic_process_confirmation",
+            "value": "CONTINUE_WITH_ATTENTION"
+          }
+        ],
+        "submittedAt": "2026-08-18T09:12:00+08:00",
+        "expectedOutcome": {
+          "taskExecutionStatus": "SUBMITTED",
+          "taskReviewStatus": "PENDING",
+          "ruleHitIds": [26001],
+          "attentionCaseIds": [27001],
+          "handled": false
+        }
+      },
+      "attentionCase": {
+        "id": 27001,
+        "sourceRuleHitId": 26001,
+        "attentionLevel": "SYNTHETIC_ATTENTION",
+        "openingStatus": "PENDING_ACK",
+        "closingStatus": "CLOSED",
+        "handlingResult": "已完成合成流程验证；无医疗判断或诊断结论。",
+        "closeReason": "合成场景的责任链、记录和关闭门禁均已验证。"
+      },
+      "notificationAttempts": [
+        {
+          "id": 28001,
+          "taskId": 24001,
+          "attemptNo": 1,
+          "channel": "DEMO",
+          "states": [
+            {"status": "PENDING", "occurredAt": "2026-08-18T08:54:00+08:00"},
+            {"status": "SUBMITTED_TO_PROVIDER", "occurredAt": "2026-08-18T08:55:00+08:00"},
+            {"status": "ACCEPTED", "occurredAt": "2026-08-18T08:55:01+08:00"},
+            {"status": "DELIVERED", "occurredAt": "2026-08-18T08:55:04+08:00"}
+          ]
+        }
+      ],
+      "expectedEventSequence": [
+        "CarePlanStarted",
+        "TaskOpened",
+        "NotificationRequested",
+        "NotificationAccepted",
+        "NotificationDelivered",
+        "ClientTaskOpened",
+        "TaskAnswerStarted",
+        "TaskAnswerSubmitted",
+        "RuleHitRecorded",
+        "AttentionCaseOpened",
+        "AttentionCaseAcknowledged",
+        "AttentionHandlingRecorded",
+        "AttentionCaseEscalated",
+        "SupervisorGuidanceAdded",
+        "AttentionHandlingRecorded",
+        "AttentionCaseResolved",
+        "AttentionCaseClosed"
+      ],
+      "expectedNegativeAssertions": [
+        "提交成功页不得显示已处理或已解决",
+        "管家不能写入医护专业处置动作",
+        "医护不能写入上级指导动作",
+        "跨机构账号 9299 无法查询康养用户 20001、任务 24001 或事项 27001",
+        "缺少处理结果或关闭理由时关闭返回明确领域错误"
+      ]
+    },
+    {
+      "id": "SCENARIO-B",
+      "name": "通知失败但当前和后续任务保留",
+      "synthetic": true,
+      "productionEnabled": false,
+      "careClient": {
+        "id": 20002,
+        "organizationId": 9001,
+        "teamId": 9101,
+        "displayCode": "SYN-CLIENT-B",
+        "displayName": "合成康养用户乙",
+        "status": "ACTIVE",
+        "synthetic": true
+      },
+      "plan": {
+        "enrollmentId": 22002,
+        "planInstanceId": 23002,
+        "planTemplateVersionId": 9301,
+        "anchorAt": "2026-08-18T09:00:00+08:00",
+        "idempotencyKey": "fixture-scenario-b-plan-v1",
+        "taskIdsBeforeFailure": [24101, 24102, 24103, 24104, 24105],
+        "taskIdsAfterFailure": [24101, 24102, 24103, 24104, 24105],
+        "expectedD1StatusAfterFailure": "OPEN",
+        "expectedLaterTaskStatusAfterFailure": "SCHEDULED"
+      },
+      "notificationAttempts": [
+        {
+          "id": 28101,
+          "taskId": 24101,
+          "attemptNo": 1,
+          "channel": "DEMO",
+          "states": [
+            {"status": "PENDING", "occurredAt": "2026-08-18T08:54:00+08:00"},
+            {"status": "SUBMITTED_TO_PROVIDER", "occurredAt": "2026-08-18T08:55:00+08:00"},
+            {"status": "ACCEPTED", "occurredAt": "2026-08-18T08:55:01+08:00"},
+            {"status": "FAILED", "occurredAt": "2026-08-18T08:56:00+08:00", "failureCode": "SYNTHETIC_DELIVERY_FAILURE"}
+          ]
+        },
+        {
+          "id": 28102,
+          "taskId": 24101,
+          "attemptNo": 2,
+          "channel": "DEMO",
+          "states": [
+            {"status": "PENDING", "occurredAt": "2026-08-18T09:10:00+08:00"},
+            {"status": "SUBMITTED_TO_PROVIDER", "occurredAt": "2026-08-18T09:10:01+08:00"},
+            {"status": "ACCEPTED", "occurredAt": "2026-08-18T09:10:02+08:00"},
+            {"status": "UNKNOWN", "occurredAt": "2026-08-18T09:20:00+08:00"}
+          ]
+        }
+      ],
+      "expectedTodo": {
+        "category": "NOTIFICATION_ISSUE",
+        "status": "OPEN",
+        "responsibleAssigneeId": 9201,
+        "duplicateCount": 1
+      },
+      "expectedAssertions": [
+        "ACCEPTED 不显示为 DELIVERED",
+        "FAILED 只终结第一次通知尝试",
+        "补发创建第二次尝试且不覆盖第一次失败记录",
+        "UNKNOWN 不自动当成功或失败",
+        "通知失败前后 taskIds 完全一致",
+        "D1 保持 OPEN，D2-D5 保持 SCHEDULED",
+        "同一失败事件重复投递不会创建第二个待办"
+      ]
+    }
+  ]
+}
