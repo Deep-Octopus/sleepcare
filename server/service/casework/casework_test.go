@@ -201,6 +201,60 @@ func TestEscalatedClinicianCanResolveCloseAndReopen(t *testing.T) {
 	}
 }
 
+func TestEscalatedClinicianCanRequestSupervisorReviewAndTodoRemainsOpen(t *testing.T) {
+	fixture := newCaseWorkFixture(t, caremodel.AuthorityRoleCareSteward)
+	clinicianCtx := seedCaseActor(t, fixture.db, fixture.now, 43, 503, fixture.caseRow.CareClientID, caremodel.AuthorityRoleClinician)
+
+	acknowledged, err := fixture.service.Acknowledge(fixture.ctx, fixture.caseRow.ID, "ack-review-key", caseworkreq.AcknowledgeCase{
+		ExpectedVersion: 1,
+		Result:          "已确认进入人工跟进",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	contact, err := fixture.service.RecordHandling(fixture.ctx, fixture.caseRow.ID, "contact-review-key", caseworkreq.HandlingRecord{
+		ExpectedVersion: acknowledged.Version,
+		ActionType:      caseworkmodel.CaseActionContact,
+		Result:          "已完成流程联系",
+		NextStatus:      caseworkmodel.CaseStatusHandling,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	escalated, err := fixture.service.Escalate(fixture.ctx, fixture.caseRow.ID, "escalate-review-key", caseworkreq.EscalateCase{
+		ExpectedVersion:  contact.Version,
+		TargetAssigneeID: 43,
+		Reason:           "请责任医护继续处理",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	reviewRequested, err := fixture.service.RecordHandling(clinicianCtx, fixture.caseRow.ID, "request-review-key", caseworkreq.HandlingRecord{
+		ExpectedVersion: escalated.Version,
+		ActionType:      caseworkmodel.CaseActionHandling,
+		Result:          "已记录流程处理结果",
+		NextAction:      "请求上级复核流程记录",
+		NextStatus:      caseworkmodel.CaseStatusWaitingSupervisor,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if reviewRequested.Status != caseworkmodel.CaseStatusWaitingSupervisor || reviewRequested.Version != 5 {
+		t.Fatalf("unexpected review request result: %+v", reviewRequested)
+	}
+
+	seedCtx := datascope.WithSystem(context.Background())
+	var todo caseworkmodel.TodoItem
+	if err = fixture.db.WithContext(seedCtx).
+		Where("source_type = ? AND source_id = ? AND active_slot = ?", caseworkmodel.TodoSourceAttentionCase, fixture.caseRow.ID, caseworkmodel.TodoActiveSlot).
+		First(&todo).Error; err != nil {
+		t.Fatal(err)
+	}
+	if todo.Status != caseworkmodel.TodoStatusOpen || todo.AssigneeID != 43 {
+		t.Fatalf("unresolved review request must retain the clinician todo: %+v", todo)
+	}
+}
+
 func newCaseWorkFixture(t *testing.T, role string) caseWorkFixture {
 	t.Helper()
 	db := testutil.NewMemoryDB(t,

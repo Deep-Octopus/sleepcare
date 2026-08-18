@@ -3472,6 +3472,21 @@ definitions:
           type: integer
         type: array
     type: object
+  response.WorkbenchData:
+    properties:
+      assignedToMe:
+        type: integer
+      attentionCases:
+        type: integer
+      deliveryIssues:
+        type: integer
+      dueToday:
+        type: integer
+      reviewRequired:
+        type: integer
+      waitingClient:
+        type: integer
+    type: object
   system.Condition:
     properties:
       ID:
@@ -7368,6 +7383,31 @@ paths:
       summary: 获取员工责任范围内的计划任务详情
       tags:
       - CarePath
+  /care/workbench:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.WorkbenchData'
+                msg:
+                  type: string
+              type: object
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: 获取当前员工责任范围工作台实时投影
+      tags:
+      - Workbench
   /casbin/UpdateCasbin:
     post:
       consumes:

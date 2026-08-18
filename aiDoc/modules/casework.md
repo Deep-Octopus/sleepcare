@@ -2,9 +2,9 @@
 
 ## 职责
 
-`casework` 把已发布规则产生的 `RuleHit` 转换为员工可处理的关注事项，并负责事项状态、追加式行动记录、统一待办、乐观锁、写操作幂等和 outbox 事实。
+`casework` 把已发布规则产生的 `RuleHit` 转换为员工可处理的关注事项，并负责事项状态、追加式行动记录、统一待办、乐观锁、写操作幂等、outbox 事实和员工责任范围工作台聚合。
 
-模块不生产问卷答案或规则结论，不修改原答卷，不发送短信，不提供面向用户的 AI，也不包含员工工作台页面、上级指导、日报或通知通道。
+模块不生产问卷答案或规则结论，不修改原答卷，不发送短信，不提供面向用户的 AI，也不包含上级指导、日报或通知通道。
 
 ## 后端入口
 
@@ -12,6 +12,9 @@
 - Service：`server/service/casework/`
 - API：`server/api/v1/casework/`
 - Router：`server/router/casework/`
+- 前端工作台：`web/src/view/sleep-care/workbench/`
+- 前端事项队列：`web/src/view/sleep-care/attention-cases/`
+- 前端接口封装：`web/src/api/sleep-care/case-work.js`
 - 迁移、API 元数据和受控补偿：`server/initialize/gorm_biz.go`、`server/initialize/case_work_seed.go`
 - 责任范围策略：`server/internal/accesspolicy/careclient.go`
 
@@ -41,6 +44,7 @@
 
 ## 员工接口
 
+- `GET /care/workbench`
 - `GET /care/attention-cases`
 - `GET /care/attention-cases/{id}`
 - `POST /care/attention-cases/{id}/acknowledge`
@@ -51,10 +55,18 @@
 
 列表只返回事项摘要，不返回原始答案。详情返回命中原因快照和行动时间线，不返回答卷内容。
 
+## 工作台投影
+
+`GET /care/workbench` 在请求时实时聚合六项计数：`dueToday`、`waitingClient`、`deliveryIssues`、`attentionCases`、`assignedToMe` 和 `reviewRequired`。日期边界使用 `Asia/Shanghai`；所有查询先收敛到当前部门范围与有效责任关系，再统计已启用的固定测试记录。
+
+工作台不持久化快照，也不新增业务状态。通知异常只读取统一待办中的 `DELIVERY_ISSUE` 分类；其创建和重试由通知模块负责。医护通过已有处置接口写入 `WAITING_SUPERVISOR` 请求上级复核，活动待办继续开放，直至后续动作完成。
+
+页面按钮只控制交互可见性，后端仍以 Casbin、DataScope、有效责任关系、当前责任人与动作角色共同授权。管家可记录联系，医护可记录专业处置或请求复核，主管在本任务中只有读取、关闭和重开既有能力。
+
 ## 受控补偿
 
 启动补偿只在固定测试数据开关启用时扫描既有 `RuleHit`，且只处理对应测试提交。补偿沿用同一唯一键和创建服务，幂等补齐事项、待办与 outbox；开关关闭时不执行，也不触碰正式记录。
 
 ## 验证边界
 
-阶段内只执行 casework、clientaccess、初始化、路由和契约的定向测试与编译检查。员工页面与按钮属于 P1-07，上级指导属于 P1-08；页面点触留到阶段集中验收。
+阶段内只执行 casework、初始化、路由、契约、前端定向 lint 和生产构建。上级指导与日报属于 P1-08，通知尝试与重试属于 P1-09；页面点触留到阶段集中验收。

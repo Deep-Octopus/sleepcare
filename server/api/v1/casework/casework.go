@@ -20,7 +20,25 @@ type CaseWorkApi struct{}
 var (
 	_ caseworkres.ActionResult
 	_ caseworkres.AttentionCaseDetail
+	_ caseworkres.WorkbenchData
 )
+
+// GetWorkbench
+// @Tags Workbench
+// @Summary 获取当前员工责任范围工作台实时投影
+// @Security ApiKeyAuth
+// @Produce application/json
+// @Success 200 {object} commonres.Response{data=caseworkres.WorkbenchData,msg=string}
+// @Failure 403 {object} commonres.Response
+// @Router /care/workbench [get]
+func (a *CaseWorkApi) GetWorkbench(c *gin.Context) {
+	data, err := caseWorkService.GetWorkbench(c.Request.Context())
+	if err != nil {
+		handleError(c, err, "查询工作台失败")
+		return
+	}
+	commonres.OkWithDetailed(data, "查询成功", c)
+}
 
 // ListAttentionCases
 // @Tags AttentionCase

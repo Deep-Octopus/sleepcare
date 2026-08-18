@@ -5202,6 +5202,51 @@ const docTemplate = `{
                 }
             }
         },
+        "/care/workbench": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Workbench"
+                ],
+                "summary": "获取当前员工责任范围工作台实时投影",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.WorkbenchData"
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/casbin/UpdateCasbin": {
             "post": {
                 "security": [
@@ -20886,6 +20931,29 @@ const docTemplate = `{
                     "items": {
                         "type": "integer"
                     }
+                }
+            }
+        },
+        "response.WorkbenchData": {
+            "type": "object",
+            "properties": {
+                "assignedToMe": {
+                    "type": "integer"
+                },
+                "attentionCases": {
+                    "type": "integer"
+                },
+                "deliveryIssues": {
+                    "type": "integer"
+                },
+                "dueToday": {
+                    "type": "integer"
+                },
+                "reviewRequired": {
+                    "type": "integer"
+                },
+                "waitingClient": {
+                    "type": "integer"
                 }
             }
         },

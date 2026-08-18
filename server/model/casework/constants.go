@@ -26,6 +26,7 @@ const (
 	ActionSourceStaff  = "STAFF"
 
 	TodoCategoryContentAttention = "CONTENT_ATTENTION"
+	TodoCategoryDeliveryIssue    = "DELIVERY_ISSUE"
 	TodoSourceAttentionCase      = "ATTENTION_CASE"
 	TodoStatusOpen               = "OPEN"
 	TodoStatusCompleted          = "COMPLETED"

@@ -10,6 +10,15 @@ type ActionResult struct {
 	OccurredAt time.Time `json:"occurredAt"`
 }
 
+type WorkbenchData struct {
+	DueToday       int64 `json:"dueToday"`
+	WaitingClient  int64 `json:"waitingClient"`
+	DeliveryIssues int64 `json:"deliveryIssues"`
+	AttentionCases int64 `json:"attentionCases"`
+	AssignedToMe   int64 `json:"assignedToMe"`
+	ReviewRequired int64 `json:"reviewRequired"`
+}
+
 type AttentionCaseSummary struct {
 	ID             uint       `json:"id"`
 	CareClientID   uint       `json:"careClientId"`

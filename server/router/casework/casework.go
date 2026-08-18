@@ -18,6 +18,7 @@ func (r *CaseWorkRouter) InitCaseWorkRouter(router *gin.RouterGroup) {
 		writeGroup.POST("attention-cases/:id/reopen", caseWorkApi.ReopenAttentionCase)
 	}
 	{
+		readGroup.GET("workbench", caseWorkApi.GetWorkbench)
 		readGroup.GET("attention-cases", caseWorkApi.ListAttentionCases)
 		readGroup.GET("attention-cases/:id", caseWorkApi.GetAttentionCase)
 	}

@@ -13,6 +13,7 @@ func TestCaseWorkRoutesMatchEmployeeContract(t *testing.T) {
 	(&CaseWorkRouter{}).InitCaseWorkRouter(group)
 
 	want := map[string]bool{
+		"GET /api/care/workbench":                             true,
 		"GET /api/care/attention-cases":                       true,
 		"GET /api/care/attention-cases/:id":                   true,
 		"POST /api/care/attention-cases/:id/acknowledge":      true,
