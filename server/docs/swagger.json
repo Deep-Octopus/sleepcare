@@ -2887,6 +2887,571 @@
                 }
             }
         },
+        "/care/attention-cases": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "AttentionCase"
+                ],
+                "summary": "分页获取授权范围内的关注事项",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页数量，最大100",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "事项状态",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "责任人ID，只能缩小授权范围",
+                        "name": "assigneeId",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/response.PageResult"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "list": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/definitions/response.AttentionCaseSummary"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/care/attention-cases/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "AttentionCase"
+                ],
+                "summary": "获取授权范围内的关注事项详情",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "关注事项ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.AttentionCaseDetail"
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/care/attention-cases/{id}/acknowledge": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "AttentionCase"
+                ],
+                "summary": "确认关注事项",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "关注事项ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "幂等键",
+                        "name": "Idempotency-Key",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "确认结果和乐观锁版本",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.AcknowledgeCase"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/github_com_flipped-aurora_gin-vue-admin_server_model_casework_response.ActionResult"
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/care/attention-cases/{id}/close": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "AttentionCase"
+                ],
+                "summary": "在处理结果和关闭理由完整后关闭事项",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "关注事项ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "幂等键",
+                        "name": "Idempotency-Key",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "关闭理由和乐观锁版本",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.CloseCase"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/github_com_flipped-aurora_gin-vue-admin_server_model_casework_response.ActionResult"
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/care/attention-cases/{id}/escalate": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "AttentionCase"
+                ],
+                "summary": "升级关注事项并保留责任链",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "关注事项ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "幂等键",
+                        "name": "Idempotency-Key",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "升级目标、理由和乐观锁版本",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.EscalateCase"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/github_com_flipped-aurora_gin-vue-admin_server_model_casework_response.ActionResult"
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/care/attention-cases/{id}/handling-records": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "AttentionCase"
+                ],
+                "summary": "追加联系或处置记录",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "关注事项ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "幂等键",
+                        "name": "Idempotency-Key",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "动作、结果和乐观锁版本",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.HandlingRecord"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/github_com_flipped-aurora_gin-vue-admin_server_model_casework_response.ActionResult"
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/care/attention-cases/{id}/reopen": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "AttentionCase"
+                ],
+                "summary": "由主管重开已关闭事项并保留历史",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "关注事项ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "幂等键",
+                        "name": "Idempotency-Key",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "重开理由和乐观锁版本",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.ReopenCase"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/github_com_flipped-aurora_gin-vue-admin_server_model_casework_response.ActionResult"
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/care/client-access/redeem": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ClientAccess"
+                ],
+                "summary": "兑换一次性访问链接并建立受限客户端会话",
+                "parameters": [
+                    {
+                        "description": "一次性访问凭证",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.Redeem"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.RedeemResult"
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/care/client-options": {
             "get": {
                 "security": [
@@ -2925,6 +3490,467 @@
                     },
                     "403": {
                         "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/care/client/tasks": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ClientTasks"
+                ],
+                "summary": "获取当前受限会话内的本人任务",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页数量，最大100",
+                        "name": "pageSize",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/response.PageResult"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "list": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/definitions/github_com_flipped-aurora_gin-vue-admin_server_model_clientaccess_response.TaskSummary"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/care/client/tasks/{taskId}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ClientTasks"
+                ],
+                "summary": "获取当前受限会话内的任务详情",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "任务ID",
+                        "name": "taskId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/github_com_flipped-aurora_gin-vue-admin_server_model_clientaccess_response.TaskDetail"
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/care/client/tasks/{taskId}/draft": {
+            "put": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ClientTasks"
+                ],
+                "summary": "幂等保存任务草稿",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "任务ID",
+                        "name": "taskId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "幂等键",
+                        "name": "Idempotency-Key",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "草稿版本和答案",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.SaveDraft"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.DraftResult"
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/care/client/tasks/{taskId}/interactions": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ClientTasks"
+                ],
+                "summary": "幂等记录打开、确认或开始填写事实",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "任务ID",
+                        "name": "taskId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "幂等键",
+                        "name": "Idempotency-Key",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "交互类型和任务版本",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.RecordInteraction"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.InteractionResult"
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/care/client/tasks/{taskId}/questionnaire": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ClientTasks"
+                ],
+                "summary": "获取任务冻结问卷和可恢复草稿",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "任务ID",
+                        "name": "taskId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.Questionnaire"
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/care/client/tasks/{taskId}/submit": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ClientTasks"
+                ],
+                "summary": "幂等提交任务答案",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "任务ID",
+                        "name": "taskId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "幂等键",
+                        "name": "Idempotency-Key",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "任务版本、来源和答案",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.SubmitTask"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.SubmitResult"
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/response.Response"
                         }
@@ -3069,7 +4095,7 @@
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/response.ActionResult"
+                                            "$ref": "#/definitions/github_com_flipped-aurora_gin-vue-admin_server_model_careclient_response.ActionResult"
                                         },
                                         "msg": {
                                             "type": "string"
@@ -3194,7 +4220,7 @@
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/response.ActionResult"
+                                            "$ref": "#/definitions/github_com_flipped-aurora_gin-vue-admin_server_model_careclient_response.ActionResult"
                                         },
                                         "msg": {
                                             "type": "string"
@@ -3267,7 +4293,7 @@
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/response.ActionResult"
+                                            "$ref": "#/definitions/github_com_flipped-aurora_gin-vue-admin_server_model_careclient_response.ActionResult"
                                         },
                                         "msg": {
                                             "type": "string"
@@ -3340,7 +4366,506 @@
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/response.ActionResult"
+                                            "$ref": "#/definitions/github_com_flipped-aurora_gin-vue-admin_server_model_careclient_response.ActionResult"
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/care/clients/{id}/plan-instances": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "CarePath"
+                ],
+                "summary": "获取康养用户责任范围内的计划时间线",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "康养用户ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/response.PlanInstanceSummary"
+                                            }
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "CarePath"
+                ],
+                "summary": "根据已确认预览幂等启动合成计划",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "康养用户ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "幂等键",
+                        "name": "Idempotency-Key",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "预览ID和康养用户乐观锁版本",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.StartPlan"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.PlanInstanceResult"
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/care/clients/{id}/plan-previews": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "CarePath"
+                ],
+                "summary": "按固定模板版本和 anchorAt 预览合成 D1-D5",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "康养用户ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "幂等键",
+                        "name": "Idempotency-Key",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "模板版本和合成锚点",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.PreviewPlan"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.PlanPreview"
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/care/plan-instances/{id}/pause": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "CarePath"
+                ],
+                "summary": "追加原因并按 KEEP_WINDOWS 暂停合成计划",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "计划实例ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "幂等键",
+                        "name": "Idempotency-Key",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "乐观锁版本和原因",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.PlanStateAction"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.PlanActionResult"
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/care/plan-instances/{id}/resume": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "CarePath"
+                ],
+                "summary": "追加原因并按 KEEP_WINDOWS 恢复合成计划",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "计划实例ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "幂等键",
+                        "name": "Idempotency-Key",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "乐观锁版本和原因",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.PlanStateAction"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.PlanActionResult"
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/care/plan-versions": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "CarePath"
+                ],
+                "summary": "分页获取合成 OSA 计划模板版本",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页数量，最大100",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "编码、版本或标题",
+                        "name": "keyword",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "生命周期状态",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "使用范围",
+                        "name": "usageScope",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "是否合成版本",
+                        "name": "synthetic",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/response.PageResult"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "list": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/definitions/response.PlanVersionSummary"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/care/plan-versions/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "CarePath"
+                ],
+                "summary": "获取合成 OSA 计划模板版本详情",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "计划模板版本ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.PlanVersionDetail"
                                         },
                                         "msg": {
                                             "type": "string"
@@ -3493,6 +5018,164 @@
                                     "properties": {
                                         "data": {
                                             "$ref": "#/definitions/response.QuestionnaireVersionDetail"
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/care/tasks": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "CarePath"
+                ],
+                "summary": "分页获取员工责任范围内的计划任务",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页数量，最大100",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "康养用户ID",
+                        "name": "careClientId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "计划实例ID",
+                        "name": "planInstanceId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "执行状态",
+                        "name": "executionStatus",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "时效状态",
+                        "name": "timingStatus",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "D1-D5",
+                        "name": "dayCode",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/response.PageResult"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "list": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/definitions/github_com_flipped-aurora_gin-vue-admin_server_model_carepath_response.TaskSummary"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/care/tasks/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "CarePath"
+                ],
+                "summary": "获取员工责任范围内的计划任务详情",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "任务实例ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/github_com_flipped-aurora_gin-vue-admin_server_model_carepath_response.TaskDetail"
                                         },
                                         "msg": {
                                             "type": "string"
@@ -14212,8 +15895,34 @@
         "config.Care": {
             "type": "object",
             "properties": {
+                "client-access": {
+                    "$ref": "#/definitions/config.ClientAccess"
+                },
                 "synthetic-fixtures-enabled": {
                     "type": "boolean"
+                }
+            }
+        },
+        "config.ClientAccess": {
+            "type": "object",
+            "properties": {
+                "allowed-origins": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "cookie-name": {
+                    "type": "string"
+                },
+                "cookie-path": {
+                    "type": "string"
+                },
+                "cookie-secure": {
+                    "type": "boolean"
+                },
+                "session-ttl-minutes": {
+                    "type": "integer"
                 }
             }
         },
@@ -15217,6 +16926,414 @@
                 }
             }
         },
+        "github_com_flipped-aurora_gin-vue-admin_server_model_careclient_response.ActionResult": {
+            "type": "object",
+            "properties": {
+                "careClientId": {
+                    "type": "integer"
+                },
+                "resourceId": {
+                    "type": "integer"
+                },
+                "version": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_flipped-aurora_gin-vue-admin_server_model_carepath_response.ReviewRecord": {
+            "type": "object",
+            "properties": {
+                "formalMedicalApproval": {
+                    "type": "boolean"
+                },
+                "note": {
+                    "type": "string"
+                },
+                "reviewType": {
+                    "type": "string"
+                },
+                "reviewedAt": {
+                    "type": "string"
+                },
+                "reviewedBy": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_flipped-aurora_gin-vue-admin_server_model_carepath_response.TaskDetail": {
+            "type": "object",
+            "properties": {
+                "careClientDisplayCode": {
+                    "type": "string"
+                },
+                "careClientDisplayName": {
+                    "type": "string"
+                },
+                "careClientId": {
+                    "type": "integer"
+                },
+                "dayCode": {
+                    "type": "string"
+                },
+                "dueAt": {
+                    "type": "string"
+                },
+                "executionRole": {
+                    "type": "string"
+                },
+                "executionStatus": {
+                    "type": "string"
+                },
+                "expiresAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "lateSubmissionPolicy": {
+                    "type": "string"
+                },
+                "notificationPolicy": {
+                    "type": "string"
+                },
+                "openAt": {
+                    "type": "string"
+                },
+                "planInstanceId": {
+                    "type": "integer"
+                },
+                "planStatus": {
+                    "type": "string"
+                },
+                "questionnaireVersionId": {
+                    "type": "integer"
+                },
+                "reviewRole": {
+                    "type": "string"
+                },
+                "reviewStatus": {
+                    "type": "string"
+                },
+                "ruleVersionIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "submittedAt": {
+                    "type": "string"
+                },
+                "timeline": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.TimelineEvent"
+                    }
+                },
+                "timingStatus": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_flipped-aurora_gin-vue-admin_server_model_carepath_response.TaskSummary": {
+            "type": "object",
+            "properties": {
+                "careClientDisplayCode": {
+                    "type": "string"
+                },
+                "careClientDisplayName": {
+                    "type": "string"
+                },
+                "careClientId": {
+                    "type": "integer"
+                },
+                "dayCode": {
+                    "type": "string"
+                },
+                "dueAt": {
+                    "type": "string"
+                },
+                "executionRole": {
+                    "type": "string"
+                },
+                "executionStatus": {
+                    "type": "string"
+                },
+                "expiresAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "openAt": {
+                    "type": "string"
+                },
+                "planInstanceId": {
+                    "type": "integer"
+                },
+                "planStatus": {
+                    "type": "string"
+                },
+                "reviewStatus": {
+                    "type": "string"
+                },
+                "submittedAt": {
+                    "type": "string"
+                },
+                "timingStatus": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_flipped-aurora_gin-vue-admin_server_model_casework_response.ActionResult": {
+            "type": "object",
+            "properties": {
+                "actionId": {
+                    "type": "integer"
+                },
+                "occurredAt": {
+                    "type": "string"
+                },
+                "resourceId": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_flipped-aurora_gin-vue-admin_server_model_clientaccess_response.QuestionnaireOption": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "label": {
+                    "type": "string"
+                },
+                "order": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_flipped-aurora_gin-vue-admin_server_model_clientaccess_response.QuestionnaireQuestion": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "options": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_flipped-aurora_gin-vue-admin_server_model_clientaccess_response.QuestionnaireOption"
+                    }
+                },
+                "order": {
+                    "type": "integer"
+                },
+                "required": {
+                    "type": "boolean"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "validation": {
+                    "type": "object"
+                }
+            }
+        },
+        "github_com_flipped-aurora_gin-vue-admin_server_model_clientaccess_response.TaskDetail": {
+            "type": "object",
+            "properties": {
+                "accessible": {
+                    "type": "boolean"
+                },
+                "canSaveDraft": {
+                    "type": "boolean"
+                },
+                "canSubmit": {
+                    "type": "boolean"
+                },
+                "consented": {
+                    "type": "boolean"
+                },
+                "dayCode": {
+                    "type": "string"
+                },
+                "dueAt": {
+                    "type": "string"
+                },
+                "executionStatus": {
+                    "type": "string"
+                },
+                "expiresAt": {
+                    "type": "string"
+                },
+                "hasQuestionnaire": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "openAt": {
+                    "type": "string"
+                },
+                "opened": {
+                    "type": "boolean"
+                },
+                "reviewStatus": {
+                    "type": "string"
+                },
+                "started": {
+                    "type": "boolean"
+                },
+                "submittedAt": {
+                    "type": "string"
+                },
+                "timingStatus": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_flipped-aurora_gin-vue-admin_server_model_clientaccess_response.TaskSummary": {
+            "type": "object",
+            "properties": {
+                "accessible": {
+                    "type": "boolean"
+                },
+                "dayCode": {
+                    "type": "string"
+                },
+                "dueAt": {
+                    "type": "string"
+                },
+                "executionStatus": {
+                    "type": "string"
+                },
+                "expiresAt": {
+                    "type": "string"
+                },
+                "hasQuestionnaire": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "openAt": {
+                    "type": "string"
+                },
+                "reviewStatus": {
+                    "type": "string"
+                },
+                "submittedAt": {
+                    "type": "string"
+                },
+                "timingStatus": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_flipped-aurora_gin-vue-admin_server_model_questionnaire_response.QuestionnaireOption": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "label": {
+                    "type": "string"
+                },
+                "order": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_flipped-aurora_gin-vue-admin_server_model_questionnaire_response.QuestionnaireQuestion": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "options": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_flipped-aurora_gin-vue-admin_server_model_questionnaire_response.QuestionnaireOption"
+                    }
+                },
+                "order": {
+                    "type": "integer"
+                },
+                "required": {
+                    "type": "boolean"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "validation": {
+                    "type": "object"
+                },
+                "validationSchemaVersion": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_flipped-aurora_gin-vue-admin_server_model_questionnaire_response.ReviewRecord": {
+            "type": "object",
+            "properties": {
+                "formalMedicalApproval": {
+                    "type": "boolean"
+                },
+                "note": {
+                    "type": "string"
+                },
+                "reviewType": {
+                    "type": "string"
+                },
+                "reviewedAt": {
+                    "type": "string"
+                },
+                "reviewedBy": {
+                    "type": "string"
+                }
+            }
+        },
         "media.AttachmentCategory": {
             "type": "object",
             "properties": {
@@ -15332,6 +17449,22 @@
                 "userID": {
                     "description": "作者",
                     "type": "integer"
+                }
+            }
+        },
+        "request.AcknowledgeCase": {
+            "type": "object",
+            "required": [
+                "expectedVersion",
+                "result"
+            ],
+            "properties": {
+                "expectedVersion": {
+                    "type": "integer"
+                },
+                "result": {
+                    "type": "string",
+                    "maxLength": 1000
                 }
             }
         },
@@ -15753,6 +17886,22 @@
                 }
             }
         },
+        "request.CloseCase": {
+            "type": "object",
+            "required": [
+                "closeReason",
+                "expectedVersion"
+            ],
+            "properties": {
+                "closeReason": {
+                    "type": "string",
+                    "maxLength": 2000
+                },
+                "expectedVersion": {
+                    "type": "integer"
+                }
+            }
+        },
         "request.CreateAssignment": {
             "type": "object",
             "properties": {
@@ -15954,6 +18103,29 @@
         "request.Empty": {
             "type": "object"
         },
+        "request.EscalateCase": {
+            "type": "object",
+            "required": [
+                "expectedVersion",
+                "reason",
+                "targetAssigneeId"
+            ],
+            "properties": {
+                "dueAt": {
+                    "type": "string"
+                },
+                "expectedVersion": {
+                    "type": "integer"
+                },
+                "reason": {
+                    "type": "string",
+                    "maxLength": 2000
+                },
+                "targetAssigneeId": {
+                    "type": "integer"
+                }
+            }
+        },
         "request.ExportVersionRequest": {
             "type": "object",
             "required": [
@@ -16079,6 +18251,37 @@
                 },
                 "username": {
                     "type": "string"
+                }
+            }
+        },
+        "request.HandlingRecord": {
+            "type": "object",
+            "required": [
+                "actionType",
+                "expectedVersion",
+                "result"
+            ],
+            "properties": {
+                "actionType": {
+                    "type": "string",
+                    "enum": [
+                        "CONTACT",
+                        "HANDLING"
+                    ]
+                },
+                "expectedVersion": {
+                    "type": "integer"
+                },
+                "nextAction": {
+                    "type": "string",
+                    "maxLength": 1000
+                },
+                "nextStatus": {
+                    "type": "string"
+                },
+                "result": {
+                    "type": "string",
+                    "maxLength": 4000
                 }
             }
         },
@@ -16241,6 +18444,17 @@
                 }
             }
         },
+        "request.PlanStateAction": {
+            "type": "object",
+            "properties": {
+                "expectedVersion": {
+                    "type": "integer"
+                },
+                "reason": {
+                    "type": "string"
+                }
+            }
+        },
         "request.PreviewApiCommandRequest": {
             "type": "object",
             "properties": {
@@ -16252,11 +18466,48 @@
                 }
             }
         },
+        "request.PreviewPlan": {
+            "type": "object",
+            "properties": {
+                "anchorAt": {
+                    "type": "string"
+                },
+                "planTemplateVersionId": {
+                    "type": "integer"
+                }
+            }
+        },
         "request.PreviewSysCliManifestRequest": {
             "type": "object",
             "properties": {
                 "cliId": {
                     "type": "integer"
+                }
+            }
+        },
+        "request.RecordInteraction": {
+            "type": "object",
+            "required": [
+                "expectedVersion",
+                "interactionType"
+            ],
+            "properties": {
+                "expectedVersion": {
+                    "type": "integer"
+                },
+                "interactionType": {
+                    "type": "string"
+                }
+            }
+        },
+        "request.Redeem": {
+            "type": "object",
+            "required": [
+                "grant"
+            ],
+            "properties": {
+                "grant": {
+                    "type": "string"
                 }
             }
         },
@@ -16325,6 +18576,37 @@
                     }
                 },
                 "mcpId": {
+                    "type": "integer"
+                }
+            }
+        },
+        "request.ReopenCase": {
+            "type": "object",
+            "required": [
+                "expectedVersion",
+                "reason"
+            ],
+            "properties": {
+                "expectedVersion": {
+                    "type": "integer"
+                },
+                "reason": {
+                    "type": "string",
+                    "maxLength": 2000
+                }
+            }
+        },
+        "request.SaveDraft": {
+            "type": "object",
+            "required": [
+                "answers"
+            ],
+            "properties": {
+                "answers": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "expectedVersion": {
                     "type": "integer"
                 }
             }
@@ -16713,6 +18995,40 @@
             "type": "object",
             "properties": {
                 "tool": {
+                    "type": "string"
+                }
+            }
+        },
+        "request.StartPlan": {
+            "type": "object",
+            "properties": {
+                "expectedClientVersion": {
+                    "type": "integer"
+                },
+                "previewId": {
+                    "type": "string"
+                }
+            }
+        },
+        "request.SubmitTask": {
+            "type": "object",
+            "required": [
+                "answers",
+                "expectedTaskVersion",
+                "source"
+            ],
+            "properties": {
+                "answers": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "clientOccurredAt": {
+                    "type": "string"
+                },
+                "expectedTaskVersion": {
+                    "type": "integer"
+                },
+                "source": {
                     "type": "string"
                 }
             }
@@ -17176,20 +19492,6 @@
                 }
             }
         },
-        "response.ActionResult": {
-            "type": "object",
-            "properties": {
-                "careClientId": {
-                    "type": "integer"
-                },
-                "resourceId": {
-                    "type": "integer"
-                },
-                "version": {
-                    "type": "integer"
-                }
-            }
-        },
         "response.AssigneeOption": {
             "type": "object",
             "properties": {
@@ -17203,6 +19505,94 @@
                     "type": "string"
                 },
                 "teamId": {
+                    "type": "integer"
+                }
+            }
+        },
+        "response.AttentionCaseDetail": {
+            "type": "object",
+            "properties": {
+                "actions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.CaseAction"
+                    }
+                },
+                "assigneeId": {
+                    "type": "integer"
+                },
+                "attentionLevel": {
+                    "type": "string"
+                },
+                "careClientId": {
+                    "type": "integer"
+                },
+                "closeReason": {
+                    "type": "string"
+                },
+                "dueAt": {
+                    "type": "string"
+                },
+                "handlingResult": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "openedAt": {
+                    "type": "string"
+                },
+                "reasonSummary": {
+                    "type": "string"
+                },
+                "ruleHits": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.RuleHitSummary"
+                    }
+                },
+                "status": {
+                    "type": "string"
+                },
+                "taskId": {
+                    "type": "integer"
+                },
+                "version": {
+                    "type": "integer"
+                }
+            }
+        },
+        "response.AttentionCaseSummary": {
+            "type": "object",
+            "properties": {
+                "assigneeId": {
+                    "type": "integer"
+                },
+                "attentionLevel": {
+                    "type": "string"
+                },
+                "careClientId": {
+                    "type": "integer"
+                },
+                "dueAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "openedAt": {
+                    "type": "string"
+                },
+                "reasonSummary": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "taskId": {
+                    "type": "integer"
+                },
+                "version": {
                     "type": "integer"
                 }
             }
@@ -17369,6 +19759,29 @@
                 }
             }
         },
+        "response.CaseAction": {
+            "type": "object",
+            "properties": {
+                "actionType": {
+                    "type": "string"
+                },
+                "actorRole": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "occurredAt": {
+                    "type": "string"
+                },
+                "reason": {
+                    "type": "string"
+                },
+                "result": {
+                    "type": "string"
+                }
+            }
+        },
         "response.ClientOptions": {
             "type": "object",
             "properties": {
@@ -17415,6 +19828,34 @@
                 }
             }
         },
+        "response.Draft": {
+            "type": "object",
+            "properties": {
+                "answers": {
+                    "type": "object"
+                },
+                "savedAt": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "integer"
+                }
+            }
+        },
+        "response.DraftResult": {
+            "type": "object",
+            "properties": {
+                "savedAt": {
+                    "type": "string"
+                },
+                "taskId": {
+                    "type": "integer"
+                },
+                "version": {
+                    "type": "integer"
+                }
+            }
+        },
         "response.Email": {
             "type": "object",
             "properties": {
@@ -17445,6 +19886,23 @@
             "properties": {
                 "file": {
                     "$ref": "#/definitions/media.FileUploadAndDownload"
+                }
+            }
+        },
+        "response.InteractionResult": {
+            "type": "object",
+            "properties": {
+                "executionStatus": {
+                    "type": "string"
+                },
+                "interactionType": {
+                    "type": "string"
+                },
+                "taskId": {
+                    "type": "integer"
+                },
+                "taskVersion": {
+                    "type": "integer"
                 }
             }
         },
@@ -17588,6 +20046,302 @@
                 }
             }
         },
+        "response.PlanActionResult": {
+            "type": "object",
+            "properties": {
+                "enrollmentId": {
+                    "type": "integer"
+                },
+                "planInstanceId": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "integer"
+                }
+            }
+        },
+        "response.PlanInstanceResult": {
+            "type": "object",
+            "properties": {
+                "anchorAt": {
+                    "type": "string"
+                },
+                "careClientId": {
+                    "type": "integer"
+                },
+                "enrollmentId": {
+                    "type": "integer"
+                },
+                "planInstanceId": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "taskIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "version": {
+                    "type": "integer"
+                }
+            }
+        },
+        "response.PlanInstanceSummary": {
+            "type": "object",
+            "properties": {
+                "anchorAt": {
+                    "type": "string"
+                },
+                "careClientId": {
+                    "type": "integer"
+                },
+                "enrollmentId": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "pathCode": {
+                    "type": "string"
+                },
+                "pauseStrategy": {
+                    "type": "string"
+                },
+                "pausedAt": {
+                    "type": "string"
+                },
+                "planTemplateVersionId": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "synthetic": {
+                    "type": "boolean"
+                },
+                "tasks": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_flipped-aurora_gin-vue-admin_server_model_carepath_response.TaskSummary"
+                    }
+                },
+                "templateTitle": {
+                    "type": "string"
+                },
+                "timeline": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.TimelineEvent"
+                    }
+                },
+                "version": {
+                    "type": "integer"
+                }
+            }
+        },
+        "response.PlanPreview": {
+            "type": "object",
+            "properties": {
+                "anchorAt": {
+                    "type": "string"
+                },
+                "careClientId": {
+                    "type": "integer"
+                },
+                "expiresAt": {
+                    "type": "string"
+                },
+                "planTemplateVersionId": {
+                    "type": "integer"
+                },
+                "previewId": {
+                    "type": "string"
+                },
+                "tasks": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.PreviewTask"
+                    }
+                }
+            }
+        },
+        "response.PlanTaskDefinition": {
+            "type": "object",
+            "properties": {
+                "boundRuleVersionIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "dayCode": {
+                    "type": "string"
+                },
+                "dueOffsetSeconds": {
+                    "type": "integer"
+                },
+                "executionRole": {
+                    "type": "string"
+                },
+                "expiresOffsetSeconds": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "notificationPolicy": {
+                    "type": "string"
+                },
+                "openOffsetSeconds": {
+                    "type": "integer"
+                },
+                "questionnaireVersionId": {
+                    "type": "integer"
+                },
+                "reviewRequired": {
+                    "type": "boolean"
+                },
+                "reviewRole": {
+                    "type": "string"
+                },
+                "sort": {
+                    "type": "integer"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.PlanVersionDetail": {
+            "type": "object",
+            "properties": {
+                "anchorDefinition": {
+                    "type": "string"
+                },
+                "code": {
+                    "type": "string"
+                },
+                "definitionHash": {
+                    "type": "string"
+                },
+                "definitionSchemaVersion": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "lateSubmissionPolicy": {
+                    "type": "string"
+                },
+                "lifecycleStatus": {
+                    "type": "string"
+                },
+                "pathCode": {
+                    "type": "string"
+                },
+                "pathDefinitionVersionId": {
+                    "type": "integer"
+                },
+                "pauseStrategy": {
+                    "type": "string"
+                },
+                "productionEnabled": {
+                    "type": "boolean"
+                },
+                "publishedAt": {
+                    "type": "string"
+                },
+                "purpose": {
+                    "type": "string"
+                },
+                "reviewRecord": {
+                    "$ref": "#/definitions/github_com_flipped-aurora_gin-vue-admin_server_model_carepath_response.ReviewRecord"
+                },
+                "synthetic": {
+                    "type": "boolean"
+                },
+                "taskCount": {
+                    "type": "integer"
+                },
+                "tasks": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.PlanTaskDefinition"
+                    }
+                },
+                "title": {
+                    "type": "string"
+                },
+                "usageScope": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.PlanVersionSummary": {
+            "type": "object",
+            "properties": {
+                "anchorDefinition": {
+                    "type": "string"
+                },
+                "code": {
+                    "type": "string"
+                },
+                "definitionHash": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "lateSubmissionPolicy": {
+                    "type": "string"
+                },
+                "lifecycleStatus": {
+                    "type": "string"
+                },
+                "pathCode": {
+                    "type": "string"
+                },
+                "pauseStrategy": {
+                    "type": "string"
+                },
+                "productionEnabled": {
+                    "type": "boolean"
+                },
+                "publishedAt": {
+                    "type": "string"
+                },
+                "purpose": {
+                    "type": "string"
+                },
+                "reviewRecord": {
+                    "$ref": "#/definitions/github_com_flipped-aurora_gin-vue-admin_server_model_carepath_response.ReviewRecord"
+                },
+                "synthetic": {
+                    "type": "boolean"
+                },
+                "taskCount": {
+                    "type": "integer"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "usageScope": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "string"
+                }
+            }
+        },
         "response.PluginInfo": {
             "type": "object",
             "properties": {
@@ -17629,54 +20383,87 @@
                 }
             }
         },
-        "response.QuestionnaireOption": {
+        "response.PreviewTask": {
             "type": "object",
             "properties": {
-                "code": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "label": {
-                    "type": "string"
-                },
-                "order": {
-                    "type": "integer"
-                }
-            }
-        },
-        "response.QuestionnaireQuestion": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "options": {
+                "boundRuleVersionIds": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/response.QuestionnaireOption"
+                        "type": "integer"
                     }
                 },
-                "order": {
+                "dayCode": {
+                    "type": "string"
+                },
+                "dueAt": {
+                    "type": "string"
+                },
+                "dueOffsetSeconds": {
                     "type": "integer"
                 },
-                "required": {
+                "executionRole": {
+                    "type": "string"
+                },
+                "expiresAt": {
+                    "type": "string"
+                },
+                "expiresOffsetSeconds": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "notificationPolicy": {
+                    "type": "string"
+                },
+                "openAt": {
+                    "type": "string"
+                },
+                "openOffsetSeconds": {
+                    "type": "integer"
+                },
+                "questionnaireVersionId": {
+                    "type": "integer"
+                },
+                "reviewRequired": {
                     "type": "boolean"
+                },
+                "reviewRole": {
+                    "type": "string"
+                },
+                "sort": {
+                    "type": "integer"
                 },
                 "title": {
                     "type": "string"
+                }
+            }
+        },
+        "response.Questionnaire": {
+            "type": "object",
+            "properties": {
+                "draft": {
+                    "$ref": "#/definitions/response.Draft"
                 },
-                "type": {
+                "expectedMinutes": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "purpose": {
                     "type": "string"
                 },
-                "validation": {
-                    "type": "object"
+                "questions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_flipped-aurora_gin-vue-admin_server_model_clientaccess_response.QuestionnaireQuestion"
+                    }
                 },
-                "validationSchemaVersion": {
+                "taskVersion": {
+                    "type": "integer"
+                },
+                "title": {
                     "type": "string"
                 }
             }
@@ -17724,7 +20511,7 @@
                     }
                 },
                 "reviewRecord": {
-                    "$ref": "#/definitions/response.ReviewRecord"
+                    "$ref": "#/definitions/github_com_flipped-aurora_gin-vue-admin_server_model_questionnaire_response.ReviewRecord"
                 },
                 "slaFirstResponseMinutes": {
                     "type": "integer"
@@ -17782,14 +20569,14 @@
                 "questions": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/response.QuestionnaireQuestion"
+                        "$ref": "#/definitions/github_com_flipped-aurora_gin-vue-admin_server_model_questionnaire_response.QuestionnaireQuestion"
                     }
                 },
                 "replacesVersionId": {
                     "type": "integer"
                 },
                 "reviewRecord": {
-                    "$ref": "#/definitions/response.ReviewRecord"
+                    "$ref": "#/definitions/github_com_flipped-aurora_gin-vue-admin_server_model_questionnaire_response.ReviewRecord"
                 },
                 "ruleCount": {
                     "type": "integer"
@@ -17845,7 +20632,7 @@
                     "type": "integer"
                 },
                 "reviewRecord": {
-                    "$ref": "#/definitions/response.ReviewRecord"
+                    "$ref": "#/definitions/github_com_flipped-aurora_gin-vue-admin_server_model_questionnaire_response.ReviewRecord"
                 },
                 "ruleCount": {
                     "type": "integer"
@@ -17864,6 +20651,17 @@
                 }
             }
         },
+        "response.RedeemResult": {
+            "type": "object",
+            "properties": {
+                "allowedTaskCount": {
+                    "type": "integer"
+                },
+                "expiresAt": {
+                    "type": "string"
+                }
+            }
+        },
         "response.Response": {
             "type": "object",
             "properties": {
@@ -17876,23 +20674,52 @@
                 }
             }
         },
-        "response.ReviewRecord": {
+        "response.RuleHitSummary": {
             "type": "object",
             "properties": {
-                "formalMedicalApproval": {
-                    "type": "boolean"
+                "id": {
+                    "type": "integer"
                 },
-                "note": {
+                "occurredAt": {
                     "type": "string"
                 },
-                "reviewType": {
+                "reasonSnapshot": {
                     "type": "string"
                 },
-                "reviewedAt": {
+                "ruleVersionId": {
+                    "type": "integer"
+                }
+            }
+        },
+        "response.SubmitResult": {
+            "type": "object",
+            "properties": {
+                "attentionCaseIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "executionStatus": {
                     "type": "string"
                 },
-                "reviewedBy": {
+                "reviewStatus": {
                     "type": "string"
+                },
+                "ruleHitIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "submissionId": {
+                    "type": "integer"
+                },
+                "taskId": {
+                    "type": "integer"
+                },
+                "taskVersion": {
+                    "type": "integer"
                 }
             }
         },
@@ -18006,6 +20833,23 @@
             "properties": {
                 "user": {
                     "$ref": "#/definitions/system.SysUser"
+                }
+            }
+        },
+        "response.TimelineEvent": {
+            "type": "object",
+            "properties": {
+                "eventType": {
+                    "type": "string"
+                },
+                "occurredAt": {
+                    "type": "string"
+                },
+                "source": {
+                    "type": "string"
+                },
+                "summary": {
+                    "type": "string"
                 }
             }
         },

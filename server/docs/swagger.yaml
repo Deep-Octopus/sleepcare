@@ -87,8 +87,25 @@ definitions:
     type: object
   config.Care:
     properties:
+      client-access:
+        $ref: '#/definitions/config.ClientAccess'
       synthetic-fixtures-enabled:
         type: boolean
+    type: object
+  config.ClientAccess:
+    properties:
+      allowed-origins:
+        items:
+          type: string
+        type: array
+      cookie-name:
+        type: string
+      cookie-path:
+        type: string
+      cookie-secure:
+        type: boolean
+      session-ttl-minutes:
+        type: integer
     type: object
   config.CloudflareR2:
     properties:
@@ -793,6 +810,274 @@ definitions:
         description: 收件人:多个以英文逗号分隔 例：a@qq.com b@qq.com 正式开发中请把此项目作为参数使用
         type: string
     type: object
+  github_com_flipped-aurora_gin-vue-admin_server_model_careclient_response.ActionResult:
+    properties:
+      careClientId:
+        type: integer
+      resourceId:
+        type: integer
+      version:
+        type: integer
+    type: object
+  github_com_flipped-aurora_gin-vue-admin_server_model_carepath_response.ReviewRecord:
+    properties:
+      formalMedicalApproval:
+        type: boolean
+      note:
+        type: string
+      reviewType:
+        type: string
+      reviewedAt:
+        type: string
+      reviewedBy:
+        type: integer
+    type: object
+  github_com_flipped-aurora_gin-vue-admin_server_model_carepath_response.TaskDetail:
+    properties:
+      careClientDisplayCode:
+        type: string
+      careClientDisplayName:
+        type: string
+      careClientId:
+        type: integer
+      dayCode:
+        type: string
+      dueAt:
+        type: string
+      executionRole:
+        type: string
+      executionStatus:
+        type: string
+      expiresAt:
+        type: string
+      id:
+        type: integer
+      lateSubmissionPolicy:
+        type: string
+      notificationPolicy:
+        type: string
+      openAt:
+        type: string
+      planInstanceId:
+        type: integer
+      planStatus:
+        type: string
+      questionnaireVersionId:
+        type: integer
+      reviewRole:
+        type: string
+      reviewStatus:
+        type: string
+      ruleVersionIds:
+        items:
+          type: integer
+        type: array
+      submittedAt:
+        type: string
+      timeline:
+        items:
+          $ref: '#/definitions/response.TimelineEvent'
+        type: array
+      timingStatus:
+        type: string
+      title:
+        type: string
+      version:
+        type: integer
+    type: object
+  github_com_flipped-aurora_gin-vue-admin_server_model_carepath_response.TaskSummary:
+    properties:
+      careClientDisplayCode:
+        type: string
+      careClientDisplayName:
+        type: string
+      careClientId:
+        type: integer
+      dayCode:
+        type: string
+      dueAt:
+        type: string
+      executionRole:
+        type: string
+      executionStatus:
+        type: string
+      expiresAt:
+        type: string
+      id:
+        type: integer
+      openAt:
+        type: string
+      planInstanceId:
+        type: integer
+      planStatus:
+        type: string
+      reviewStatus:
+        type: string
+      submittedAt:
+        type: string
+      timingStatus:
+        type: string
+      title:
+        type: string
+      version:
+        type: integer
+    type: object
+  github_com_flipped-aurora_gin-vue-admin_server_model_casework_response.ActionResult:
+    properties:
+      actionId:
+        type: integer
+      occurredAt:
+        type: string
+      resourceId:
+        type: integer
+      status:
+        type: string
+      version:
+        type: integer
+    type: object
+  github_com_flipped-aurora_gin-vue-admin_server_model_clientaccess_response.QuestionnaireOption:
+    properties:
+      code:
+        type: string
+      label:
+        type: string
+      order:
+        type: integer
+    type: object
+  github_com_flipped-aurora_gin-vue-admin_server_model_clientaccess_response.QuestionnaireQuestion:
+    properties:
+      code:
+        type: string
+      options:
+        items:
+          $ref: '#/definitions/github_com_flipped-aurora_gin-vue-admin_server_model_clientaccess_response.QuestionnaireOption'
+        type: array
+      order:
+        type: integer
+      required:
+        type: boolean
+      title:
+        type: string
+      type:
+        type: string
+      validation:
+        type: object
+    type: object
+  github_com_flipped-aurora_gin-vue-admin_server_model_clientaccess_response.TaskDetail:
+    properties:
+      accessible:
+        type: boolean
+      canSaveDraft:
+        type: boolean
+      canSubmit:
+        type: boolean
+      consented:
+        type: boolean
+      dayCode:
+        type: string
+      dueAt:
+        type: string
+      executionStatus:
+        type: string
+      expiresAt:
+        type: string
+      hasQuestionnaire:
+        type: boolean
+      id:
+        type: integer
+      openAt:
+        type: string
+      opened:
+        type: boolean
+      reviewStatus:
+        type: string
+      started:
+        type: boolean
+      submittedAt:
+        type: string
+      timingStatus:
+        type: string
+      title:
+        type: string
+      version:
+        type: integer
+    type: object
+  github_com_flipped-aurora_gin-vue-admin_server_model_clientaccess_response.TaskSummary:
+    properties:
+      accessible:
+        type: boolean
+      dayCode:
+        type: string
+      dueAt:
+        type: string
+      executionStatus:
+        type: string
+      expiresAt:
+        type: string
+      hasQuestionnaire:
+        type: boolean
+      id:
+        type: integer
+      openAt:
+        type: string
+      reviewStatus:
+        type: string
+      submittedAt:
+        type: string
+      timingStatus:
+        type: string
+      title:
+        type: string
+      version:
+        type: integer
+    type: object
+  github_com_flipped-aurora_gin-vue-admin_server_model_questionnaire_response.QuestionnaireOption:
+    properties:
+      code:
+        type: string
+      id:
+        type: integer
+      label:
+        type: string
+      order:
+        type: integer
+    type: object
+  github_com_flipped-aurora_gin-vue-admin_server_model_questionnaire_response.QuestionnaireQuestion:
+    properties:
+      code:
+        type: string
+      id:
+        type: integer
+      options:
+        items:
+          $ref: '#/definitions/github_com_flipped-aurora_gin-vue-admin_server_model_questionnaire_response.QuestionnaireOption'
+        type: array
+      order:
+        type: integer
+      required:
+        type: boolean
+      title:
+        type: string
+      type:
+        type: string
+      validation:
+        type: object
+      validationSchemaVersion:
+        type: string
+    type: object
+  github_com_flipped-aurora_gin-vue-admin_server_model_questionnaire_response.ReviewRecord:
+    properties:
+      formalMedicalApproval:
+        type: boolean
+      note:
+        type: string
+      reviewType:
+        type: string
+      reviewedAt:
+        type: string
+      reviewedBy:
+        type: string
+    type: object
   media.AttachmentCategory:
     properties:
       ID:
@@ -877,6 +1162,17 @@ definitions:
       userID:
         description: 作者
         type: integer
+    type: object
+  request.AcknowledgeCase:
+    properties:
+      expectedVersion:
+        type: integer
+      result:
+        maxLength: 1000
+        type: string
+    required:
+    - expectedVersion
+    - result
     type: object
   request.AddMenuAuthorityInfo:
     properties:
@@ -1178,6 +1474,17 @@ definitions:
         description: 密码
         type: string
     type: object
+  request.CloseCase:
+    properties:
+      closeReason:
+        maxLength: 2000
+        type: string
+      expectedVersion:
+        type: integer
+    required:
+    - closeReason
+    - expectedVersion
+    type: object
   request.CreateAssignment:
     properties:
       assigneeId:
@@ -1310,6 +1617,22 @@ definitions:
     type: object
   request.Empty:
     type: object
+  request.EscalateCase:
+    properties:
+      dueAt:
+        type: string
+      expectedVersion:
+        type: integer
+      reason:
+        maxLength: 2000
+        type: string
+      targetAssigneeId:
+        type: integer
+    required:
+    - expectedVersion
+    - reason
+    - targetAssigneeId
+    type: object
   request.ExportVersionRequest:
     properties:
       apiIds:
@@ -1397,6 +1720,28 @@ definitions:
         type: string
       username:
         type: string
+    type: object
+  request.HandlingRecord:
+    properties:
+      actionType:
+        enum:
+        - CONTACT
+        - HANDLING
+        type: string
+      expectedVersion:
+        type: integer
+      nextAction:
+        maxLength: 1000
+        type: string
+      nextStatus:
+        type: string
+      result:
+        maxLength: 4000
+        type: string
+    required:
+    - actionType
+    - expectedVersion
+    - result
     type: object
   request.IdsReq:
     properties:
@@ -1508,6 +1853,13 @@ definitions:
         description: 每页大小
         type: integer
     type: object
+  request.PlanStateAction:
+    properties:
+      expectedVersion:
+        type: integer
+      reason:
+        type: string
+    type: object
   request.PreviewApiCommandRequest:
     properties:
       apiId:
@@ -1515,10 +1867,34 @@ definitions:
       cliId:
         type: integer
     type: object
+  request.PreviewPlan:
+    properties:
+      anchorAt:
+        type: string
+      planTemplateVersionId:
+        type: integer
+    type: object
   request.PreviewSysCliManifestRequest:
     properties:
       cliId:
         type: integer
+    type: object
+  request.RecordInteraction:
+    properties:
+      expectedVersion:
+        type: integer
+      interactionType:
+        type: string
+    required:
+    - expectedVersion
+    - interactionType
+    type: object
+  request.Redeem:
+    properties:
+      grant:
+        type: string
+    required:
+    - grant
     type: object
   request.Register:
     properties:
@@ -1567,6 +1943,27 @@ definitions:
         type: array
       mcpId:
         type: integer
+    type: object
+  request.ReopenCase:
+    properties:
+      expectedVersion:
+        type: integer
+      reason:
+        maxLength: 2000
+        type: string
+    required:
+    - expectedVersion
+    - reason
+    type: object
+  request.SaveDraft:
+    properties:
+      answers:
+        additionalProperties: {}
+        type: object
+      expectedVersion:
+        type: integer
+    required:
+    - answers
     type: object
   request.SearchApiParams:
     properties:
@@ -1829,6 +2226,29 @@ definitions:
     properties:
       tool:
         type: string
+    type: object
+  request.StartPlan:
+    properties:
+      expectedClientVersion:
+        type: integer
+      previewId:
+        type: string
+    type: object
+  request.SubmitTask:
+    properties:
+      answers:
+        additionalProperties: {}
+        type: object
+      clientOccurredAt:
+        type: string
+      expectedTaskVersion:
+        type: integer
+      source:
+        type: string
+    required:
+    - answers
+    - expectedTaskVersion
+    - source
     type: object
   request.SysApiTokenSearch:
     properties:
@@ -2142,15 +2562,6 @@ definitions:
     - code
     - name
     type: object
-  response.ActionResult:
-    properties:
-      careClientId:
-        type: integer
-      resourceId:
-        type: integer
-      version:
-        type: integer
-    type: object
   response.AssigneeOption:
     properties:
       displayName:
@@ -2160,6 +2571,64 @@ definitions:
       roleType:
         type: string
       teamId:
+        type: integer
+    type: object
+  response.AttentionCaseDetail:
+    properties:
+      actions:
+        items:
+          $ref: '#/definitions/response.CaseAction'
+        type: array
+      assigneeId:
+        type: integer
+      attentionLevel:
+        type: string
+      careClientId:
+        type: integer
+      closeReason:
+        type: string
+      dueAt:
+        type: string
+      handlingResult:
+        type: string
+      id:
+        type: integer
+      openedAt:
+        type: string
+      reasonSummary:
+        type: string
+      ruleHits:
+        items:
+          $ref: '#/definitions/response.RuleHitSummary'
+        type: array
+      status:
+        type: string
+      taskId:
+        type: integer
+      version:
+        type: integer
+    type: object
+  response.AttentionCaseSummary:
+    properties:
+      assigneeId:
+        type: integer
+      attentionLevel:
+        type: string
+      careClientId:
+        type: integer
+      dueAt:
+        type: string
+      id:
+        type: integer
+      openedAt:
+        type: string
+      reasonSummary:
+        type: string
+      status:
+        type: string
+      taskId:
+        type: integer
+      version:
         type: integer
     type: object
   response.CareAssignmentSummary:
@@ -2269,6 +2738,21 @@ definitions:
       version:
         type: integer
     type: object
+  response.CaseAction:
+    properties:
+      actionType:
+        type: string
+      actorRole:
+        type: string
+      id:
+        type: integer
+      occurredAt:
+        type: string
+      reason:
+        type: string
+      result:
+        type: string
+    type: object
   response.ClientOptions:
     properties:
       assignees:
@@ -2299,6 +2783,24 @@ definitions:
       textVersion:
         type: string
     type: object
+  response.Draft:
+    properties:
+      answers:
+        type: object
+      savedAt:
+        type: string
+      version:
+        type: integer
+    type: object
+  response.DraftResult:
+    properties:
+      savedAt:
+        type: string
+      taskId:
+        type: integer
+      version:
+        type: integer
+    type: object
   response.Email:
     properties:
       body:
@@ -2320,6 +2822,17 @@ definitions:
     properties:
       file:
         $ref: '#/definitions/media.FileUploadAndDownload'
+    type: object
+  response.InteractionResult:
+    properties:
+      executionStatus:
+        type: string
+      interactionType:
+        type: string
+      taskId:
+        type: integer
+      taskVersion:
+        type: integer
     type: object
   response.LogContent:
     properties:
@@ -2412,6 +2925,201 @@ definitions:
       total:
         type: integer
     type: object
+  response.PlanActionResult:
+    properties:
+      enrollmentId:
+        type: integer
+      planInstanceId:
+        type: integer
+      status:
+        type: string
+      version:
+        type: integer
+    type: object
+  response.PlanInstanceResult:
+    properties:
+      anchorAt:
+        type: string
+      careClientId:
+        type: integer
+      enrollmentId:
+        type: integer
+      planInstanceId:
+        type: integer
+      status:
+        type: string
+      taskIds:
+        items:
+          type: integer
+        type: array
+      version:
+        type: integer
+    type: object
+  response.PlanInstanceSummary:
+    properties:
+      anchorAt:
+        type: string
+      careClientId:
+        type: integer
+      enrollmentId:
+        type: integer
+      id:
+        type: integer
+      pathCode:
+        type: string
+      pauseStrategy:
+        type: string
+      pausedAt:
+        type: string
+      planTemplateVersionId:
+        type: integer
+      status:
+        type: string
+      synthetic:
+        type: boolean
+      tasks:
+        items:
+          $ref: '#/definitions/github_com_flipped-aurora_gin-vue-admin_server_model_carepath_response.TaskSummary'
+        type: array
+      templateTitle:
+        type: string
+      timeline:
+        items:
+          $ref: '#/definitions/response.TimelineEvent'
+        type: array
+      version:
+        type: integer
+    type: object
+  response.PlanPreview:
+    properties:
+      anchorAt:
+        type: string
+      careClientId:
+        type: integer
+      expiresAt:
+        type: string
+      planTemplateVersionId:
+        type: integer
+      previewId:
+        type: string
+      tasks:
+        items:
+          $ref: '#/definitions/response.PreviewTask'
+        type: array
+    type: object
+  response.PlanTaskDefinition:
+    properties:
+      boundRuleVersionIds:
+        items:
+          type: integer
+        type: array
+      dayCode:
+        type: string
+      dueOffsetSeconds:
+        type: integer
+      executionRole:
+        type: string
+      expiresOffsetSeconds:
+        type: integer
+      id:
+        type: integer
+      notificationPolicy:
+        type: string
+      openOffsetSeconds:
+        type: integer
+      questionnaireVersionId:
+        type: integer
+      reviewRequired:
+        type: boolean
+      reviewRole:
+        type: string
+      sort:
+        type: integer
+      title:
+        type: string
+    type: object
+  response.PlanVersionDetail:
+    properties:
+      anchorDefinition:
+        type: string
+      code:
+        type: string
+      definitionHash:
+        type: string
+      definitionSchemaVersion:
+        type: string
+      id:
+        type: integer
+      lateSubmissionPolicy:
+        type: string
+      lifecycleStatus:
+        type: string
+      pathCode:
+        type: string
+      pathDefinitionVersionId:
+        type: integer
+      pauseStrategy:
+        type: string
+      productionEnabled:
+        type: boolean
+      publishedAt:
+        type: string
+      purpose:
+        type: string
+      reviewRecord:
+        $ref: '#/definitions/github_com_flipped-aurora_gin-vue-admin_server_model_carepath_response.ReviewRecord'
+      synthetic:
+        type: boolean
+      taskCount:
+        type: integer
+      tasks:
+        items:
+          $ref: '#/definitions/response.PlanTaskDefinition'
+        type: array
+      title:
+        type: string
+      usageScope:
+        type: string
+      version:
+        type: string
+    type: object
+  response.PlanVersionSummary:
+    properties:
+      anchorDefinition:
+        type: string
+      code:
+        type: string
+      definitionHash:
+        type: string
+      id:
+        type: integer
+      lateSubmissionPolicy:
+        type: string
+      lifecycleStatus:
+        type: string
+      pathCode:
+        type: string
+      pauseStrategy:
+        type: string
+      productionEnabled:
+        type: boolean
+      publishedAt:
+        type: string
+      purpose:
+        type: string
+      reviewRecord:
+        $ref: '#/definitions/github_com_flipped-aurora_gin-vue-admin_server_model_carepath_response.ReviewRecord'
+      synthetic:
+        type: boolean
+      taskCount:
+        type: integer
+      title:
+        type: string
+      usageScope:
+        type: string
+      version:
+        type: string
+    type: object
   response.PluginInfo:
     properties:
       apis:
@@ -2439,38 +3147,60 @@ definitions:
           $ref: '#/definitions/request.CasbinInfo'
         type: array
     type: object
-  response.QuestionnaireOption:
+  response.PreviewTask:
     properties:
-      code:
-        type: string
-      id:
-        type: integer
-      label:
-        type: string
-      order:
-        type: integer
-    type: object
-  response.QuestionnaireQuestion:
-    properties:
-      code:
-        type: string
-      id:
-        type: integer
-      options:
+      boundRuleVersionIds:
         items:
-          $ref: '#/definitions/response.QuestionnaireOption'
+          type: integer
         type: array
-      order:
+      dayCode:
+        type: string
+      dueAt:
+        type: string
+      dueOffsetSeconds:
         type: integer
-      required:
+      executionRole:
+        type: string
+      expiresAt:
+        type: string
+      expiresOffsetSeconds:
+        type: integer
+      id:
+        type: integer
+      notificationPolicy:
+        type: string
+      openAt:
+        type: string
+      openOffsetSeconds:
+        type: integer
+      questionnaireVersionId:
+        type: integer
+      reviewRequired:
         type: boolean
+      reviewRole:
+        type: string
+      sort:
+        type: integer
       title:
         type: string
-      type:
+    type: object
+  response.Questionnaire:
+    properties:
+      draft:
+        $ref: '#/definitions/response.Draft'
+      expectedMinutes:
+        type: integer
+      id:
+        type: integer
+      purpose:
         type: string
-      validation:
-        type: object
-      validationSchemaVersion:
+      questions:
+        items:
+          $ref: '#/definitions/github_com_flipped-aurora_gin-vue-admin_server_model_clientaccess_response.QuestionnaireQuestion'
+        type: array
+      taskVersion:
+        type: integer
+      title:
         type: string
     type: object
   response.QuestionnaireRuleVersion:
@@ -2502,7 +3232,7 @@ definitions:
           type: string
         type: array
       reviewRecord:
-        $ref: '#/definitions/response.ReviewRecord'
+        $ref: '#/definitions/github_com_flipped-aurora_gin-vue-admin_server_model_questionnaire_response.ReviewRecord'
       slaFirstResponseMinutes:
         type: integer
       slaResolutionMinutes:
@@ -2540,12 +3270,12 @@ definitions:
         type: integer
       questions:
         items:
-          $ref: '#/definitions/response.QuestionnaireQuestion'
+          $ref: '#/definitions/github_com_flipped-aurora_gin-vue-admin_server_model_questionnaire_response.QuestionnaireQuestion'
         type: array
       replacesVersionId:
         type: integer
       reviewRecord:
-        $ref: '#/definitions/response.ReviewRecord'
+        $ref: '#/definitions/github_com_flipped-aurora_gin-vue-admin_server_model_questionnaire_response.ReviewRecord'
       ruleCount:
         type: integer
       rules:
@@ -2582,7 +3312,7 @@ definitions:
       questionCount:
         type: integer
       reviewRecord:
-        $ref: '#/definitions/response.ReviewRecord'
+        $ref: '#/definitions/github_com_flipped-aurora_gin-vue-admin_server_model_questionnaire_response.ReviewRecord'
       ruleCount:
         type: integer
       synthetic:
@@ -2594,6 +3324,13 @@ definitions:
       version:
         type: string
     type: object
+  response.RedeemResult:
+    properties:
+      allowedTaskCount:
+        type: integer
+      expiresAt:
+        type: string
+    type: object
   response.Response:
     properties:
       code:
@@ -2602,18 +3339,37 @@ definitions:
       msg:
         type: string
     type: object
-  response.ReviewRecord:
+  response.RuleHitSummary:
     properties:
-      formalMedicalApproval:
-        type: boolean
-      note:
+      id:
+        type: integer
+      occurredAt:
         type: string
-      reviewType:
+      reasonSnapshot:
         type: string
-      reviewedAt:
+      ruleVersionId:
+        type: integer
+    type: object
+  response.SubmitResult:
+    properties:
+      attentionCaseIds:
+        items:
+          type: integer
+        type: array
+      executionStatus:
         type: string
-      reviewedBy:
+      reviewStatus:
         type: string
+      ruleHitIds:
+        items:
+          type: integer
+        type: array
+      submissionId:
+        type: integer
+      taskId:
+        type: integer
+      taskVersion:
+        type: integer
     type: object
   response.SysAPIListResponse:
     properties:
@@ -2686,6 +3442,17 @@ definitions:
     properties:
       user:
         $ref: '#/definitions/system.SysUser'
+    type: object
+  response.TimelineEvent:
+    properties:
+      eventType:
+        type: string
+      occurredAt:
+        type: string
+      source:
+        type: string
+      summary:
+        type: string
     type: object
   response.UploadCompleteResp:
     properties:
@@ -5228,6 +5995,342 @@ paths:
       summary: 用户登录
       tags:
       - Base
+  /care/attention-cases:
+    get:
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页数量，最大100
+        in: query
+        name: pageSize
+        type: integer
+      - description: 事项状态
+        in: query
+        name: status
+        type: string
+      - description: 责任人ID，只能缩小授权范围
+        in: query
+        name: assigneeId
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.PageResult'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/response.AttentionCaseSummary'
+                        type: array
+                    type: object
+                msg:
+                  type: string
+              type: object
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: 分页获取授权范围内的关注事项
+      tags:
+      - AttentionCase
+  /care/attention-cases/{id}:
+    get:
+      parameters:
+      - description: 关注事项ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.AttentionCaseDetail'
+                msg:
+                  type: string
+              type: object
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: 获取授权范围内的关注事项详情
+      tags:
+      - AttentionCase
+  /care/attention-cases/{id}/acknowledge:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 关注事项ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 幂等键
+        in: header
+        name: Idempotency-Key
+        required: true
+        type: string
+      - description: 确认结果和乐观锁版本
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.AcknowledgeCase'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_flipped-aurora_gin-vue-admin_server_model_casework_response.ActionResult'
+                msg:
+                  type: string
+              type: object
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: 确认关注事项
+      tags:
+      - AttentionCase
+  /care/attention-cases/{id}/close:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 关注事项ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 幂等键
+        in: header
+        name: Idempotency-Key
+        required: true
+        type: string
+      - description: 关闭理由和乐观锁版本
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.CloseCase'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_flipped-aurora_gin-vue-admin_server_model_casework_response.ActionResult'
+                msg:
+                  type: string
+              type: object
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: 在处理结果和关闭理由完整后关闭事项
+      tags:
+      - AttentionCase
+  /care/attention-cases/{id}/escalate:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 关注事项ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 幂等键
+        in: header
+        name: Idempotency-Key
+        required: true
+        type: string
+      - description: 升级目标、理由和乐观锁版本
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.EscalateCase'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_flipped-aurora_gin-vue-admin_server_model_casework_response.ActionResult'
+                msg:
+                  type: string
+              type: object
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: 升级关注事项并保留责任链
+      tags:
+      - AttentionCase
+  /care/attention-cases/{id}/handling-records:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 关注事项ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 幂等键
+        in: header
+        name: Idempotency-Key
+        required: true
+        type: string
+      - description: 动作、结果和乐观锁版本
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.HandlingRecord'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_flipped-aurora_gin-vue-admin_server_model_casework_response.ActionResult'
+                msg:
+                  type: string
+              type: object
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: 追加联系或处置记录
+      tags:
+      - AttentionCase
+  /care/attention-cases/{id}/reopen:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 关注事项ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 幂等键
+        in: header
+        name: Idempotency-Key
+        required: true
+        type: string
+      - description: 重开理由和乐观锁版本
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.ReopenCase'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_flipped-aurora_gin-vue-admin_server_model_casework_response.ActionResult'
+                msg:
+                  type: string
+              type: object
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: 由主管重开已关闭事项并保留历史
+      tags:
+      - AttentionCase
+  /care/client-access/redeem:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 一次性访问凭证
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.Redeem'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.RedeemResult'
+                msg:
+                  type: string
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 兑换一次性访问链接并建立受限客户端会话
+      tags:
+      - ClientAccess
   /care/client-options:
     get:
       produces:
@@ -5253,6 +6356,289 @@ paths:
       summary: 获取康养用户维护选项
       tags:
       - CareClient
+  /care/client/tasks:
+    get:
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页数量，最大100
+        in: query
+        name: pageSize
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.PageResult'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/github_com_flipped-aurora_gin-vue-admin_server_model_clientaccess_response.TaskSummary'
+                        type: array
+                    type: object
+                msg:
+                  type: string
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 获取当前受限会话内的本人任务
+      tags:
+      - ClientTasks
+  /care/client/tasks/{taskId}:
+    get:
+      parameters:
+      - description: 任务ID
+        in: path
+        name: taskId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_flipped-aurora_gin-vue-admin_server_model_clientaccess_response.TaskDetail'
+                msg:
+                  type: string
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 获取当前受限会话内的任务详情
+      tags:
+      - ClientTasks
+  /care/client/tasks/{taskId}/draft:
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: 任务ID
+        in: path
+        name: taskId
+        required: true
+        type: integer
+      - description: 幂等键
+        in: header
+        name: Idempotency-Key
+        required: true
+        type: string
+      - description: 草稿版本和答案
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.SaveDraft'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.DraftResult'
+                msg:
+                  type: string
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 幂等保存任务草稿
+      tags:
+      - ClientTasks
+  /care/client/tasks/{taskId}/interactions:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 任务ID
+        in: path
+        name: taskId
+        required: true
+        type: integer
+      - description: 幂等键
+        in: header
+        name: Idempotency-Key
+        required: true
+        type: string
+      - description: 交互类型和任务版本
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.RecordInteraction'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.InteractionResult'
+                msg:
+                  type: string
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 幂等记录打开、确认或开始填写事实
+      tags:
+      - ClientTasks
+  /care/client/tasks/{taskId}/questionnaire:
+    get:
+      parameters:
+      - description: 任务ID
+        in: path
+        name: taskId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.Questionnaire'
+                msg:
+                  type: string
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 获取任务冻结问卷和可恢复草稿
+      tags:
+      - ClientTasks
+  /care/client/tasks/{taskId}/submit:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 任务ID
+        in: path
+        name: taskId
+        required: true
+        type: integer
+      - description: 幂等键
+        in: header
+        name: Idempotency-Key
+        required: true
+        type: string
+      - description: 任务版本、来源和答案
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.SubmitTask'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.SubmitResult'
+                msg:
+                  type: string
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 幂等提交任务答案
+      tags:
+      - ClientTasks
   /care/clients:
     get:
       parameters:
@@ -5331,7 +6717,7 @@ paths:
             - $ref: '#/definitions/response.Response'
             - properties:
                 data:
-                  $ref: '#/definitions/response.ActionResult'
+                  $ref: '#/definitions/github_com_flipped-aurora_gin-vue-admin_server_model_careclient_response.ActionResult'
                 msg:
                   type: string
               type: object
@@ -5405,7 +6791,7 @@ paths:
             - $ref: '#/definitions/response.Response'
             - properties:
                 data:
-                  $ref: '#/definitions/response.ActionResult'
+                  $ref: '#/definitions/github_com_flipped-aurora_gin-vue-admin_server_model_careclient_response.ActionResult'
                 msg:
                   type: string
               type: object
@@ -5449,7 +6835,7 @@ paths:
             - $ref: '#/definitions/response.Response'
             - properties:
                 data:
-                  $ref: '#/definitions/response.ActionResult'
+                  $ref: '#/definitions/github_com_flipped-aurora_gin-vue-admin_server_model_careclient_response.ActionResult'
                 msg:
                   type: string
               type: object
@@ -5493,7 +6879,7 @@ paths:
             - $ref: '#/definitions/response.Response'
             - properties:
                 data:
-                  $ref: '#/definitions/response.ActionResult'
+                  $ref: '#/definitions/github_com_flipped-aurora_gin-vue-admin_server_model_careclient_response.ActionResult'
                 msg:
                   type: string
               type: object
@@ -5506,6 +6892,302 @@ paths:
       summary: 追加合成测试授权或撤回记录
       tags:
       - CareClient
+  /care/clients/{id}/plan-instances:
+    get:
+      parameters:
+      - description: 康养用户ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/response.PlanInstanceSummary'
+                  type: array
+                msg:
+                  type: string
+              type: object
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: 获取康养用户责任范围内的计划时间线
+      tags:
+      - CarePath
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 康养用户ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 幂等键
+        in: header
+        name: Idempotency-Key
+        required: true
+        type: string
+      - description: 预览ID和康养用户乐观锁版本
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.StartPlan'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.PlanInstanceResult'
+                msg:
+                  type: string
+              type: object
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: 根据已确认预览幂等启动合成计划
+      tags:
+      - CarePath
+  /care/clients/{id}/plan-previews:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 康养用户ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 幂等键
+        in: header
+        name: Idempotency-Key
+        required: true
+        type: string
+      - description: 模板版本和合成锚点
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.PreviewPlan'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.PlanPreview'
+                msg:
+                  type: string
+              type: object
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: 按固定模板版本和 anchorAt 预览合成 D1-D5
+      tags:
+      - CarePath
+  /care/plan-instances/{id}/pause:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 计划实例ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 幂等键
+        in: header
+        name: Idempotency-Key
+        required: true
+        type: string
+      - description: 乐观锁版本和原因
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.PlanStateAction'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.PlanActionResult'
+                msg:
+                  type: string
+              type: object
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: 追加原因并按 KEEP_WINDOWS 暂停合成计划
+      tags:
+      - CarePath
+  /care/plan-instances/{id}/resume:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 计划实例ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 幂等键
+        in: header
+        name: Idempotency-Key
+        required: true
+        type: string
+      - description: 乐观锁版本和原因
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.PlanStateAction'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.PlanActionResult'
+                msg:
+                  type: string
+              type: object
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: 追加原因并按 KEEP_WINDOWS 恢复合成计划
+      tags:
+      - CarePath
+  /care/plan-versions:
+    get:
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页数量，最大100
+        in: query
+        name: pageSize
+        type: integer
+      - description: 编码、版本或标题
+        in: query
+        name: keyword
+        type: string
+      - description: 生命周期状态
+        in: query
+        name: status
+        type: string
+      - description: 使用范围
+        in: query
+        name: usageScope
+        type: string
+      - description: 是否合成版本
+        in: query
+        name: synthetic
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.PageResult'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/response.PlanVersionSummary'
+                        type: array
+                    type: object
+                msg:
+                  type: string
+              type: object
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: 分页获取合成 OSA 计划模板版本
+      tags:
+      - CarePath
+  /care/plan-versions/{id}:
+    get:
+      parameters:
+      - description: 计划模板版本ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.PlanVersionDetail'
+                msg:
+                  type: string
+              type: object
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: 获取合成 OSA 计划模板版本详情
+      tags:
+      - CarePath
   /care/questionnaire-versions:
     get:
       parameters:
@@ -5594,6 +7276,98 @@ paths:
       summary: 获取问卷、题目和绑定关注规则版本详情
       tags:
       - Questionnaire
+  /care/tasks:
+    get:
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页数量，最大100
+        in: query
+        name: pageSize
+        type: integer
+      - description: 康养用户ID
+        in: query
+        name: careClientId
+        type: integer
+      - description: 计划实例ID
+        in: query
+        name: planInstanceId
+        type: integer
+      - description: 执行状态
+        in: query
+        name: executionStatus
+        type: string
+      - description: 时效状态
+        in: query
+        name: timingStatus
+        type: string
+      - description: D1-D5
+        in: query
+        name: dayCode
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.PageResult'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/github_com_flipped-aurora_gin-vue-admin_server_model_carepath_response.TaskSummary'
+                        type: array
+                    type: object
+                msg:
+                  type: string
+              type: object
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: 分页获取员工责任范围内的计划任务
+      tags:
+      - CarePath
+  /care/tasks/{id}:
+    get:
+      parameters:
+      - description: 任务实例ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_flipped-aurora_gin-vue-admin_server_model_carepath_response.TaskDetail'
+                msg:
+                  type: string
+              type: object
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: 获取员工责任范围内的计划任务详情
+      tags:
+      - CarePath
   /casbin/UpdateCasbin:
     post:
       consumes:

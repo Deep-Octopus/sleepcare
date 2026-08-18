@@ -11,9 +11,9 @@ import (
 	"strings"
 	"time"
 
+	platformoutbox "github.com/flipped-aurora/gin-vue-admin/server/internal/platform/outbox"
 	qmodel "github.com/flipped-aurora/gin-vue-admin/server/model/questionnaire"
 	"github.com/flipped-aurora/gin-vue-admin/server/utils/datascope"
-	"github.com/google/uuid"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -420,16 +420,10 @@ func runIdempotent[T any](s *QuestionnaireService, ctx context.Context, operatio
 }
 
 func appendOutbox(tx *gorm.DB, occurredAt time.Time, eventType, aggregateType string, aggregateID uint, payload any, correlationID, causationID string) error {
-	payloadJSON, err := json.Marshal(payload)
-	if err != nil {
-		return err
-	}
-	event := qmodel.OutboxEvent{
-		EventID: uuid.NewString(), EventType: eventType, PayloadVersion: "v1", AggregateType: aggregateType,
-		AggregateID: strconv.FormatUint(uint64(aggregateID), 10), PayloadJSON: datatypes.JSON(payloadJSON),
+	return platformoutbox.Append(tx, platformoutbox.AppendInput{
+		EventType: eventType, AggregateType: aggregateType, AggregateID: aggregateID, Payload: payload,
 		OccurredAt: occurredAt, CorrelationID: correlationID, CausationID: causationID, Synthetic: true,
-	}
-	return tx.Create(&event).Error
+	})
 }
 
 func hashRequest(value any) (string, error) {

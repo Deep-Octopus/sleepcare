@@ -270,3 +270,11 @@ mcp:
 care:
     synthetic-fixtures-enabled: false
     fixture-password: ""
+    client-access:
+        session-ttl-minutes: 480
+        cookie-name: gva_client_session
+        cookie-path: /api/care/client
+        cookie-secure: false
+        allowed-origins:
+            - http://127.0.0.1:8080
+            - http://localhost:8080

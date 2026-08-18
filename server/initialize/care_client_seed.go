@@ -247,9 +247,16 @@ func grantCareAccess(tx *gorm.DB, root, leaf system.SysBaseMenu, buttons []syste
 		}
 	}
 	for _, button := range buttons {
-		allowedRoles := roles
-		if button.Name != "viewDetail" {
+		var allowedRoles []uint
+		switch button.Name {
+		case "viewDetail":
+			allowedRoles = roles
+		case "startPlan", "pausePlan", "resumePlan":
+			allowedRoles = []uint{syntheticStewardRole, syntheticClinicianRole}
+		case "createClient", "maintainClient", "assignCare", "recordConsent":
 			allowedRoles = []uint{syntheticSupervisorRole}
+		default:
+			continue
 		}
 		for _, role := range allowedRoles {
 			link := system.SysAuthorityBtn{AuthorityId: role, SysMenuID: leaf.ID, SysBaseMenuBtnID: button.ID}

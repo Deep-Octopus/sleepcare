@@ -95,6 +95,9 @@ func RegisterTables() {
 	ensureLogViewerMetadata()
 	ensureCareClientFeature()
 	ensureQuestionnaireFeature()
+	ensureCarePathFeature()
+	ensureClientAccessFeature()
+	ensureCaseWorkFeature()
 	logger.Bg().Mod("system").Info("register table success")
 }
 
@@ -113,5 +116,23 @@ func ensureCareClientFeature() {
 func ensureQuestionnaireFeature() {
 	if err := EnsureQuestionnaireData(); err != nil {
 		logger.Bg().Mod("questionnaire").Err(err).Warn("questionnaire metadata or synthetic fixture seed skipped")
+	}
+}
+
+func ensureCarePathFeature() {
+	if err := EnsureCarePathData(); err != nil {
+		logger.Bg().Mod("carepath").Err(err).Warn("care path metadata or synthetic fixture seed skipped")
+	}
+}
+
+func ensureClientAccessFeature() {
+	if err := EnsureClientAccessData(); err != nil {
+		logger.Bg().Mod("clientaccess").Err(err).Warn("client access fixture principal seed skipped")
+	}
+}
+
+func ensureCaseWorkFeature() {
+	if err := EnsureCaseWorkData(); err != nil {
+		logger.Bg().Mod("casework").Err(err).Warn("attention case metadata or retained-record reconciliation skipped")
 	}
 }

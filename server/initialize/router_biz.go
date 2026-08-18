@@ -18,4 +18,7 @@ func initBizRouter(routers ...*gin.RouterGroup) {
 	holder(publicGroup, privateGroup)
 	router.RouterGroupApp.CareClient.CareClientRouter.InitCareClientRouter(privateGroup)
 	router.RouterGroupApp.Questionnaire.QuestionnaireRouter.InitQuestionnaireRouter(privateGroup)
+	router.RouterGroupApp.CarePath.CarePathRouter.InitCarePathRouter(privateGroup)
+	router.RouterGroupApp.CaseWork.CaseWorkRouter.InitCaseWorkRouter(privateGroup)
+	router.RouterGroupApp.ClientAccess.ClientAccessRouter.InitClientAccessRouter(publicGroup)
 }

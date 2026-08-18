@@ -1,0 +1,52 @@
+# Client Access 模块边界
+
+## 职责
+
+`clientaccess` 为康养用户提供与员工端完全分离的受限访问边界：一次性 grant 兑换 HttpOnly 会话，会话只携带固定客户和任务范围，并协调任务交互、问卷草稿与最终提交。
+
+模块不负责 grant 投递、真实短信、员工菜单、医疗内容生产或面向用户的 AI；最终提交只负责协调调用 `casework`，事项本身仍由该模块维护。
+
+## 后端入口
+
+- Model：`server/model/clientaccess/`
+- Service：`server/service/clientaccess/`
+- API：`server/api/v1/clientaccess/`
+- Router：`server/router/clientaccess/`
+- Session / Origin 中间件：`server/middleware/client_access.go`
+- 迁移与固定账户：`server/initialize/gorm_biz.go`、`server/initialize/client_access_seed.go`
+
+路由挂载在 `PublicGroup` 下，但除兑换接口外必须先通过 `ClientSessionAuth`。它们不得进入员工端 `JWTAuth -> MustChangePwdGuard -> CasbinHandler -> DataScope` 链，也不得接受员工 token 代替客户端会话。
+
+## 前端入口
+
+- 静态路由：`web/src/router/index.js` 的 `/client/**`
+- API：`web/src/api/sleep-care/client-access.js`
+- 独立布局与页面：`web/src/view/client/`
+
+客户端请求仍复用 `web/src/utils/request.js`，通过 `authContext: 'client'` 禁止发送员工 `x-token` / `x-user-id`，并启用 Cookie 会话。客户端路由使用 `meta.client`，不加载员工动态菜单。
+
+## 数据与安全不变量
+
+- `CareClientAccount` 是独立安全主体，不是 `SysUser`。
+- grant、session 和幂等键只保存 SHA-256 摘要；原文不得写入数据库、日志、文档或 Swagger 响应。
+- grant 只允许从 `ISSUED` 原子转换到 `REDEEMED`，并由 `ClientSession.grantId` 唯一约束防止并发重复兑换。
+- session 固化 grant 的任务范围。每次任务访问都必须同时满足 session、账户、客户归属、任务白名单、任务客户和部门范围。
+- 客户端写请求必须匹配配置中的精确 `Origin`。Cookie 使用 `HttpOnly`、`SameSite=Lax`、受限 Path；正式配置默认 `Secure`。
+- `OPENED`、`CONSENTED`、`STARTED`、`SUBMITTED` 是独立事实；`STARTED` 才把任务从 `OPEN` 转为 `IN_PROGRESS`。
+- 草稿使用独立版本，最终提交使用任务版本。草稿提交后保留并标记 `consumedAt`，不覆盖最终答卷历史。
+- 最终提交在一个外层事务中复用 questionnaire 与 casework 边界，原子写入答卷、修订、规则命中、事项、待办、outbox、任务状态和任务事件。
+- 没有规则命中时 `attentionCaseIds` 为空；存在命中时返回已去重创建的事项 ID。缺少有效责任管家时整次提交回滚。
+
+## 客户端 DTO
+
+客户端 DTO 只包含任务展示、状态、时间窗、冻结题目和可恢复草稿。不得返回客户身份、组织、计划内部标识、规则条件、审核记录、定义哈希或内部环境标志。
+
+问卷接口只返回服务端冻结题目与可空草稿；已发布规则仍在提交服务内部运行，但不会下发给客户端。
+
+## 配置与本地数据
+
+`care.client-access` 配置会话时长、Cookie 名称/路径/Secure 和允许来源。固定本地数据只创建一个客户端账户，不创建、保存或打印可用 grant。服务测试在内存中创建短期 bearer 值。
+
+## 验证边界
+
+阶段内执行 clientaccess 服务测试、日志脱敏测试、相关初始化测试、Swagger 契约检查及前端 lint/build。页面点触留到阶段集中验收或用户另行明确要求。

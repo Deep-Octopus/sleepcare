@@ -56,6 +56,11 @@ func bindEnvironmentOverrides(v *viper.Viper) {
 	for _, key := range []string{
 		"care.synthetic-fixtures-enabled",
 		"care.fixture-password",
+		"care.client-access.session-ttl-minutes",
+		"care.client-access.cookie-name",
+		"care.client-access.cookie-path",
+		"care.client-access.cookie-secure",
+		"care.client-access.allowed-origins",
 		"redis.addr",
 		"redis.password",
 		"system.use-redis",

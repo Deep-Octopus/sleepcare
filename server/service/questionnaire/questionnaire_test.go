@@ -261,6 +261,35 @@ func TestQuestionnaireReadAccessAndDefinitionHash(t *testing.T) {
 	}
 }
 
+func TestValidateFrozenBindingRejectsQuestionnaireAndRuleHashMismatches(t *testing.T) {
+	db := newQuestionnaireDB(t, false)
+	fixture := seedServiceDefinition(t, db, qmodel.LifecyclePublished)
+	service := newTestService(db)
+	ctx := context.Background()
+
+	if err := service.ValidateFrozenBinding(ctx, fixture.version.ID, []uint{fixture.rule.ID}, true); err != nil {
+		t.Fatalf("valid frozen binding rejected: %v", err)
+	}
+	if err := db.Model(&qmodel.QuestionnaireQuestion{}).Where("id = ?", fixture.question.ID).
+		Update("title", "被篡改的合成题目").Error; err != nil {
+		t.Fatal(err)
+	}
+	if err := service.ValidateFrozenBinding(ctx, fixture.version.ID, []uint{fixture.rule.ID}, true); domainCode(err) != qmodel.CodeOperationNotAllowed {
+		t.Fatalf("questionnaire hash mismatch should reject binding, got %v", err)
+	}
+	if err := db.Model(&qmodel.QuestionnaireQuestion{}).Where("id = ?", fixture.question.ID).
+		Update("title", fixture.question.Title).Error; err != nil {
+		t.Fatal(err)
+	}
+	if err := db.Model(&qmodel.QuestionnaireRuleVersion{}).Where("id = ?", fixture.rule.ID).
+		Update("title", "被篡改的合成规则").Error; err != nil {
+		t.Fatal(err)
+	}
+	if err := service.ValidateFrozenBinding(ctx, fixture.version.ID, []uint{fixture.rule.ID}, true); domainCode(err) != qmodel.CodeOperationNotAllowed {
+		t.Fatalf("rule hash mismatch should reject binding, got %v", err)
+	}
+}
+
 type serviceFixture struct {
 	version  qmodel.QuestionnaireVersion
 	question qmodel.QuestionnaireQuestion

@@ -3,7 +3,7 @@
     <div class="mb-4 border border-amber-300 rounded-lg bg-amber-50 px-4 py-3 text-amber-900">
       <div class="font-semibold">合成数据开发区</div>
       <div class="mt-1 text-sm">
-        P1-02 只承载康养用户公开资料、合成测试授权和责任关系，不包含医疗内容、真实短信、康养用户账号或 AI 能力。
+        P1-02/P1-04 只承载公开资料、责任关系和合成 D1–D5 计划，不包含医疗内容、真实短信、康养用户账号或 AI 能力。
       </div>
     </div>
 
@@ -79,7 +79,7 @@
       </div>
     </div>
 
-    <el-drawer v-model="detailVisible" title="康养用户详情" size="680px">
+    <el-drawer v-model="detailVisible" title="康养用户与计划时间线" size="900px">
       <template v-if="detail">
         <el-descriptions :column="2" border>
           <el-descriptions-item label="醒目标识"><el-tag type="warning">合成数据</el-tag></el-descriptions-item>
@@ -112,6 +112,119 @@
           <el-table-column label="发生时间" min-width="170"><template #default="scope">{{ formatDateTime(scope.row.occurredAt) }}</template></el-table-column>
           <el-table-column prop="reason" label="备注" min-width="180" />
         </el-table>
+
+        <div class="mb-3 mt-7 flex items-end justify-between gap-4">
+          <div>
+            <div class="text-xs font-semibold tracking-widest text-gray-400">OSA · SYNTHETIC ONLY</div>
+            <h3 class="mt-1 text-lg font-semibold">D1–D5 计划时间线</h3>
+          </div>
+          <el-button
+            v-if="btnAuth.startPlan && !planLoading && !activePlan"
+            type="primary"
+            @click="openPlanStart"
+          >
+            预览并启动计划
+          </el-button>
+        </div>
+        <el-alert
+          class="mb-3"
+          type="warning"
+          :closable="false"
+          title="只允许从明确的合成 anchorAt 启动；通知禁用，暂停/恢复不会平移原时间窗。"
+        />
+        <div
+          v-loading="planLoading"
+          class="min-h-24"
+        >
+          <el-empty
+            v-if="!planLoading && !clientPlans.length"
+            description="尚未启动合成计划"
+            :image-size="72"
+          />
+          <div
+            v-for="plan in clientPlans"
+            :key="plan.id"
+            class="mb-4 overflow-hidden rounded-lg border border-slate-200"
+          >
+            <div class="flex flex-wrap items-center justify-between gap-3 bg-slate-900 px-4 py-3 text-white">
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="font-semibold">{{ plan.templateTitle }}</span>
+                  <el-tag
+                    :type="plan.status === 'PAUSED' ? 'warning' : 'success'"
+                    size="small"
+                  >
+                    {{ planStatusLabel(plan.status) }}
+                  </el-tag>
+                </div>
+                <div class="mt-1 font-mono text-xs text-slate-400">
+                  {{ plan.pathCode }} · anchorAt {{ formatDateTime(plan.anchorAt) }} · v{{ plan.version }}
+                </div>
+              </div>
+              <div class="flex gap-2">
+                <el-button
+                  v-if="btnAuth.pausePlan && plan.status === 'ACTIVE'"
+                  size="small"
+                  :loading="planStateActionId === plan.id"
+                  :disabled="planStateActionId !== 0 && planStateActionId !== plan.id"
+                  @click="changePlanState(plan, 'pause')"
+                >
+                  暂停
+                </el-button>
+                <el-button
+                  v-if="btnAuth.resumePlan && plan.status === 'PAUSED'"
+                  size="small"
+                  type="primary"
+                  :loading="planStateActionId === plan.id"
+                  :disabled="planStateActionId !== 0 && planStateActionId !== plan.id"
+                  @click="changePlanState(plan, 'resume')"
+                >
+                  恢复
+                </el-button>
+              </div>
+            </div>
+            <div class="grid grid-cols-1 gap-px bg-slate-200 md:grid-cols-5">
+              <div
+                v-for="task in plan.tasks"
+                :key="task.id"
+                class="bg-white px-3 py-3"
+              >
+                <div class="flex items-center justify-between gap-2">
+                  <span class="font-mono text-base font-semibold">{{ task.dayCode }}</span>
+                  <el-tag
+                    :type="taskExecutionTagType(task.executionStatus)"
+                    size="small"
+                    effect="plain"
+                  >
+                    {{ taskStatusLabel(task.executionStatus) }}
+                  </el-tag>
+                </div>
+                <div class="mt-2 min-h-10 text-xs font-medium leading-5 text-slate-700">
+                  {{ task.title }}
+                </div>
+                <div class="mt-2 border-t border-slate-100 pt-2 text-[11px] leading-5 text-slate-500">
+                  <div>开放 {{ formatDateTime(task.openAt) }}</div>
+                  <div>截止 {{ formatDateTime(task.dueAt) }}</div>
+                </div>
+                <div class="mt-2 flex flex-wrap gap-1">
+                  <el-tag
+                    :type="taskTimingTagType(task.timingStatus)"
+                    size="small"
+                  >
+                    {{ taskStatusLabel(task.timingStatus) }}
+                  </el-tag>
+                  <el-tag
+                    size="small"
+                    type="info"
+                    effect="plain"
+                  >
+                    {{ taskStatusLabel(task.reviewStatus) }}
+                  </el-tag>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </template>
     </el-drawer>
 
@@ -171,12 +284,101 @@
       </el-form>
       <template #footer><el-button @click="consentVisible = false">取消</el-button><el-button type="primary" @click="saveConsent">确认记录</el-button></template>
     </el-dialog>
+
+    <el-dialog
+      v-model="planStartVisible"
+      title="预览并启动合成 D1–D5 计划"
+      width="820px"
+      :close-on-click-modal="false"
+    >
+      <el-alert
+        class="mb-4"
+        type="warning"
+        :closable="false"
+        title="anchorAt 必须来自明确的合成记录。启动会一次生成 D1–D5，不会发送通知。"
+      />
+      <el-form
+        :model="planStartForm"
+        label-width="130px"
+      >
+        <el-form-item label="计划模板版本" required>
+          <el-select
+            v-model="planStartForm.planTemplateVersionId"
+            class="w-full"
+            @change="resetPlanPreview"
+          >
+            <el-option
+              v-for="item in planVersionOptions"
+              :key="item.id"
+              :label="`${item.title} · ${item.version}`"
+              :value="item.id"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="合成 anchorAt" required>
+          <el-date-picker
+            v-model="planStartForm.anchorAt"
+            type="datetime"
+            class="w-full"
+            placeholder="请选择明确的合成锚点时间"
+            @change="resetPlanPreview"
+          />
+        </el-form-item>
+      </el-form>
+
+      <div
+        v-if="planPreview"
+        class="mt-5"
+      >
+        <div class="mb-3 flex items-center justify-between">
+          <div>
+            <div class="text-xs font-semibold tracking-widest text-gray-400">PREVIEW LOCKED</div>
+            <div class="mt-1 font-semibold">D1–D5 绝对时间窗</div>
+          </div>
+          <div class="text-right font-mono text-xs text-gray-400">
+            预览有效至 {{ formatDateTime(planPreview.expiresAt) }}
+          </div>
+        </div>
+        <div class="grid grid-cols-1 gap-2 md:grid-cols-5">
+          <div
+            v-for="task in planPreview.tasks"
+            :key="task.id"
+            class="rounded-lg border border-slate-200 bg-slate-50 px-3 py-3"
+          >
+            <div class="font-mono text-base font-semibold">{{ task.dayCode }}</div>
+            <div class="mt-2 min-h-10 text-xs leading-5">{{ task.title }}</div>
+            <div class="mt-2 border-t border-slate-200 pt-2 text-[11px] leading-5 text-slate-500">
+              <div>开放 {{ formatDateTime(task.openAt) }}</div>
+              <div>截止 {{ formatDateTime(task.dueAt) }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <template #footer>
+        <el-button @click="planStartVisible = false">取消</el-button>
+        <el-button
+          :loading="planActionLoading"
+          @click="previewPlan"
+        >
+          生成预览
+        </el-button>
+        <el-button
+          type="primary"
+          :disabled="!planPreview"
+          :loading="planActionLoading"
+          @click="confirmStartPlan"
+        >
+          确认启动
+        </el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
   import { computed, onMounted, reactive, ref } from 'vue'
-  import { ElMessage } from 'element-plus'
+  import { ElMessage, ElMessageBox } from 'element-plus'
   import { useBtnAuth } from '@/utils/btnAuth'
   import {
     createCareAssignment,
@@ -187,6 +389,14 @@
     getCareClients,
     updateCareClient
   } from '@/api/sleep-care/care-clients'
+  import {
+    getClientPlans,
+    getPlanVersions,
+    pauseCarePlan,
+    previewCarePlan,
+    resumeCarePlan,
+    startCarePlan
+  } from '@/api/sleep-care/care-path'
 
   defineOptions({ name: 'CareClients' })
 
@@ -207,15 +417,26 @@
   const assignmentVisible = ref(false)
   const consentVisible = ref(false)
   const actionClient = ref(null)
+  const clientPlans = ref([])
+  const planLoading = ref(false)
+  const planStartVisible = ref(false)
+  const planVersionOptions = ref([])
+  const planPreview = ref(null)
+  const planActionLoading = ref(false)
+  const planStateActionId = ref(0)
+  const planPreviewKey = ref('')
+  const planStartKey = ref('')
 
   const emptyClientForm = () => ({ displayCode: '', displayName: '[合成] ', contactMobile: '', serviceReason: '', servicePackageCode: '', organizationId: undefined, teamId: undefined, status: 'ACTIVE' })
   const clientForm = reactive(emptyClientForm())
   const assignmentForm = reactive({ roleType: 'CARE_STEWARD', assigneeId: undefined, validFrom: new Date(), reason: '' })
   const consentForm = reactive({ action: 'GRANT', textVersion: 'SYNTHETIC-V1', occurredAt: new Date(), reason: '合成测试授权记录' })
+  const planStartForm = reactive({ planTemplateVersionId: undefined, anchorAt: undefined })
 
   const organizationOptions = computed(() => options.value.orgUnits.filter((item) => item.unitType === 'ORGANIZATION'))
   const teamOptions = computed(() => options.value.orgUnits.filter((item) => item.unitType === 'TEAM' && (!clientForm.organizationId || item.organizationId === clientForm.organizationId)))
   const assignmentAssignees = computed(() => options.value.assignees.filter((item) => item.roleType === assignmentForm.roleType && item.teamId === actionClient.value?.teamId))
+  const activePlan = computed(() => clientPlans.value.find((item) => ['ACTIVE', 'PAUSED'].includes(item.status)))
 
   const loadTable = async () => {
     loading.value = true
@@ -246,7 +467,26 @@
     detail.value = res.data
     return res.data
   }
-  const openDetail = async (id) => { if (await loadDetail(id)) detailVisible.value = true }
+  const loadPlans = async (id) => {
+    clientPlans.value = []
+    planLoading.value = true
+    try {
+      const res = await getClientPlans(id)
+      if (res.code === 0) {
+        clientPlans.value = res.data || []
+      }
+    } finally {
+      planLoading.value = false
+    }
+  }
+  const openDetail = async (id) => {
+    detail.value = null
+    clientPlans.value = []
+    if (await loadDetail(id)) {
+      detailVisible.value = true
+      await loadPlans(id)
+    }
+  }
   const openCreate = async () => {
     if (!(await ensureOptions())) return
     Object.assign(clientForm, emptyClientForm())
@@ -296,8 +536,111 @@
     const res = await createCareConsent(actionClient.value.id, { expectedVersion: actionClient.value.version, consentType: 'SYNTHETIC_TEST_PARTICIPATION', action: consentForm.action, textVersion: consentForm.textVersion, occurredAt: consentForm.occurredAt.toISOString(), source: 'STAFF_RECORDED', reason: consentForm.reason })
     if (res.code === 0) { ElMessage.success(res.msg); consentVisible.value = false; await loadTable() }
   }
+  const resetPlanPreview = () => {
+    planPreview.value = null
+    planPreviewKey.value = crypto.randomUUID()
+    planStartKey.value = crypto.randomUUID()
+  }
+  const openPlanStart = async () => {
+    const res = await getPlanVersions({
+      page: 1,
+      pageSize: 100,
+      status: 'PUBLISHED',
+      synthetic: true
+    })
+    if (res.code !== 0) return
+    planVersionOptions.value = res.data.list || []
+    if (!planVersionOptions.value.length) {
+      ElMessage.warning('当前没有可用的合成计划模板版本')
+      return
+    }
+    planStartForm.planTemplateVersionId = planVersionOptions.value[0].id
+    planStartForm.anchorAt = undefined
+    resetPlanPreview()
+    planStartVisible.value = true
+  }
+  const previewPlan = async () => {
+    if (!planStartForm.planTemplateVersionId || !planStartForm.anchorAt) {
+      ElMessage.warning('请选择计划模板版本和明确的合成 anchorAt')
+      return
+    }
+    planActionLoading.value = true
+    try {
+      const res = await previewCarePlan(detail.value.id, {
+        planTemplateVersionId: planStartForm.planTemplateVersionId,
+        anchorAt: new Date(planStartForm.anchorAt).toISOString()
+      }, planPreviewKey.value)
+      if (res.code === 0) {
+        planPreview.value = res.data
+      }
+    } finally {
+      planActionLoading.value = false
+    }
+  }
+  const confirmStartPlan = async () => {
+    if (!planPreview.value) return
+    planActionLoading.value = true
+    try {
+      const res = await startCarePlan(detail.value.id, {
+        expectedClientVersion: detail.value.version,
+        previewId: planPreview.value.previewId
+      }, planStartKey.value)
+      if (res.code === 0) {
+        ElMessage.success('合成 D1–D5 计划已启动')
+        planStartVisible.value = false
+        await loadDetail(detail.value.id)
+        await loadPlans(detail.value.id)
+        await loadTable()
+      }
+    } finally {
+      planActionLoading.value = false
+    }
+  }
+  const changePlanState = async (plan, action) => {
+    if (planStateActionId.value) return
+    planStateActionId.value = plan.id
+    const verb = action === 'pause' ? '暂停' : '恢复'
+    const commandKey = crypto.randomUUID()
+    try {
+      const { value } = await ElMessageBox.prompt(
+        `请输入${verb}原因。KEEP_WINDOWS 不会平移 D1–D5 原时间窗。`,
+        `${verb}合成计划`,
+        {
+          confirmButtonText: `确认${verb}`,
+          cancelButtonText: '取消',
+          inputType: 'textarea',
+          inputValidator: (input) => {
+            if (!input?.trim()) return '原因必填'
+            return input.length <= 1000 || '原因不能超过 1000 字符'
+          }
+        }
+      )
+      const request = {
+        expectedVersion: plan.version,
+        reason: value.trim()
+      }
+      const res = action === 'pause'
+        ? await pauseCarePlan(plan.id, request, commandKey)
+        : await resumeCarePlan(plan.id, request, commandKey)
+      if (res.code === 0) {
+        ElMessage.success(`计划已${verb}`)
+        await loadPlans(detail.value.id)
+      }
+    } catch (error) {
+      const actionName = typeof error === 'string' ? error : error?.message
+      if (!['cancel', 'close'].includes(actionName)) {
+        ElMessage.error(`计划${verb}失败，请重试`)
+      }
+    } finally {
+      planStateActionId.value = 0
+    }
+  }
   const roleLabel = (value) => value === 'CARE_STEWARD' ? '健康管家' : '一线医护'
   const assignmentStatusLabel = (value) => ({ ACTIVE: '生效中', SCHEDULED: '待生效', ENDED: '已结束', CANCELLED: '已取消' }[value] || value)
+  const planStatusLabel = (value) => ({ ACTIVE: '进行中', PAUSED: '已暂停', COMPLETED: '已完成', TERMINATED: '已终止' }[value] || value)
+  const taskStatusLabel = (value) => ({ SCHEDULED: '待开放', OPEN: '已开放', IN_PROGRESS: '进行中', SUBMITTED: '已提交', CANCELLED: '已取消', NOT_OPEN: '未开放', WITHIN_WINDOW: '窗口内', OVERDUE: '已逾期', EXPIRED: '已过期', NOT_READY: '尚不可复核', NOT_REQUIRED: '无需复核', PENDING: '待复核', REVIEWING: '复核中', REVIEWED: '已复核', RETURNED: '已退回' }[value] || value)
+  const taskExecutionTagType = (value) => ({ OPEN: 'success', SUBMITTED: 'primary', CANCELLED: 'info' }[value] || 'info')
+  const taskTimingTagType = (value) => ({ WITHIN_WINDOW: 'success', OVERDUE: 'warning', EXPIRED: 'danger' }[value] || 'info')
   const formatDateTime = (value) => value ? new Date(value).toLocaleString('zh-CN', { hour12: false }) : '-'
   const teamName = (id) => options.value.orgUnits.find((item) => item.departmentId === id)?.name || id
 

@@ -39,6 +39,8 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
 
   /care/client/tasks:
     get:
@@ -53,11 +55,15 @@ paths:
         - $ref: '#/components/parameters/PageSize'
       responses:
         '200':
-          $ref: '#/components/responses/TaskListResponse'
+          $ref: '#/components/responses/ClientTaskListResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalError'
 
   /care/client/tasks/{taskId}:
     get:
@@ -70,11 +76,15 @@ paths:
         - $ref: '#/components/parameters/TaskId'
       responses:
         '200':
-          $ref: '#/components/responses/TaskDetailResponse'
+          $ref: '#/components/responses/ClientTaskDetailResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalError'
 
   /care/client/tasks/{taskId}/questionnaire:
     get:
@@ -87,11 +97,15 @@ paths:
         - $ref: '#/components/parameters/TaskId'
       responses:
         '200':
-          $ref: '#/components/responses/QuestionnaireResponse'
+          $ref: '#/components/responses/ClientQuestionnaireResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalError'
 
   /care/client/tasks/{taskId}/interactions:
     post:
@@ -112,13 +126,15 @@ paths:
               $ref: '#/components/schemas/RecordTaskInteractionRequest'
       responses:
         '200':
-          $ref: '#/components/responses/ActionResponse'
+          $ref: '#/components/responses/ClientInteractionResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalError'
 
   /care/client/tasks/{taskId}/draft:
     put:
@@ -138,13 +154,15 @@ paths:
               $ref: '#/components/schemas/SaveDraftRequest'
       responses:
         '200':
-          $ref: '#/components/responses/DraftResponse'
+          $ref: '#/components/responses/ClientDraftResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalError'
 
   /care/client/tasks/{taskId}/submit:
     post:
@@ -165,13 +183,15 @@ paths:
               $ref: '#/components/schemas/SubmitTaskRequest'
       responses:
         '200':
-          $ref: '#/components/responses/SubmitTaskResponse'
+          $ref: '#/components/responses/ClientSubmitTaskResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalError'
 
   /care/workbench:
     get:
@@ -385,6 +405,21 @@ paths:
           $ref: '#/components/responses/Forbidden'
 
   /care/clients/{id}/plan-instances:
+    get:
+      tags: [CareClients]
+      operationId: listCareClientPlans
+      summary: 查询责任范围内康养用户的计划与 D1-D5 时间线
+      security:
+        - EmployeeToken: []
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+      responses:
+        '200':
+          $ref: '#/components/responses/PlanInstanceListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
     post:
       tags: [CareClients]
       operationId: startCarePlan
@@ -428,7 +463,7 @@ paths:
               $ref: '#/components/schemas/PlanStateActionRequest'
       responses:
         '200':
-          $ref: '#/components/responses/ActionResponse'
+          $ref: '#/components/responses/PlanActionResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -454,7 +489,7 @@ paths:
               $ref: '#/components/schemas/PlanStateActionRequest'
       responses:
         '200':
-          $ref: '#/components/responses/ActionResponse'
+          $ref: '#/components/responses/PlanActionResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -476,10 +511,27 @@ paths:
           in: query
           schema:
             $ref: '#/components/schemas/TaskExecutionStatus'
-        - name: attentionOnly
+        - name: timingStatus
           in: query
           schema:
-            type: boolean
+            $ref: '#/components/schemas/TaskTimingStatus'
+        - name: careClientId
+          in: query
+          schema:
+            type: integer
+            format: uint64
+            minimum: 1
+        - name: planInstanceId
+          in: query
+          schema:
+            type: integer
+            format: uint64
+            minimum: 1
+        - name: dayCode
+          in: query
+          schema:
+            type: string
+            pattern: '^D[1-5]$'
       responses:
         '200':
           $ref: '#/components/responses/TaskListResponse'
@@ -708,6 +760,32 @@ paths:
         '403':
           $ref: '#/components/responses/Forbidden'
 
+  /care/attention-cases/{id}/reopen:
+    post:
+      tags: [AttentionCases]
+      operationId: reopenAttentionCase
+      summary: 由授权主管重开已关闭事项并保留历史
+      security:
+        - EmployeeToken: []
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReopenCaseRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/ActionResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
   /care/deliveries:
     get:
       tags: [Deliveries]
@@ -913,6 +991,36 @@ paths:
         '403':
           $ref: '#/components/responses/Forbidden'
 
+  /care/plan-versions:
+    get:
+      tags: [ContentRead]
+      operationId: listPlanVersions
+      summary: 分页查询计划模板版本
+      security:
+        - EmployeeToken: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - name: keyword
+          in: query
+          schema: {type: string}
+        - name: status
+          in: query
+          schema: {$ref: '#/components/schemas/ContentLifecycleStatus'}
+        - name: usageScope
+          in: query
+          schema: {type: string, enum: [TEST_ONLY, FORMAL]}
+        - name: synthetic
+          in: query
+          schema: {type: boolean}
+      responses:
+        '200':
+          $ref: '#/components/responses/PlanVersionListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
   /care/plan-versions/{id}:
     get:
       tags: [ContentRead]
@@ -940,7 +1048,7 @@ components:
     ClientSession:
       type: apiKey
       in: cookie
-      name: care_client_session
+      name: gva_client_session
       description: 一次性 grant 兑换的 HttpOnly 受限会话。
 
   parameters:
@@ -983,7 +1091,7 @@ components:
       schema:
         type: string
         minLength: 16
-        maxLength: 80
+        maxLength: 128
 
   responses:
     BadRequest:
@@ -1004,13 +1112,19 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/ErrorEnvelope'
+    InternalError:
+      description: 未预期的基础设施异常
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
     RedeemAccessResponse:
       description: 兑换结果；成功时通过 Set-Cookie 写入受限会话
       headers:
         Set-Cookie:
           schema:
             type: string
-          description: care_client_session；生产必须 HttpOnly、Secure、SameSite=Lax。
+          description: gva_client_session；生产必须 HttpOnly、Secure、SameSite=Lax。
       content:
         application/json:
           schema:
@@ -1027,6 +1141,42 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/TaskDetailEnvelope'
+    ClientTaskListResponse:
+      description: 客户端受限任务分页；不包含客户或计划内部标识
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ClientTaskListEnvelope'
+    ClientTaskDetailResponse:
+      description: 客户端受限任务详情
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ClientTaskDetailEnvelope'
+    ClientQuestionnaireResponse:
+      description: 客户端冻结题目和可空草稿；不包含规则、审核或定义哈希
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ClientQuestionnaireEnvelope'
+    ClientInteractionResponse:
+      description: 客户端独立交互事实结果
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ClientInteractionEnvelope'
+    ClientDraftResponse:
+      description: 客户端草稿保存结果
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ClientDraftEnvelope'
+    ClientSubmitTaskResponse:
+      description: 客户端提交结果；不表示已处理
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ClientSubmitTaskEnvelope'
     QuestionnaireResponse:
       description: 问卷冻结版本
       content:
@@ -1123,6 +1273,12 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/PlanVersionEnvelope'
+    PlanVersionListResponse:
+      description: 计划模板版本分页预览
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/PlanVersionListEnvelope'
     PlanPreviewResponse:
       description: 固定模板版本和锚点计算出的计划预览
       content:
@@ -1135,6 +1291,18 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/PlanInstanceEnvelope'
+    PlanInstanceListResponse:
+      description: 康养用户的计划实例与 D1-D5 时间线
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/PlanInstanceListEnvelope'
+    PlanActionResponse:
+      description: 计划暂停或恢复结果
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/PlanActionEnvelope'
     ActionResponse:
       description: 追加动作结果
       content:
@@ -1199,15 +1367,20 @@ components:
       properties:
         reviewType:
           type: string
-          enum: [ENGINEERING_FIXTURE_REVIEW, FORMAL_MEDICAL_REVIEW]
+          enum: [ENGINEERING, FORMAL]
         reviewedBy:
-          type: string
+          oneOf:
+            - type: string
+            - type: integer
+              format: uint64
         reviewedAt:
           type: string
           format: date-time
           nullable: true
         formalMedicalApproval:
           type: boolean
+        note:
+          type: string
 
     RedeemAccessRequest:
       type: object
@@ -1238,23 +1411,17 @@ components:
             data:
               $ref: '#/components/schemas/RedeemAccessData'
 
-    AnswerInput:
+    AnswerMap:
       type: object
-      additionalProperties: false
-      required: [questionCode, value]
-      properties:
-        questionCode:
-          type: string
-          maxLength: 80
-        value:
-          description: 值类型由冻结问卷版本决定。
-          oneOf:
-            - type: string
-            - type: number
-            - type: boolean
-            - type: array
-              items:
-                type: string
+      description: 以冻结问题编码为键；值类型由对应题型决定。
+      additionalProperties:
+        oneOf:
+          - type: string
+          - type: number
+          - type: boolean
+          - type: array
+            items:
+              type: string
     SaveDraftRequest:
       type: object
       additionalProperties: false
@@ -1262,11 +1429,9 @@ components:
       properties:
         expectedVersion:
           type: integer
-          minimum: 1
+          minimum: 0
         answers:
-          type: array
-          items:
-            $ref: '#/components/schemas/AnswerInput'
+          $ref: '#/components/schemas/AnswerMap'
     SubmitTaskRequest:
       type: object
       additionalProperties: false
@@ -1277,19 +1442,13 @@ components:
           minimum: 1
         source:
           type: string
-          enum: [CLIENT_SELF, STAFF_ASSISTED]
-        sourceReason:
-          type: string
-          maxLength: 500
+          enum: [CLIENT_SELF]
         clientOccurredAt:
           type: string
           format: date-time
           description: 可选审计元数据；不能替代服务器提交时间。
         answers:
-          type: array
-          minItems: 1
-          items:
-            $ref: '#/components/schemas/AnswerInput'
+          $ref: '#/components/schemas/AnswerMap'
     RecordTaskInteractionRequest:
       type: object
       additionalProperties: false
@@ -1301,10 +1460,6 @@ components:
         interactionType:
           type: string
           enum: [OPENED, CONSENTED, STARTED]
-        clientOccurredAt:
-          type: string
-          format: date-time
-          description: 可选审计元数据；服务器接收时间仍单独记录。
 
     CreateCareClientRequest:
       type: object
@@ -1581,7 +1736,11 @@ components:
       type: object
       required:
         - id
+        - planInstanceId
         - careClientId
+        - careClientDisplayCode
+        - careClientDisplayName
+        - planStatus
         - title
         - dayCode
         - executionRole
@@ -1595,9 +1754,19 @@ components:
         id:
           type: integer
           format: uint64
+        planInstanceId:
+          type: integer
+          format: uint64
         careClientId:
           type: integer
           format: uint64
+        careClientDisplayCode:
+          type: string
+        careClientDisplayName:
+          type: string
+        planStatus:
+          type: string
+          enum: [ACTIVE, PAUSED, COMPLETED, TERMINATED]
         title:
           type: string
         dayCode:
@@ -1618,6 +1787,10 @@ components:
         dueAt:
           type: string
           format: date-time
+        expiresAt:
+          type: string
+          format: date-time
+          nullable: true
         submittedAt:
           type: string
           format: date-time
@@ -1632,7 +1805,14 @@ components:
       allOf:
         - $ref: '#/components/schemas/TaskSummary'
         - type: object
-          required: [planInstanceId, questionnaireVersionId, timeline]
+          required:
+            - planInstanceId
+            - questionnaireVersionId
+            - ruleVersionIds
+            - lateSubmissionPolicy
+            - notificationPolicy
+            - reviewRole
+            - timeline
           properties:
             planInstanceId:
               type: integer
@@ -1640,6 +1820,7 @@ components:
             questionnaireVersionId:
               type: integer
               format: uint64
+              nullable: true
             ruleVersionIds:
               type: array
               items:
@@ -1648,6 +1829,11 @@ components:
             lateSubmissionPolicy:
               type: string
               enum: [DENY, ALLOW_UNTIL_EXPIRES, REVIEW_REQUIRED]
+            notificationPolicy:
+              type: string
+              enum: [DISABLED]
+            reviewRole:
+              type: string
             timeline:
               type: array
               items:
@@ -2125,23 +2311,78 @@ components:
 
     PlanTaskDefinition:
       type: object
-      required: [dayCode, executionRole, openOffset, dueOffset]
+      required:
+        - id
+        - dayCode
+        - title
+        - sort
+        - executionRole
+        - openOffsetSeconds
+        - dueOffsetSeconds
+        - boundRuleVersionIds
+        - reviewRequired
+        - reviewRole
+        - notificationPolicy
       properties:
+        id:
+          type: integer
+          format: uint64
         dayCode:
           type: string
+          pattern: '^D[1-9][0-9]*$'
+        title:
+          type: string
+        sort:
+          type: integer
+          minimum: 1
         executionRole:
           type: string
           enum: [CARE_CLIENT, CARE_STEWARD, CLINICIAN]
-        openOffset:
-          type: string
-          description: ISO 8601 duration
-        dueOffset:
-          type: string
-          description: ISO 8601 duration
+        openOffsetSeconds:
+          type: integer
+          format: int64
+          minimum: 0
+        dueOffsetSeconds:
+          type: integer
+          format: int64
+          minimum: 1
+        expiresOffsetSeconds:
+          type: integer
+          format: int64
+          nullable: true
         questionnaireVersionId:
           type: integer
           format: uint64
           nullable: true
+        boundRuleVersionIds:
+          type: array
+          items:
+            type: integer
+            format: uint64
+        reviewRequired:
+          type: boolean
+        reviewRole:
+          type: string
+          enum: ['', CLINICIAN, SUPERVISOR]
+        notificationPolicy:
+          type: string
+          enum: [DISABLED]
+    PlanPreviewTask:
+      allOf:
+        - $ref: '#/components/schemas/PlanTaskDefinition'
+        - type: object
+          required: [openAt, dueAt, expiresAt]
+          properties:
+            openAt:
+              type: string
+              format: date-time
+            dueAt:
+              type: string
+              format: date-time
+            expiresAt:
+              type: string
+              format: date-time
+              nullable: true
     PreviewPlanRequest:
       type: object
       additionalProperties: false
@@ -2177,7 +2418,7 @@ components:
         tasks:
           type: array
           items:
-            $ref: '#/components/schemas/PlanTaskDefinition'
+            $ref: '#/components/schemas/PlanPreviewTask'
     StartPlanRequest:
       type: object
       additionalProperties: false
@@ -2230,16 +2471,51 @@ components:
           type: string
           minLength: 1
           maxLength: 1000
-    PlanVersion:
+    PlanActionData:
       type: object
-      required: [id, code, version, lifecycleStatus, usageScope, synthetic, productionEnabled, reviewRecord, tasks]
+      required: [planInstanceId, enrollmentId, status, version]
       properties:
-        id:
+        planInstanceId:
           type: integer
           format: uint64
+        enrollmentId:
+          type: integer
+          format: uint64
+        status:
+          type: string
+          enum: [ACTIVE, PAUSED]
+        version:
+          type: integer
+          minimum: 1
+    PlanVersionSummary:
+      type: object
+      required:
+        - id
+        - pathCode
+        - code
+        - version
+        - title
+        - purpose
+        - lifecycleStatus
+        - usageScope
+        - synthetic
+        - productionEnabled
+        - reviewRecord
+        - anchorDefinition
+        - lateSubmissionPolicy
+        - pauseStrategy
+        - taskCount
+        - definitionHash
+      properties:
+        id: {type: integer, format: uint64}
+        pathCode: {type: string}
         code:
           type: string
         version:
+          type: string
+        title:
+          type: string
+        purpose:
           type: string
         lifecycleStatus:
           $ref: '#/components/schemas/ContentLifecycleStatus'
@@ -2252,10 +2528,77 @@ components:
           type: boolean
         reviewRecord:
           $ref: '#/components/schemas/ContentReviewRecord'
+        anchorDefinition:
+          type: string
+          enum: [FIRST_VALID_SYNTHETIC_DEVICE_USE_AT]
+        lateSubmissionPolicy:
+          type: string
+          enum: [DENY, ALLOW_UNTIL_EXPIRES, REVIEW_REQUIRED]
+        pauseStrategy:
+          type: string
+          enum: [KEEP_WINDOWS]
+        taskCount:
+          type: integer
+          format: int64
+          minimum: 0
+        publishedAt:
+          type: string
+          format: date-time
+          nullable: true
+        definitionHash:
+          type: string
+          pattern: '^[a-f0-9]{64}$'
+    PlanVersion:
+      allOf:
+        - $ref: '#/components/schemas/PlanVersionSummary'
+        - type: object
+          required: [pathDefinitionVersionId, definitionSchemaVersion, tasks]
+          properties:
+            pathDefinitionVersionId:
+              type: integer
+              format: uint64
+            definitionSchemaVersion:
+              type: string
+            tasks:
+              type: array
+              items:
+                $ref: '#/components/schemas/PlanTaskDefinition'
+
+    PlanInstanceSummary:
+      type: object
+      required:
+        - id
+        - enrollmentId
+        - careClientId
+        - planTemplateVersionId
+        - templateTitle
+        - pathCode
+        - anchorAt
+        - status
+        - pauseStrategy
+        - version
+        - synthetic
+        - tasks
+        - timeline
+      properties:
+        id: {type: integer, format: uint64}
+        enrollmentId: {type: integer, format: uint64}
+        careClientId: {type: integer, format: uint64}
+        planTemplateVersionId: {type: integer, format: uint64}
+        templateTitle: {type: string}
+        pathCode: {type: string}
+        anchorAt: {type: string, format: date-time}
+        status: {type: string, enum: [ACTIVE, PAUSED, COMPLETED, TERMINATED]}
+        pauseStrategy: {type: string, enum: [KEEP_WINDOWS]}
+        pausedAt: {type: string, format: date-time, nullable: true}
+        version: {type: integer, minimum: 1}
+        synthetic: {type: boolean}
         tasks:
           type: array
-          items:
-            $ref: '#/components/schemas/PlanTaskDefinition'
+          items: {$ref: '#/components/schemas/TaskSummary'}
+        timeline:
+          type: array
+          items: {$ref: '#/components/schemas/TimelineEvent'}
 
     ContactRecordRequest:
       type: object
@@ -2314,11 +2657,15 @@ components:
     HandlingRecordRequest:
       type: object
       additionalProperties: false
-      required: [expectedVersion, result]
+      required: [expectedVersion, actionType, result]
       properties:
         expectedVersion:
           type: integer
           minimum: 1
+        actionType:
+          type: string
+          enum: [CONTACT, HANDLING]
+          description: 管家只允许 CONTACT；一线医护只允许 HANDLING。
         result:
           type: string
           maxLength: 4000
@@ -2355,6 +2702,18 @@ components:
           type: integer
           minimum: 1
         closeReason:
+          type: string
+          minLength: 1
+          maxLength: 2000
+    ReopenCaseRequest:
+      type: object
+      additionalProperties: false
+      required: [expectedVersion, reason]
+      properties:
+        expectedVersion:
+          type: integer
+          minimum: 1
+        reason:
           type: string
           minLength: 1
           maxLength: 2000
@@ -2425,6 +2784,132 @@ components:
           type: string
           format: date-time
 
+    ClientTaskSummary:
+      type: object
+      additionalProperties: false
+      required: [id, dayCode, title, executionStatus, timingStatus, reviewStatus, openAt, dueAt, version, accessible, hasQuestionnaire]
+      properties:
+        id: {type: integer, format: uint64}
+        dayCode: {type: string, pattern: '^D[1-9][0-9]*$'}
+        title: {type: string}
+        executionStatus: {$ref: '#/components/schemas/TaskExecutionStatus'}
+        timingStatus: {$ref: '#/components/schemas/TaskTimingStatus'}
+        reviewStatus: {$ref: '#/components/schemas/TaskReviewStatus'}
+        openAt: {type: string, format: date-time}
+        dueAt: {type: string, format: date-time}
+        expiresAt: {type: string, format: date-time, nullable: true}
+        submittedAt: {type: string, format: date-time, nullable: true}
+        version: {type: integer, minimum: 1}
+        accessible: {type: boolean}
+        hasQuestionnaire: {type: boolean}
+    ClientTaskDetail:
+      allOf:
+        - $ref: '#/components/schemas/ClientTaskSummary'
+        - type: object
+          required: [opened, consented, started, canSaveDraft, canSubmit]
+          properties:
+            opened: {type: boolean}
+            consented: {type: boolean}
+            started: {type: boolean}
+            canSaveDraft: {type: boolean}
+            canSubmit: {type: boolean}
+    ClientQuestionOption:
+      type: object
+      additionalProperties: false
+      required: [code, label, order]
+      properties:
+        code: {type: string}
+        label: {type: string}
+        order: {type: integer, minimum: 1}
+    ClientQuestion:
+      type: object
+      additionalProperties: false
+      required: [code, type, title, required, order, validation, options]
+      properties:
+        code: {type: string}
+        type:
+          type: string
+          enum: [SINGLE_CHOICE, MULTIPLE_CHOICE, TEXT, NUMBER, DATE, BOOLEAN]
+        title: {type: string}
+        required: {type: boolean}
+        order: {type: integer, minimum: 1}
+        validation:
+          type: object
+          additionalProperties: true
+        options:
+          type: array
+          items: {$ref: '#/components/schemas/ClientQuestionOption'}
+    ClientDraftState:
+      type: object
+      additionalProperties: false
+      required: [version, answers, savedAt]
+      properties:
+        version: {type: integer, minimum: 1}
+        answers: {$ref: '#/components/schemas/AnswerMap'}
+        savedAt: {type: string, format: date-time}
+    ClientQuestionnaire:
+      type: object
+      additionalProperties: false
+      required: [id, title, purpose, expectedMinutes, taskVersion, questions, draft]
+      properties:
+        id: {type: integer, format: uint64}
+        title: {type: string}
+        purpose: {type: string}
+        expectedMinutes: {type: integer, minimum: 0}
+        taskVersion: {type: integer, minimum: 1}
+        questions:
+          type: array
+          items: {$ref: '#/components/schemas/ClientQuestion'}
+        draft:
+          type: object
+          nullable: true
+          allOf:
+            - $ref: '#/components/schemas/ClientDraftState'
+    ClientInteractionData:
+      type: object
+      additionalProperties: false
+      required: [taskId, interactionType, executionStatus, taskVersion]
+      properties:
+        taskId: {type: integer, format: uint64}
+        interactionType: {type: string, enum: [OPENED, CONSENTED, STARTED]}
+        executionStatus: {$ref: '#/components/schemas/TaskExecutionStatus'}
+        taskVersion: {type: integer, minimum: 1}
+    ClientDraftData:
+      type: object
+      additionalProperties: false
+      required: [taskId, version, savedAt]
+      properties:
+        taskId: {type: integer, format: uint64}
+        version: {type: integer, minimum: 1}
+        savedAt: {type: string, format: date-time}
+    ClientSubmitTaskData:
+      type: object
+      additionalProperties: false
+      required: [taskId, submissionId, executionStatus, reviewStatus, taskVersion, ruleHitIds, attentionCaseIds]
+      properties:
+        taskId: {type: integer, format: uint64}
+        submissionId: {type: integer, format: uint64}
+        executionStatus: {type: string, enum: [SUBMITTED]}
+        reviewStatus: {$ref: '#/components/schemas/TaskReviewStatus'}
+        taskVersion: {type: integer, minimum: 1}
+        ruleHitIds:
+          type: array
+          items: {type: integer, format: uint64}
+        attentionCaseIds:
+          type: array
+          items: {type: integer, format: uint64}
+    ClientTaskPageData:
+      type: object
+      additionalProperties: false
+      required: [page, pageSize, total, list]
+      properties:
+        page: {type: integer, minimum: 1}
+        pageSize: {type: integer, minimum: 1, maximum: 100}
+        total: {type: integer, format: int64, minimum: 0}
+        list:
+          type: array
+          items: {$ref: '#/components/schemas/ClientTaskSummary'}
+
     TaskPageData:
       type: object
       required: [page, pageSize, total, list]
@@ -2458,6 +2943,17 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/QuestionnaireVersionSummary'
+    PlanVersionPageData:
+      type: object
+      required: [page, pageSize, total, list]
+      properties:
+        page: {type: integer, minimum: 1}
+        pageSize: {type: integer, minimum: 1, maximum: 100}
+        total: {type: integer, format: int64, minimum: 0}
+        list:
+          type: array
+          items:
+            $ref: '#/components/schemas/PlanVersionSummary'
     AttentionCasePageData:
       type: object
       required: [page, pageSize, total, list]
@@ -2510,6 +3006,48 @@ components:
           required: [data]
           properties:
             data: {$ref: '#/components/schemas/TaskPageData'}
+    ClientTaskListEnvelope:
+      allOf:
+        - $ref: '#/components/schemas/SuccessFields'
+        - type: object
+          required: [data]
+          properties:
+            data: {$ref: '#/components/schemas/ClientTaskPageData'}
+    ClientTaskDetailEnvelope:
+      allOf:
+        - $ref: '#/components/schemas/SuccessFields'
+        - type: object
+          required: [data]
+          properties:
+            data: {$ref: '#/components/schemas/ClientTaskDetail'}
+    ClientQuestionnaireEnvelope:
+      allOf:
+        - $ref: '#/components/schemas/SuccessFields'
+        - type: object
+          required: [data]
+          properties:
+            data: {$ref: '#/components/schemas/ClientQuestionnaire'}
+    ClientInteractionEnvelope:
+      allOf:
+        - $ref: '#/components/schemas/SuccessFields'
+        - type: object
+          required: [data]
+          properties:
+            data: {$ref: '#/components/schemas/ClientInteractionData'}
+    ClientDraftEnvelope:
+      allOf:
+        - $ref: '#/components/schemas/SuccessFields'
+        - type: object
+          required: [data]
+          properties:
+            data: {$ref: '#/components/schemas/ClientDraftData'}
+    ClientSubmitTaskEnvelope:
+      allOf:
+        - $ref: '#/components/schemas/SuccessFields'
+        - type: object
+          required: [data]
+          properties:
+            data: {$ref: '#/components/schemas/ClientSubmitTaskData'}
     TaskDetailEnvelope:
       allOf:
         - $ref: '#/components/schemas/SuccessFields'
@@ -2629,6 +3167,13 @@ components:
           required: [data]
           properties:
             data: {$ref: '#/components/schemas/PlanVersion'}
+    PlanVersionListEnvelope:
+      allOf:
+        - $ref: '#/components/schemas/SuccessFields'
+        - type: object
+          required: [data]
+          properties:
+            data: {$ref: '#/components/schemas/PlanVersionPageData'}
     PlanPreviewEnvelope:
       allOf:
         - $ref: '#/components/schemas/SuccessFields'
@@ -2643,6 +3188,22 @@ components:
           required: [data]
           properties:
             data: {$ref: '#/components/schemas/PlanInstanceData'}
+    PlanInstanceListEnvelope:
+      allOf:
+        - $ref: '#/components/schemas/SuccessFields'
+        - type: object
+          required: [data]
+          properties:
+            data:
+              type: array
+              items: {$ref: '#/components/schemas/PlanInstanceSummary'}
+    PlanActionEnvelope:
+      allOf:
+        - $ref: '#/components/schemas/SuccessFields'
+        - type: object
+          required: [data]
+          properties:
+            data: {$ref: '#/components/schemas/PlanActionData'}
     ActionEnvelope:
       allOf:
         - $ref: '#/components/schemas/SuccessFields'

@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/flipped-aurora/gin-vue-admin/server/global"
+	platformoutbox "github.com/flipped-aurora/gin-vue-admin/server/internal/platform/outbox"
 	"gorm.io/datatypes"
 )
 
@@ -109,6 +110,26 @@ type QuestionnaireSubmission struct {
 
 func (QuestionnaireSubmission) TableName() string { return "questionnaire_submissions" }
 
+// QuestionnaireTaskDraft is the mutable resume point for one task. Final
+// submissions remain append-only and are never overwritten by this record.
+type QuestionnaireTaskDraft struct {
+	global.GVA_MODEL
+	TaskID                 uint64         `json:"taskId" gorm:"uniqueIndex;not null"`
+	CareClientID           uint           `json:"careClientId" gorm:"index;not null"`
+	QuestionnaireVersionID uint           `json:"questionnaireVersionId" gorm:"index;not null"`
+	AnswersJSON            datatypes.JSON `json:"answers" gorm:"type:json;not null" swaggertype:"object"`
+	Version                uint           `json:"version" gorm:"not null;default:1"`
+	SavedAt                time.Time      `json:"savedAt" gorm:"index;not null"`
+	ConsumedAt             *time.Time     `json:"consumedAt"`
+	Synthetic              bool           `json:"synthetic" gorm:"index;not null;default:false"`
+	DeptId                 uint           `json:"deptId" gorm:"column:dept_id;index;not null"`
+	CreatedBy              uint           `json:"createdBy" gorm:"column:created_by;index"`
+	UpdatedBy              uint           `json:"updatedBy" gorm:"column:updated_by"`
+	DeletedBy              uint           `json:"-" gorm:"column:deleted_by"`
+}
+
+func (QuestionnaireTaskDraft) TableName() string { return "questionnaire_task_drafts" }
+
 type QuestionnaireAnswerRevision struct {
 	global.GVA_MODEL
 	SubmissionID uint           `json:"submissionId" gorm:"uniqueIndex:idx_answer_revision,priority:1;index;not null"`
@@ -156,20 +177,6 @@ type QuestionnaireCommandReceipt struct {
 
 func (QuestionnaireCommandReceipt) TableName() string { return "questionnaire_command_receipts" }
 
-type OutboxEvent struct {
-	global.GVA_MODEL
-	EventID        string         `json:"eventId" gorm:"type:char(36);uniqueIndex;not null"`
-	EventType      string         `json:"eventType" gorm:"type:varchar(64);index;not null"`
-	PayloadVersion string         `json:"payloadVersion" gorm:"type:varchar(16);not null"`
-	AggregateType  string         `json:"aggregateType" gorm:"type:varchar(64);index;not null"`
-	AggregateID    string         `json:"aggregateId" gorm:"type:varchar(64);index;not null"`
-	PayloadJSON    datatypes.JSON `json:"payload" gorm:"type:json;not null" swaggertype:"object"`
-	OccurredAt     time.Time      `json:"occurredAt" gorm:"index;not null"`
-	CorrelationID  string         `json:"correlationId" gorm:"type:varchar(64);index"`
-	CausationID    string         `json:"causationId" gorm:"type:varchar(64);index"`
-	Synthetic      bool           `json:"synthetic" gorm:"index;not null;default:false"`
-	DeptId         uint           `json:"deptId" gorm:"column:dept_id;index;not null"`
-	CreatedBy      uint           `json:"createdBy" gorm:"column:created_by;index"`
-}
-
-func (OutboxEvent) TableName() string { return "outbox_events" }
+// OutboxEvent remains an alias for source compatibility. New modules use the
+// shared transactional outbox package directly.
+type OutboxEvent = platformoutbox.Event

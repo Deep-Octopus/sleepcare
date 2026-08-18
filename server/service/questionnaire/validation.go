@@ -41,6 +41,14 @@ func canonicalAnswers(answers map[string]any) (map[string]any, []byte, error) {
 }
 
 func validateAnswers(questions []qmodel.QuestionnaireQuestion, options []qmodel.QuestionnaireOption, answers map[string]any) error {
+	return validateAnswersWithRequired(questions, options, answers, true)
+}
+
+func validatePartialAnswers(questions []qmodel.QuestionnaireQuestion, options []qmodel.QuestionnaireOption, answers map[string]any) error {
+	return validateAnswersWithRequired(questions, options, answers, false)
+}
+
+func validateAnswersWithRequired(questions []qmodel.QuestionnaireQuestion, options []qmodel.QuestionnaireOption, answers map[string]any, requireComplete bool) error {
 	byCode := make(map[string]qmodel.QuestionnaireQuestion, len(questions))
 	optionsByQuestion := make(map[uint]map[string]struct{})
 	for _, question := range questions {
@@ -63,7 +71,7 @@ func validateAnswers(questions []qmodel.QuestionnaireQuestion, options []qmodel.
 	for _, question := range questions {
 		value, exists := answers[question.Code]
 		if !exists || isEmptyAnswer(value) {
-			if question.Required {
+			if requireComplete && question.Required {
 				return qmodel.NewDomainError(qmodel.CodeSubmissionInvalid, fmt.Sprintf("问题 %s 必答", question.Code))
 			}
 			continue

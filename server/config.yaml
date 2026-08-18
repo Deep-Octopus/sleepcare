@@ -279,3 +279,9 @@ mcp:
 care:
     synthetic-fixtures-enabled: false
     fixture-password: ""
+    client-access:
+        session-ttl-minutes: 480
+        cookie-name: gva_client_session
+        cookie-path: /api/care/client
+        cookie-secure: true
+        allowed-origins: []

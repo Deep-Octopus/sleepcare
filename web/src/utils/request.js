@@ -10,6 +10,18 @@ const DEFAULT_LOADING_FORCE_CLOSE_DELAY = 30000
 
 const service = axios.create()
 
+const clearClientLocalState = () => {
+  if (typeof window === 'undefined') {
+    return
+  }
+  const prefixes = ['gva-client-task-draft:', 'gva-client-task-submit-key:']
+  Object.keys(localStorage).forEach((key) => {
+    if (prefixes.some((prefix) => key.startsWith(prefix))) {
+      localStorage.removeItem(key)
+    }
+  })
+}
+
 let activeAxios = 0
 let persistentLoadingCount = 0
 let timer = null
@@ -129,12 +141,21 @@ service.interceptors.request.use(
 
     config.baseURL = config.baseURL || import.meta.env.VITE_BASE_API
 
-    const userStore = useUserStore()
-    config.headers = {
-      'Content-Type': 'application/json',
-      'x-token': userStore.token,
-      'x-user-id': userStore.userInfo.ID,
-      ...config.headers
+    const isClientRequest = config.authContext === 'client'
+    if (isClientRequest) {
+      config.withCredentials = true
+      config.headers = {
+        'Content-Type': 'application/json',
+        ...config.headers
+      }
+    } else {
+      const userStore = useUserStore()
+      config.headers = {
+        'Content-Type': 'application/json',
+        'x-token': userStore.token,
+        'x-user-id': userStore.userInfo.ID,
+        ...config.headers
+      }
     }
 
     return config
@@ -195,7 +216,7 @@ service.interceptors.response.use(
       closeLoading(response.config.loadingOption)
     }
 
-    if (response.headers['new-token']) {
+    if (response.config.authContext !== 'client' && response.headers['new-token']) {
       userStore.setToken(response.headers['new-token'])
     }
 
@@ -210,7 +231,9 @@ service.interceptors.response.use(
       return response.data
     }
 
-    showErrorMessage(response.data.msg || decodeURI(response.headers.msg))
+    if (!response.config.silentError) {
+      showErrorMessage(response.data.msg || decodeURI(response.headers.msg))
+    }
 
     return response.data.msg ? response.data : response
   },
@@ -221,14 +244,21 @@ service.interceptors.response.use(
 
     if (!error.response) {
       resetLoading()
-      emitter.emit('show-error', {
-        code: 'network',
-        message: getErrorMessage(error)
-      })
+      if (!error.config?.silentError) {
+        emitter.emit('show-error', {
+          code: 'network',
+          message: getErrorMessage(error)
+        })
+      }
       return Promise.reject(error)
     }
 
     if (error.response.status === 401) {
+      if (error.config?.authContext === 'client') {
+        clearClientLocalState()
+        router.push({ name: 'ClientAccess', query: { state: 'session' }, replace: true })
+        return Promise.reject(error)
+      }
       emitter.emit('show-error', {
         code: '401',
         message: getErrorMessage(error),
@@ -246,10 +276,12 @@ service.interceptors.response.use(
       return Promise.reject(error)
     }
 
-    emitter.emit('show-error', {
-      code: error.response.status,
-      message: getErrorMessage(error)
-    })
+    if (!error.config?.silentError) {
+      emitter.emit('show-error', {
+        code: error.response.status,
+        message: getErrorMessage(error)
+      })
+    }
     return Promise.reject(error)
   }
 )

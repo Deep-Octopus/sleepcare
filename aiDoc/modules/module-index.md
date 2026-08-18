@@ -22,6 +22,9 @@
 - `backend-layer-rules.md`: 后端分层、模型、Service、API、Router、初始化入口
 - `plugin-development.md`: 前后端插件结构、插件入口与开发流程
 - `questionnaire.md`: 问卷/规则不可变版本、答卷修订、规则命中、outbox、权限和合成夹具边界
+- `carepath.md`: 路径/计划/任务版本、D1–D5 调度、幂等命令、责任权限、共享 outbox 和合成门禁
+- `client-access.md`: 一次性 grant、客户端会话、任务白名单、草稿/提交事务、独立移动路由和安全边界
+- `casework.md`: 规则命中到关注事项、追加行动、统一待办、状态机、责任权限、幂等与受控补偿
 
 ## 命名建议
 

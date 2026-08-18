@@ -29,3 +29,16 @@ func TestTruncate(t *testing.T) {
 		t.Fatal("long should be replaced with mark")
 	}
 }
+
+func TestSanitizeBodyMasksClientGrantAndAnswers(t *testing.T) {
+	body := `{"grant":"one-time-value","answers":{"DEMO_CHOICE":"A"},"nested":{"token":"session-value"}}`
+	masked := SanitizeBody("application/json", body)
+	for _, secret := range []string{"one-time-value", "DEMO_CHOICE", "session-value"} {
+		if strings.Contains(masked, secret) {
+			t.Fatalf("sensitive client value remained in log body: %s", masked)
+		}
+	}
+	if strings.Count(masked, maskValue) != 3 {
+		t.Fatalf("unexpected masked body: %s", masked)
+	}
+}

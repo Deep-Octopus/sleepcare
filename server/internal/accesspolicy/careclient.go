@@ -69,6 +69,29 @@ func (d *CareClientDecision) Scope(db *gorm.DB, now time.Time) *gorm.DB {
 	)`, d.Identity.UserID, assignmentRole, now, now)
 }
 
+// ScopeAttentionCases applies the responsibility relation to the caseWork
+// aggregate. Department ownership remains enforced independently by DataScope.
+func (d *CareClientDecision) ScopeAttentionCases(db *gorm.DB, now time.Time) *gorm.DB {
+	if d == nil || d.Identity == nil {
+		return db.Where("1 = 0")
+	}
+	if d.RoleType == careclient.AuthorityRoleSupervisor {
+		return db
+	}
+	assignmentRole := careclient.AssignmentRoleCareSteward
+	if d.RoleType == careclient.AuthorityRoleClinician {
+		assignmentRole = careclient.AssignmentRoleClinician
+	}
+	return db.Where(`EXISTS (
+		SELECT 1 FROM care_assignments ca
+		WHERE ca.care_client_id = attention_cases.care_client_id
+		  AND ca.assignee_id = ? AND ca.role_type = ?
+		  AND ca.deleted_at IS NULL AND ca.cancelled_at IS NULL
+		  AND ca.valid_from <= ?
+		  AND (ca.valid_until IS NULL OR ca.valid_until > ?)
+	)`, d.Identity.UserID, assignmentRole, now, now)
+}
+
 func (d *CareClientDecision) CanAccessDepartment(departmentID uint) bool {
 	if d == nil || d.Identity == nil || departmentID == 0 {
 		return false
