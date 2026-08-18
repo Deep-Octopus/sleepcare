@@ -2439,12 +2439,180 @@ definitions:
           $ref: '#/definitions/request.CasbinInfo'
         type: array
     type: object
+  response.QuestionnaireOption:
+    properties:
+      code:
+        type: string
+      id:
+        type: integer
+      label:
+        type: string
+      order:
+        type: integer
+    type: object
+  response.QuestionnaireQuestion:
+    properties:
+      code:
+        type: string
+      id:
+        type: integer
+      options:
+        items:
+          $ref: '#/definitions/response.QuestionnaireOption'
+        type: array
+      order:
+        type: integer
+      required:
+        type: boolean
+      title:
+        type: string
+      type:
+        type: string
+      validation:
+        type: object
+      validationSchemaVersion:
+        type: string
+    type: object
+  response.QuestionnaireRuleVersion:
+    properties:
+      attentionLevel:
+        type: string
+      code:
+        type: string
+      condition:
+        type: object
+      conditionSchemaVersion:
+        type: string
+      dedupKeyTemplate:
+        type: string
+      definitionHash:
+        type: string
+      id:
+        type: integer
+      lifecycleStatus:
+        type: string
+      productionEnabled:
+        type: boolean
+      publishedAt:
+        type: string
+      reasonSnapshot:
+        type: string
+      recipients:
+        items:
+          type: string
+        type: array
+      reviewRecord:
+        $ref: '#/definitions/response.ReviewRecord'
+      slaFirstResponseMinutes:
+        type: integer
+      slaResolutionMinutes:
+        type: integer
+      synthetic:
+        type: boolean
+      title:
+        type: string
+      usageScope:
+        type: string
+      version:
+        type: string
+    type: object
+  response.QuestionnaireVersionDetail:
+    properties:
+      code:
+        type: string
+      definitionHash:
+        type: string
+      definitionSchemaVersion:
+        type: string
+      expectedMinutes:
+        type: integer
+      id:
+        type: integer
+      lifecycleStatus:
+        type: string
+      productionEnabled:
+        type: boolean
+      publishedAt:
+        type: string
+      purpose:
+        type: string
+      questionCount:
+        type: integer
+      questions:
+        items:
+          $ref: '#/definitions/response.QuestionnaireQuestion'
+        type: array
+      replacesVersionId:
+        type: integer
+      reviewRecord:
+        $ref: '#/definitions/response.ReviewRecord'
+      ruleCount:
+        type: integer
+      rules:
+        items:
+          $ref: '#/definitions/response.QuestionnaireRuleVersion'
+        type: array
+      synthetic:
+        type: boolean
+      title:
+        type: string
+      usageScope:
+        type: string
+      version:
+        type: string
+    type: object
+  response.QuestionnaireVersionSummary:
+    properties:
+      code:
+        type: string
+      definitionHash:
+        type: string
+      expectedMinutes:
+        type: integer
+      id:
+        type: integer
+      lifecycleStatus:
+        type: string
+      productionEnabled:
+        type: boolean
+      publishedAt:
+        type: string
+      purpose:
+        type: string
+      questionCount:
+        type: integer
+      reviewRecord:
+        $ref: '#/definitions/response.ReviewRecord'
+      ruleCount:
+        type: integer
+      synthetic:
+        type: boolean
+      title:
+        type: string
+      usageScope:
+        type: string
+      version:
+        type: string
+    type: object
   response.Response:
     properties:
       code:
         type: integer
       data: {}
       msg:
+        type: string
+    type: object
+  response.ReviewRecord:
+    properties:
+      formalMedicalApproval:
+        type: boolean
+      note:
+        type: string
+      reviewType:
+        type: string
+      reviewedAt:
+        type: string
+      reviewedBy:
         type: string
     type: object
   response.SysAPIListResponse:
@@ -5338,6 +5506,94 @@ paths:
       summary: 追加合成测试授权或撤回记录
       tags:
       - CareClient
+  /care/questionnaire-versions:
+    get:
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页数量，最大100
+        in: query
+        name: pageSize
+        type: integer
+      - description: 编码、版本或标题
+        in: query
+        name: keyword
+        type: string
+      - description: 生命周期状态
+        in: query
+        name: status
+        type: string
+      - description: 使用范围
+        in: query
+        name: usageScope
+        type: string
+      - description: 是否合成版本
+        in: query
+        name: synthetic
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.PageResult'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/response.QuestionnaireVersionSummary'
+                        type: array
+                    type: object
+                msg:
+                  type: string
+              type: object
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: 分页获取问卷版本预览列表
+      tags:
+      - Questionnaire
+  /care/questionnaire-versions/{id}:
+    get:
+      parameters:
+      - description: 问卷版本ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.QuestionnaireVersionDetail'
+                msg:
+                  type: string
+              type: object
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: 获取问卷、题目和绑定关注规则版本详情
+      tags:
+      - Questionnaire
   /casbin/UpdateCasbin:
     post:
       consumes:

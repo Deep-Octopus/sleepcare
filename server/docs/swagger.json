@@ -3359,6 +3359,158 @@
                 }
             }
         },
+        "/care/questionnaire-versions": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Questionnaire"
+                ],
+                "summary": "分页获取问卷版本预览列表",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页数量，最大100",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "编码、版本或标题",
+                        "name": "keyword",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "生命周期状态",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "使用范围",
+                        "name": "usageScope",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "是否合成版本",
+                        "name": "synthetic",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/response.PageResult"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "list": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/definitions/response.QuestionnaireVersionSummary"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/care/questionnaire-versions/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Questionnaire"
+                ],
+                "summary": "获取问卷、题目和绑定关注规则版本详情",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "问卷版本ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.QuestionnaireVersionDetail"
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/casbin/UpdateCasbin": {
             "post": {
                 "security": [
@@ -17477,6 +17629,241 @@
                 }
             }
         },
+        "response.QuestionnaireOption": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "label": {
+                    "type": "string"
+                },
+                "order": {
+                    "type": "integer"
+                }
+            }
+        },
+        "response.QuestionnaireQuestion": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "options": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.QuestionnaireOption"
+                    }
+                },
+                "order": {
+                    "type": "integer"
+                },
+                "required": {
+                    "type": "boolean"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "validation": {
+                    "type": "object"
+                },
+                "validationSchemaVersion": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.QuestionnaireRuleVersion": {
+            "type": "object",
+            "properties": {
+                "attentionLevel": {
+                    "type": "string"
+                },
+                "code": {
+                    "type": "string"
+                },
+                "condition": {
+                    "type": "object"
+                },
+                "conditionSchemaVersion": {
+                    "type": "string"
+                },
+                "dedupKeyTemplate": {
+                    "type": "string"
+                },
+                "definitionHash": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "lifecycleStatus": {
+                    "type": "string"
+                },
+                "productionEnabled": {
+                    "type": "boolean"
+                },
+                "publishedAt": {
+                    "type": "string"
+                },
+                "reasonSnapshot": {
+                    "type": "string"
+                },
+                "recipients": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "reviewRecord": {
+                    "$ref": "#/definitions/response.ReviewRecord"
+                },
+                "slaFirstResponseMinutes": {
+                    "type": "integer"
+                },
+                "slaResolutionMinutes": {
+                    "type": "integer"
+                },
+                "synthetic": {
+                    "type": "boolean"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "usageScope": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.QuestionnaireVersionDetail": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "definitionHash": {
+                    "type": "string"
+                },
+                "definitionSchemaVersion": {
+                    "type": "string"
+                },
+                "expectedMinutes": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "lifecycleStatus": {
+                    "type": "string"
+                },
+                "productionEnabled": {
+                    "type": "boolean"
+                },
+                "publishedAt": {
+                    "type": "string"
+                },
+                "purpose": {
+                    "type": "string"
+                },
+                "questionCount": {
+                    "type": "integer"
+                },
+                "questions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.QuestionnaireQuestion"
+                    }
+                },
+                "replacesVersionId": {
+                    "type": "integer"
+                },
+                "reviewRecord": {
+                    "$ref": "#/definitions/response.ReviewRecord"
+                },
+                "ruleCount": {
+                    "type": "integer"
+                },
+                "rules": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.QuestionnaireRuleVersion"
+                    }
+                },
+                "synthetic": {
+                    "type": "boolean"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "usageScope": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.QuestionnaireVersionSummary": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "definitionHash": {
+                    "type": "string"
+                },
+                "expectedMinutes": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "lifecycleStatus": {
+                    "type": "string"
+                },
+                "productionEnabled": {
+                    "type": "boolean"
+                },
+                "publishedAt": {
+                    "type": "string"
+                },
+                "purpose": {
+                    "type": "string"
+                },
+                "questionCount": {
+                    "type": "integer"
+                },
+                "reviewRecord": {
+                    "$ref": "#/definitions/response.ReviewRecord"
+                },
+                "ruleCount": {
+                    "type": "integer"
+                },
+                "synthetic": {
+                    "type": "boolean"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "usageScope": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "string"
+                }
+            }
+        },
         "response.Response": {
             "type": "object",
             "properties": {
@@ -17485,6 +17872,26 @@
                 },
                 "data": {},
                 "msg": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.ReviewRecord": {
+            "type": "object",
+            "properties": {
+                "formalMedicalApproval": {
+                    "type": "boolean"
+                },
+                "note": {
+                    "type": "string"
+                },
+                "reviewType": {
+                    "type": "string"
+                },
+                "reviewedAt": {
+                    "type": "string"
+                },
+                "reviewedBy": {
                     "type": "string"
                 }
             }

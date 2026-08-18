@@ -21,6 +21,7 @@
 
 - `backend-layer-rules.md`: 后端分层、模型、Service、API、Router、初始化入口
 - `plugin-development.md`: 前后端插件结构、插件入口与开发流程
+- `questionnaire.md`: 问卷/规则不可变版本、答卷修订、规则命中、outbox、权限和合成夹具边界
 
 ## 命名建议
 

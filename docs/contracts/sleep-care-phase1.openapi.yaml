@@ -866,6 +866,36 @@ paths:
         '403':
           $ref: '#/components/responses/Forbidden'
 
+  /care/questionnaire-versions:
+    get:
+      tags: [ContentRead]
+      operationId: listQuestionnaireVersions
+      summary: 分页只读查询问卷版本
+      security:
+        - EmployeeToken: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - name: keyword
+          in: query
+          schema: {type: string}
+        - name: status
+          in: query
+          schema: {$ref: '#/components/schemas/ContentLifecycleStatus'}
+        - name: usageScope
+          in: query
+          schema: {type: string, enum: [TEST_ONLY, FORMAL]}
+        - name: synthetic
+          in: query
+          schema: {type: boolean}
+      responses:
+        '200':
+          $ref: '#/components/responses/QuestionnaireListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
   /care/questionnaire-versions/{id}:
     get:
       tags: [ContentRead]
@@ -1003,6 +1033,12 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/QuestionnaireEnvelope'
+    QuestionnaireListResponse:
+      description: 问卷版本分页预览
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/QuestionnaireListEnvelope'
     DraftResponse:
       description: 草稿保存结果
       content:
@@ -1169,6 +1205,7 @@ components:
         reviewedAt:
           type: string
           format: date-time
+          nullable: true
         formalMedicalApproval:
           type: boolean
 
@@ -1632,16 +1669,25 @@ components:
 
     QuestionOption:
       type: object
-      required: [code, label]
+      required: [id, code, label, order]
       properties:
+        id:
+          type: integer
+          format: uint64
         code:
           type: string
         label:
           type: string
+        order:
+          type: integer
+          minimum: 1
     Question:
       type: object
-      required: [code, type, title, required, order]
+      required: [id, code, type, title, required, order, validationSchemaVersion, validation, options]
       properties:
+        id:
+          type: integer
+          format: uint64
         code:
           type: string
         type:
@@ -1654,23 +1700,32 @@ components:
         order:
           type: integer
           minimum: 1
+        validationSchemaVersion:
+          type: string
+        validation:
+          type: object
+          additionalProperties: true
         options:
           type: array
           items:
             $ref: '#/components/schemas/QuestionOption'
-    QuestionnaireVersion:
+    QuestionnaireVersionSummary:
       type: object
       required:
         - id
         - code
         - version
         - title
+        - purpose
         - lifecycleStatus
         - usageScope
         - synthetic
         - productionEnabled
         - reviewRecord
-        - questions
+        - expectedMinutes
+        - questionCount
+        - ruleCount
+        - definitionHash
       properties:
         id:
           type: integer
@@ -1680,6 +1735,8 @@ components:
         version:
           type: string
         title:
+          type: string
+        purpose:
           type: string
         lifecycleStatus:
           $ref: '#/components/schemas/ContentLifecycleStatus'
@@ -1695,10 +1752,86 @@ components:
         expectedMinutes:
           type: integer
           minimum: 1
-        questions:
+        questionCount:
+          type: integer
+          format: int64
+          minimum: 0
+        ruleCount:
+          type: integer
+          format: int64
+          minimum: 0
+        publishedAt:
+          type: string
+          format: date-time
+          nullable: true
+        definitionHash:
+          type: string
+          pattern: '^[a-f0-9]{64}$'
+    QuestionnaireRuleVersion:
+      type: object
+      required:
+        - id
+        - code
+        - version
+        - title
+        - lifecycleStatus
+        - usageScope
+        - synthetic
+        - productionEnabled
+        - reviewRecord
+        - conditionSchemaVersion
+        - condition
+        - attentionLevel
+        - reasonSnapshot
+        - recipients
+        - dedupKeyTemplate
+        - definitionHash
+      properties:
+        id: {type: integer, format: uint64}
+        code: {type: string}
+        version: {type: string}
+        title: {type: string}
+        lifecycleStatus: {$ref: '#/components/schemas/ContentLifecycleStatus'}
+        usageScope: {type: string, enum: [TEST_ONLY, FORMAL]}
+        synthetic: {type: boolean}
+        productionEnabled: {type: boolean}
+        reviewRecord: {$ref: '#/components/schemas/ContentReviewRecord'}
+        conditionSchemaVersion: {type: string}
+        condition:
+          type: object
+          additionalProperties: true
+        attentionLevel: {type: string}
+        reasonSnapshot:
+          type: string
+          description: 关注原因快照，不得写诊断结论。
+        recipients:
           type: array
-          items:
-            $ref: '#/components/schemas/Question'
+          items: {type: string}
+        slaFirstResponseMinutes: {type: integer, minimum: 1, nullable: true}
+        slaResolutionMinutes: {type: integer, minimum: 1, nullable: true}
+        dedupKeyTemplate: {type: string}
+        publishedAt: {type: string, format: date-time, nullable: true}
+        definitionHash: {type: string, pattern: '^[a-f0-9]{64}$'}
+    QuestionnaireVersion:
+      allOf:
+        - $ref: '#/components/schemas/QuestionnaireVersionSummary'
+        - type: object
+          required: [definitionSchemaVersion, questions, rules]
+          properties:
+            definitionSchemaVersion:
+              type: string
+            replacesVersionId:
+              type: integer
+              format: uint64
+              nullable: true
+            questions:
+              type: array
+              items:
+                $ref: '#/components/schemas/Question'
+            rules:
+              type: array
+              items:
+                $ref: '#/components/schemas/QuestionnaireRuleVersion'
 
     RuleHitSummary:
       type: object
@@ -2314,6 +2447,17 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/CareClientSummary'
+    QuestionnairePageData:
+      type: object
+      required: [page, pageSize, total, list]
+      properties:
+        page: {type: integer, minimum: 1}
+        pageSize: {type: integer, minimum: 1, maximum: 100}
+        total: {type: integer, format: int64, minimum: 0}
+        list:
+          type: array
+          items:
+            $ref: '#/components/schemas/QuestionnaireVersionSummary'
     AttentionCasePageData:
       type: object
       required: [page, pageSize, total, list]
@@ -2380,6 +2524,13 @@ components:
           required: [data]
           properties:
             data: {$ref: '#/components/schemas/QuestionnaireVersion'}
+    QuestionnaireListEnvelope:
+      allOf:
+        - $ref: '#/components/schemas/SuccessFields'
+        - type: object
+          required: [data]
+          properties:
+            data: {$ref: '#/components/schemas/QuestionnairePageData'}
     DraftEnvelope:
       allOf:
         - $ref: '#/components/schemas/SuccessFields'

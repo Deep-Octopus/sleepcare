@@ -53,6 +53,7 @@
   "/src/view/person/person.vue": "Person",
   "/src/view/routerHolder.vue": "RouterHolder",
   "/src/view/sleep-care/clients/index.vue": "CareClients",
+  "/src/view/sleep-care/questionnaires/index.vue": "CareQuestionnaires",
   "/src/view/superAdmin/api/api.vue": "Api",
   "/src/view/superAdmin/authority/authority.vue": "Authority",
   "/src/view/superAdmin/authority/components/apis.vue": "Apis",

@@ -3,6 +3,7 @@ package initialize
 import (
 	"github.com/flipped-aurora/gin-vue-admin/server/global"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/careclient"
+	"github.com/flipped-aurora/gin-vue-admin/server/model/questionnaire"
 )
 
 func bizModel() error {
@@ -14,6 +15,15 @@ func bizModel() error {
 		&careclient.CareOrgUnitProfile{},
 		&careclient.CareAuthorityProfile{},
 		&careclient.CareClientCommandReceipt{},
+		&questionnaire.QuestionnaireVersion{},
+		&questionnaire.QuestionnaireQuestion{},
+		&questionnaire.QuestionnaireOption{},
+		&questionnaire.QuestionnaireRuleVersion{},
+		&questionnaire.QuestionnaireSubmission{},
+		&questionnaire.QuestionnaireAnswerRevision{},
+		&questionnaire.QuestionnaireRuleHit{},
+		&questionnaire.QuestionnaireCommandReceipt{},
+		&questionnaire.OutboxEvent{},
 	)
 	if err != nil {
 		return err

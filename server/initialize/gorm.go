@@ -94,6 +94,7 @@ func RegisterTables() {
 	}
 	ensureLogViewerMetadata()
 	ensureCareClientFeature()
+	ensureQuestionnaireFeature()
 	logger.Bg().Mod("system").Info("register table success")
 }
 
@@ -106,5 +107,11 @@ func ensureLogViewerMetadata() {
 func ensureCareClientFeature() {
 	if err := EnsureCareClientData(); err != nil {
 		logger.Bg().Mod("careclient").Err(err).Warn("care client metadata or synthetic fixture seed skipped")
+	}
+}
+
+func ensureQuestionnaireFeature() {
+	if err := EnsureQuestionnaireData(); err != nil {
+		logger.Bg().Mod("questionnaire").Err(err).Warn("questionnaire metadata or synthetic fixture seed skipped")
 	}
 }
