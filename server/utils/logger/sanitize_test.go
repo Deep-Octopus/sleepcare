@@ -42,3 +42,19 @@ func TestSanitizeBodyMasksClientGrantAndAnswers(t *testing.T) {
 		t.Fatalf("unexpected masked body: %s", masked)
 	}
 }
+
+func TestSanitizeProviderCallbackEvidence(t *testing.T) {
+	headers := http.Header{
+		"X-Notification-Signature": []string{"signature-value"},
+		"X-Notification-Nonce":     []string{"nonce-value"},
+	}
+	maskedHeaders := SanitizeHeaders(headers)
+	if maskedHeaders["X-Notification-Signature"] != maskValue || maskedHeaders["X-Notification-Nonce"] != maskValue {
+		t.Fatalf("provider callback headers were not masked: %+v", maskedHeaders)
+	}
+	body := `{"eventId":"provider-event","providerMessageId":"provider-message","status":"DELIVERED"}`
+	maskedBody := SanitizeBody("application/json", body)
+	if strings.Contains(maskedBody, "provider-event") || strings.Contains(maskedBody, "provider-message") {
+		t.Fatalf("provider callback identifiers remained in log body: %s", maskedBody)
+	}
+}

@@ -42,3 +42,26 @@ func TestCareValidateRejectsMalformedFixtureInstant(t *testing.T) {
 		t.Fatalf("valid fixture time was rejected: %v", err)
 	}
 }
+
+func TestNotificationProviderConfigRejectsProductionModeAndUnsafeBoundaries(t *testing.T) {
+	if err := (Care{NotificationProvider: NotificationProvider{Mode: "PRODUCTION"}}).Validate(); err == nil {
+		t.Fatal("production provider mode was accepted")
+	}
+	if err := (Care{
+		SyntheticFixturesEnabled: true,
+		NotificationProvider: NotificationProvider{
+			Mode: "CONTRACT_TEST", CallbackMaxSkewSeconds: 10,
+		},
+	}).Validate(); err == nil {
+		t.Fatal("unsafe callback skew was accepted")
+	}
+	if err := (Care{
+		SyntheticFixturesEnabled: true,
+		NotificationProvider: NotificationProvider{
+			Mode: "CONTRACT_TEST", CallbackMaxSkewSeconds: 300,
+			CostCurrency: "CNY",
+		},
+	}).Validate(); err != nil {
+		t.Fatalf("contract-test provider config was rejected: %v", err)
+	}
+}

@@ -1,7 +1,19 @@
 package notification
 
 const (
-	ChannelDemo = "DEMO"
+	ChannelDemo             = "DEMO"
+	ChannelProviderContract = "PROVIDER_CONTRACT"
+
+	ProviderModeDisabled     = "DISABLED"
+	ProviderModeContractTest = "CONTRACT_TEST"
+	ProviderUsageTestOnly    = "TEST_ONLY"
+
+	QuotaBucketRate = "RATE"
+	QuotaBucketCost = "COST"
+
+	DispatchReservationReserved  = "RESERVED"
+	DispatchReservationSubmitted = "SUBMITTED"
+	DispatchReservationFinalized = "FINALIZED"
 
 	AttemptStatusPending             = "PENDING"
 	AttemptStatusSubmittedToProvider = "SUBMITTED_TO_PROVIDER"
@@ -21,6 +33,9 @@ const (
 
 	DemoFailureCode = "DEMO_REJECTED"
 	DemoUnknownCode = "RECEIPT_TIMEOUT"
+
+	ProviderFailureRejected    = "PROVIDER_REJECTED"
+	ProviderFailureUnavailable = "DELIVERY_UNAVAILABLE"
 )
 
 func IsAttemptStatus(value string) bool {
@@ -75,5 +90,26 @@ func EventTypeForStatus(status string) string {
 		return EventNotificationUnknown
 	default:
 		return ""
+	}
+}
+
+func IsProviderCallbackStatus(value string) bool {
+	switch value {
+	case AttemptStatusAccepted,
+		AttemptStatusDelivered,
+		AttemptStatusFailed,
+		AttemptStatusUnknown:
+		return true
+	default:
+		return false
+	}
+}
+
+func IsNormalizedProviderFailureCode(value string) bool {
+	switch value {
+	case ProviderFailureRejected, ProviderFailureUnavailable, DemoUnknownCode:
+		return true
+	default:
+		return false
 	}
 }

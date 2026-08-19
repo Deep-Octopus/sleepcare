@@ -7,13 +7,15 @@ import (
 
 type NotificationRouter struct{}
 
-func (r *NotificationRouter) InitNotificationRouter(router *gin.RouterGroup) {
-	readGroup := router.Group("care")
-	writeGroup := router.Group("care").Use(middleware.OperationRecord())
+func (r *NotificationRouter) InitNotificationRouter(private, public *gin.RouterGroup) {
+	readGroup := private.Group("care")
+	writeGroup := private.Group("care").Use(middleware.OperationRecord())
 	{
 		readGroup.GET("deliveries", notificationApi.ListDeliveries)
+		readGroup.GET("notification-provider-readiness", notificationApi.GetProviderReadiness)
 	}
 	{
 		writeGroup.POST("deliveries/:id/resend", notificationApi.Resend)
 	}
+	public.POST("care/notification-provider-callbacks/:providerCode", notificationApi.ProviderCallback)
 }

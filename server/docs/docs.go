@@ -6098,6 +6098,151 @@ const docTemplate = `{
                 }
             }
         },
+        "/care/notification-provider-callbacks/{providerCode}": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Deliveries"
+                ],
+                "summary": "接收经过签名验证的供应商标准回执",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "供应商契约标识",
+                        "name": "providerCode",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Unix 秒时间戳",
+                        "name": "X-Notification-Timestamp",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "一次性 nonce",
+                        "name": "X-Notification-Nonce",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "HMAC-SHA256 签名",
+                        "name": "X-Notification-Signature",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "标准回执",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.ProviderCallback"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/github_com_flipped-aurora_gin-vue-admin_server_model_casework_response.ActionResult"
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/care/notification-provider-readiness": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Deliveries"
+                ],
+                "summary": "查询通知供应商启用门禁与发送边界",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.ProviderReadiness"
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/care/plan-instances/{id}/pause": {
             "post": {
                 "security": [
@@ -18117,6 +18262,9 @@ const docTemplate = `{
                 "fixture-now": {
                     "type": "string"
                 },
+                "notification-provider": {
+                    "$ref": "#/definitions/config.NotificationProvider"
+                },
                 "synthetic-fixtures-enabled": {
                     "type": "boolean"
                 }
@@ -18484,6 +18632,65 @@ const docTemplate = `{
                 "username": {
                     "description": "数据库账号",
                     "type": "string"
+                }
+            }
+        },
+        "config.NotificationProvider": {
+            "type": "object",
+            "properties": {
+                "callback-max-skew-seconds": {
+                    "type": "integer"
+                },
+                "cost-boundary-reviewed": {
+                    "type": "boolean"
+                },
+                "cost-currency": {
+                    "type": "string"
+                },
+                "daily-cost-limit-minor": {
+                    "type": "integer"
+                },
+                "estimated-cost-minor": {
+                    "type": "integer"
+                },
+                "fallback-reviewed": {
+                    "type": "boolean"
+                },
+                "max-attempts-per-request": {
+                    "type": "integer"
+                },
+                "mode": {
+                    "type": "string"
+                },
+                "policy-code": {
+                    "type": "string"
+                },
+                "policy-version": {
+                    "type": "integer"
+                },
+                "provider-code": {
+                    "type": "string"
+                },
+                "qualification-evidence-reviewed": {
+                    "type": "boolean"
+                },
+                "rate-limit-count": {
+                    "type": "integer"
+                },
+                "rate-limit-window-seconds": {
+                    "type": "integer"
+                },
+                "receipt-semantics-reviewed": {
+                    "type": "boolean"
+                },
+                "retry-policy-reviewed": {
+                    "type": "boolean"
+                },
+                "template-code": {
+                    "type": "string"
+                },
+                "template-evidence-reviewed": {
+                    "type": "boolean"
                 }
             }
         },
@@ -20873,6 +21080,26 @@ const docTemplate = `{
                 }
             }
         },
+        "request.ProviderCallback": {
+            "type": "object",
+            "properties": {
+                "eventId": {
+                    "type": "string"
+                },
+                "failureCode": {
+                    "type": "string"
+                },
+                "occurredAt": {
+                    "type": "string"
+                },
+                "providerMessageId": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
         "request.RecordInteraction": {
             "type": "object",
             "required": [
@@ -22750,6 +22977,20 @@ const docTemplate = `{
                 }
             }
         },
+        "response.CostBoundary": {
+            "type": "object",
+            "properties": {
+                "currency": {
+                    "type": "string"
+                },
+                "dailyCostLimitMinor": {
+                    "type": "integer"
+                },
+                "estimatedCostMinor": {
+                    "type": "integer"
+                }
+            }
+        },
         "response.DailySummary": {
             "type": "object",
             "properties": {
@@ -23059,8 +23300,20 @@ const docTemplate = `{
                 "channel": {
                     "type": "string"
                 },
+                "costCurrency": {
+                    "type": "string"
+                },
                 "deliveredAt": {
                     "type": "string"
+                },
+                "dispatchPolicyCode": {
+                    "type": "string"
+                },
+                "dispatchPolicyVersion": {
+                    "type": "integer"
+                },
+                "estimatedCostMinor": {
+                    "type": "integer"
                 },
                 "events": {
                     "type": "array",
@@ -23080,6 +23333,9 @@ const docTemplate = `{
                 "notificationRequestId": {
                     "type": "integer"
                 },
+                "providerCode": {
+                    "type": "string"
+                },
                 "requestedAt": {
                     "type": "string"
                 },
@@ -23094,6 +23350,9 @@ const docTemplate = `{
                 },
                 "taskId": {
                     "type": "integer"
+                },
+                "templateCode": {
+                    "type": "string"
                 },
                 "version": {
                     "type": "integer"
@@ -23528,6 +23787,71 @@ const docTemplate = `{
                 }
             }
         },
+        "response.ProviderReadiness": {
+            "type": "object",
+            "properties": {
+                "blockers": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "callbackEndpointEnabled": {
+                    "type": "boolean"
+                },
+                "callbackVerificationConfigured": {
+                    "type": "boolean"
+                },
+                "contractTestEnabled": {
+                    "type": "boolean"
+                },
+                "costBoundary": {
+                    "$ref": "#/definitions/response.CostBoundary"
+                },
+                "costBoundaryReviewed": {
+                    "type": "boolean"
+                },
+                "fallbackReviewed": {
+                    "type": "boolean"
+                },
+                "formalDeliveryEnabled": {
+                    "type": "boolean"
+                },
+                "mode": {
+                    "type": "string"
+                },
+                "networkDeliveryEnabled": {
+                    "type": "boolean"
+                },
+                "providerCode": {
+                    "type": "string"
+                },
+                "qualificationEvidenceReviewed": {
+                    "type": "boolean"
+                },
+                "rateBoundary": {
+                    "$ref": "#/definitions/response.RateBoundary"
+                },
+                "receiptSemanticsReviewed": {
+                    "type": "boolean"
+                },
+                "requestSigningConfigured": {
+                    "type": "boolean"
+                },
+                "retryBoundary": {
+                    "$ref": "#/definitions/response.RetryBoundary"
+                },
+                "retryPolicyReviewed": {
+                    "type": "boolean"
+                },
+                "templateEvidenceReviewed": {
+                    "type": "boolean"
+                },
+                "usageScope": {
+                    "type": "string"
+                }
+            }
+        },
         "response.Questionnaire": {
             "type": "object",
             "properties": {
@@ -23740,6 +24064,17 @@ const docTemplate = `{
                 }
             }
         },
+        "response.RateBoundary": {
+            "type": "object",
+            "properties": {
+                "maxDispatches": {
+                    "type": "integer"
+                },
+                "windowSeconds": {
+                    "type": "integer"
+                }
+            }
+        },
         "response.RedeemResult": {
             "type": "object",
             "properties": {
@@ -23760,6 +24095,14 @@ const docTemplate = `{
                 "data": {},
                 "msg": {
                     "type": "string"
+                }
+            }
+        },
+        "response.RetryBoundary": {
+            "type": "object",
+            "properties": {
+                "maxAttemptsPerRequest": {
+                    "type": "integer"
                 }
             }
         },

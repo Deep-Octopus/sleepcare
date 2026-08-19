@@ -29,6 +29,46 @@
       </div>
     </section>
 
+    <section class="rounded-xl border border-border bg-container p-5 shadow-card">
+      <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div class="max-w-3xl">
+          <div class="flex items-center gap-2">
+            <svg-icon icon="lucide:shield-check" />
+            <h2 class="text-lg font-semibold">外部通知启用门禁</h2>
+            <el-tag
+              :type="providerReadiness?.formalDeliveryEnabled ? 'success' : 'warning'"
+              effect="plain"
+            >
+              {{ providerReadiness?.formalDeliveryEnabled ? '已启用' : '保持关闭' }}
+            </el-tag>
+          </div>
+          <p class="mt-2 text-sm leading-6 text-muted-foreground">
+            当前仅保留本地记录和可验证的供应商契约边界，不包含外部网络发送能力。
+          </p>
+          <p
+            v-if="providerBlockerSummary"
+            class="mt-2 text-xs leading-5 text-warning"
+          >
+            待完成：{{ providerBlockerSummary }}
+          </p>
+        </div>
+        <div class="grid min-w-72 grid-cols-3 gap-2">
+          <article class="rounded-lg border border-border bg-muted p-3">
+            <p class="text-xs text-muted-foreground">最多尝试</p>
+            <p class="mt-1 text-sm font-semibold">{{ retryBoundaryLabel }}</p>
+          </article>
+          <article class="rounded-lg border border-border bg-muted p-3">
+            <p class="text-xs text-muted-foreground">限流边界</p>
+            <p class="mt-1 text-sm font-semibold">{{ rateBoundaryLabel }}</p>
+          </article>
+          <article class="rounded-lg border border-border bg-muted p-3">
+            <p class="text-xs text-muted-foreground">费用边界</p>
+            <p class="mt-1 text-sm font-semibold">{{ costBoundaryLabel }}</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
     <section class="gva-search-box">
       <el-form
         :inline="true"
@@ -208,6 +248,31 @@
             </el-tag>
           </div>
         </section>
+        <dl
+          v-if="selected.providerCode"
+          class="mt-4 grid grid-cols-1 gap-3 rounded-xl border border-border p-4 sm:grid-cols-2"
+        >
+          <div>
+            <dt class="text-xs text-muted-foreground">供应商契约</dt>
+            <dd class="mt-1 text-sm font-medium">{{ selected.providerCode }}</dd>
+          </div>
+          <div>
+            <dt class="text-xs text-muted-foreground">发送策略</dt>
+            <dd class="mt-1 text-sm font-medium">
+              {{ selected.dispatchPolicyCode }} v{{ selected.dispatchPolicyVersion }}
+            </dd>
+          </div>
+          <div>
+            <dt class="text-xs text-muted-foreground">模板标识</dt>
+            <dd class="mt-1 text-sm font-medium">{{ selected.templateCode }}</dd>
+          </div>
+          <div>
+            <dt class="text-xs text-muted-foreground">费用预留</dt>
+            <dd class="mt-1 text-sm font-medium">
+              {{ selected.estimatedCostMinor }} {{ selected.costCurrency }} 最小单位
+            </dd>
+          </div>
+        </dl>
         <el-alert
           v-if="selected.status === 'ACCEPTED'"
           class="mt-4"
@@ -278,7 +343,11 @@
 <script setup>
   import { computed, onMounted, reactive, ref } from 'vue'
   import { ElMessage } from 'element-plus'
-  import { getCareDeliveries, resendCareDelivery } from '@/api/sleep-care/deliveries'
+  import {
+    getCareDeliveries,
+    getNotificationProviderReadiness,
+    resendCareDelivery
+  } from '@/api/sleep-care/deliveries'
   import { useBtnAuth } from '@/utils/btnAuth'
 
   defineOptions({ name: 'CareDeliveries' })
@@ -298,6 +367,7 @@
   const total = ref(0)
   const tableData = ref([])
   const loading = ref(false)
+  const providerReadiness = ref(null)
   const evidenceVisible = ref(false)
   const resendVisible = ref(false)
   const submitting = ref(false)
@@ -305,6 +375,26 @@
   const resendForm = reactive({ reason: '' })
   const failedCount = computed(() => tableData.value.filter((item) => item.status === 'FAILED').length)
   const unknownCount = computed(() => tableData.value.filter((item) => item.status === 'UNKNOWN').length)
+  const providerBlockerSummary = computed(() => {
+    const blockers = providerReadiness.value?.blockers || []
+    if (!blockers.length) return ''
+    const visible = blockers.slice(0, 3).join('、')
+    return blockers.length > 3 ? `${visible}等 ${blockers.length} 项` : visible
+  })
+  const retryBoundaryLabel = computed(() => {
+    const value = providerReadiness.value?.retryBoundary?.maxAttemptsPerRequest
+    return value > 0 ? `${value} 次` : '未配置'
+  })
+  const rateBoundaryLabel = computed(() => {
+    const boundary = providerReadiness.value?.rateBoundary
+    if (!boundary?.windowSeconds || !boundary?.maxDispatches) return '未配置'
+    return `${boundary.windowSeconds} 秒 / ${boundary.maxDispatches} 次`
+  })
+  const costBoundaryLabel = computed(() => {
+    const boundary = providerReadiness.value?.costBoundary
+    if (!boundary?.currency || !boundary?.dailyCostLimitMinor) return '未配置'
+    return `${boundary.dailyCostLimitMinor} ${boundary.currency}`
+  })
 
   const loadTable = async () => {
     loading.value = true
@@ -320,6 +410,13 @@
       }
     } finally {
       loading.value = false
+    }
+  }
+
+  const loadProviderReadiness = async () => {
+    const res = await getNotificationProviderReadiness()
+    if (res.code === 0) {
+      providerReadiness.value = res.data
     }
   }
 
@@ -392,7 +489,8 @@
     ? `${statusLabel(event.fromStatus)}变为${statusLabel(event.toStatus)}`
     : statusLabel(event.toStatus)
   const channelLabel = (value) => ({
-    DEMO: '系统记录'
+    DEMO: '系统记录',
+    PROVIDER_CONTRACT: '契约测试'
   }[value] || '未启用外部发送')
   const failureCodeLabel = (value) => ({
     DEMO_REJECTED: '发送流程未受理',
@@ -402,5 +500,8 @@
     ? new Date(value).toLocaleString('zh-CN', { hour12: false })
     : '-'
 
-  onMounted(loadTable)
+  onMounted(() => {
+    loadTable()
+    loadProviderReadiness()
+  })
 </script>

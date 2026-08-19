@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	careconfig "github.com/flipped-aurora/gin-vue-admin/server/config"
 	"github.com/flipped-aurora/gin-vue-admin/server/global"
 	caseworkres "github.com/flipped-aurora/gin-vue-admin/server/model/casework/response"
 	notificationreq "github.com/flipped-aurora/gin-vue-admin/server/model/notification/request"
@@ -25,13 +26,16 @@ func (c FixedClock) Now() time.Time { return c.Time }
 
 type Service interface {
 	ListDeliveries(context.Context, notificationreq.DeliverySearch) ([]notificationres.NotificationAttempt, int64, error)
+	GetProviderReadiness(context.Context) (notificationres.ProviderReadiness, error)
 	Resend(context.Context, uint, string, notificationreq.Resend) (caseworkres.ActionResult, error)
+	ApplyProviderCallback(context.Context, string, []byte, notificationreq.ProviderCallbackSignature) (caseworkres.ActionResult, error)
 }
 
 type NotificationService struct {
 	DB                       *gorm.DB
 	Clock                    Clock
 	Adapter                  NotificationPort
+	ProviderConfig           *careconfig.NotificationProvider
 	SyntheticFixturesEnabled *bool
 }
 
@@ -67,6 +71,13 @@ func (s *NotificationService) fixturesEnabled() bool {
 		return *s.SyntheticFixturesEnabled
 	}
 	return global.GVA_CONFIG.Care.SyntheticFixturesEnabled
+}
+
+func (s *NotificationService) providerConfig() careconfig.NotificationProvider {
+	if s.ProviderConfig != nil {
+		return *s.ProviderConfig
+	}
+	return global.GVA_CONFIG.Care.NotificationProvider
 }
 
 type ServiceGroup struct {

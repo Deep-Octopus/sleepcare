@@ -60,6 +60,9 @@ func bizModel() error {
 		&notification.NotificationRequest{},
 		&notification.NotificationAttempt{},
 		&notification.DeliveryEvent{},
+		&notification.NotificationDispatchReservation{},
+		&notification.NotificationQuotaBucket{},
+		&notification.NotificationProviderCallback{},
 	)
 	if err != nil {
 		return err

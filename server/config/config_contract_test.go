@@ -30,7 +30,32 @@ func TestShippedServerConfigsMatchSchema(t *testing.T) {
 			if err := decoder.Decode(&cfg); err != nil {
 				t.Fatalf("配置模板与 config.Server 不一致: %v", err)
 			}
+			if err := cfg.Care.Validate(); err != nil {
+				t.Fatalf("care config is invalid: %v", err)
+			}
+			assertNotificationProviderDisabled(t, cfg.Care.NotificationProvider)
 		})
+	}
+}
+
+func assertNotificationProviderDisabled(t *testing.T, provider NotificationProvider) {
+	t.Helper()
+	if provider.Mode != "DISABLED" {
+		t.Fatalf("shipped notification provider mode = %q, want DISABLED", provider.Mode)
+	}
+	if provider.ProviderCode != "" || provider.PolicyCode != "" || provider.PolicyVersion != 0 || provider.TemplateCode != "" {
+		t.Fatal("shipped notification provider identity and policy must stay empty")
+	}
+	if provider.RequestSigningSecret != "" || provider.CallbackVerificationSecret != "" {
+		t.Fatal("shipped notification provider secrets must stay empty")
+	}
+	if provider.QualificationEvidenceReviewed || provider.TemplateEvidenceReviewed || provider.ReceiptSemanticsReviewed ||
+		provider.RetryPolicyReviewed || provider.FallbackReviewed || provider.CostBoundaryReviewed {
+		t.Fatal("shipped notification provider review gates must stay closed")
+	}
+	if provider.MaxAttemptsPerRequest != 0 || provider.RateLimitWindowSeconds != 0 || provider.RateLimitCount != 0 ||
+		provider.CostCurrency != "" || provider.EstimatedCostMinor != 0 || provider.DailyCostLimitMinor != 0 {
+		t.Fatal("shipped notification provider limits must stay unset")
 	}
 }
 

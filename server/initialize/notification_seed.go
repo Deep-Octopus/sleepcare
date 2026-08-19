@@ -38,6 +38,7 @@ const (
 
 var notificationAPIs = []system.SysApi{
 	{ApiGroup: "通知记录", Method: "GET", Path: "/care/deliveries", Description: "查询授权范围通知尝试"},
+	{ApiGroup: "通知记录", Method: "GET", Path: "/care/notification-provider-readiness", Description: "查询通知供应商启用门禁"},
 	{ApiGroup: "通知记录", Method: "POST", Path: "/care/deliveries/:id/resend", Description: "为终态通知创建补发尝试"},
 	{ApiGroup: "康养任务", Method: "POST", Path: "/care/tasks/:id/contact-records", Description: "追加人工联系记录"},
 }
@@ -117,9 +118,10 @@ func ensureNotificationMetadata(db *gorm.DB, grantPolicies bool) error {
 			}
 		}
 		rolesByRoute := map[string][]uint{
-			"GET /care/deliveries":                 roles,
-			"POST /care/deliveries/:id/resend":     {syntheticStewardRole},
-			"POST /care/tasks/:id/contact-records": {syntheticStewardRole, syntheticClinicianRole},
+			"GET /care/deliveries":                      roles,
+			"GET /care/notification-provider-readiness": roles,
+			"POST /care/deliveries/:id/resend":          {syntheticStewardRole},
+			"POST /care/tasks/:id/contact-records":      {syntheticStewardRole, syntheticClinicianRole},
 		}
 		for _, api := range notificationAPIs {
 			for _, role := range rolesByRoute[api.Method+" "+api.Path] {

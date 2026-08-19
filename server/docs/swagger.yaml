@@ -91,6 +91,8 @@ definitions:
         $ref: '#/definitions/config.ClientAccess'
       fixture-now:
         type: string
+      notification-provider:
+        $ref: '#/definitions/config.NotificationProvider'
       synthetic-fixtures-enabled:
         type: boolean
     type: object
@@ -349,6 +351,45 @@ definitions:
       username:
         description: 数据库账号
         type: string
+    type: object
+  config.NotificationProvider:
+    properties:
+      callback-max-skew-seconds:
+        type: integer
+      cost-boundary-reviewed:
+        type: boolean
+      cost-currency:
+        type: string
+      daily-cost-limit-minor:
+        type: integer
+      estimated-cost-minor:
+        type: integer
+      fallback-reviewed:
+        type: boolean
+      max-attempts-per-request:
+        type: integer
+      mode:
+        type: string
+      policy-code:
+        type: string
+      policy-version:
+        type: integer
+      provider-code:
+        type: string
+      qualification-evidence-reviewed:
+        type: boolean
+      rate-limit-count:
+        type: integer
+      rate-limit-window-seconds:
+        type: integer
+      receipt-semantics-reviewed:
+        type: boolean
+      retry-policy-reviewed:
+        type: boolean
+      template-code:
+        type: string
+      template-evidence-reviewed:
+        type: boolean
     type: object
   config.Oracle:
     properties:
@@ -2000,6 +2041,19 @@ definitions:
       cliId:
         type: integer
     type: object
+  request.ProviderCallback:
+    properties:
+      eventId:
+        type: string
+      failureCode:
+        type: string
+      occurredAt:
+        type: string
+      providerMessageId:
+        type: string
+      status:
+        type: string
+    type: object
   request.RecordInteraction:
     properties:
       expectedVersion:
@@ -3261,6 +3315,15 @@ definitions:
       version:
         type: integer
     type: object
+  response.CostBoundary:
+    properties:
+      currency:
+        type: string
+      dailyCostLimitMinor:
+        type: integer
+      estimatedCostMinor:
+        type: integer
+    type: object
   response.DailySummary:
     properties:
       businessDate:
@@ -3463,8 +3526,16 @@ definitions:
         type: integer
       channel:
         type: string
+      costCurrency:
+        type: string
       deliveredAt:
         type: string
+      dispatchPolicyCode:
+        type: string
+      dispatchPolicyVersion:
+        type: integer
+      estimatedCostMinor:
+        type: integer
       events:
         items:
           $ref: '#/definitions/response.DeliveryEvent'
@@ -3477,6 +3548,8 @@ definitions:
         type: integer
       notificationRequestId:
         type: integer
+      providerCode:
+        type: string
       requestedAt:
         type: string
       retryOfAttemptId:
@@ -3487,6 +3560,8 @@ definitions:
         type: string
       taskId:
         type: integer
+      templateCode:
+        type: string
       version:
         type: integer
     type: object
@@ -3772,6 +3847,49 @@ definitions:
       title:
         type: string
     type: object
+  response.ProviderReadiness:
+    properties:
+      blockers:
+        items:
+          type: string
+        type: array
+      callbackEndpointEnabled:
+        type: boolean
+      callbackVerificationConfigured:
+        type: boolean
+      contractTestEnabled:
+        type: boolean
+      costBoundary:
+        $ref: '#/definitions/response.CostBoundary'
+      costBoundaryReviewed:
+        type: boolean
+      fallbackReviewed:
+        type: boolean
+      formalDeliveryEnabled:
+        type: boolean
+      mode:
+        type: string
+      networkDeliveryEnabled:
+        type: boolean
+      providerCode:
+        type: string
+      qualificationEvidenceReviewed:
+        type: boolean
+      rateBoundary:
+        $ref: '#/definitions/response.RateBoundary'
+      receiptSemanticsReviewed:
+        type: boolean
+      requestSigningConfigured:
+        type: boolean
+      retryBoundary:
+        $ref: '#/definitions/response.RetryBoundary'
+      retryPolicyReviewed:
+        type: boolean
+      templateEvidenceReviewed:
+        type: boolean
+      usageScope:
+        type: string
+    type: object
   response.Questionnaire:
     properties:
       draft:
@@ -3912,6 +4030,13 @@ definitions:
       version:
         type: string
     type: object
+  response.RateBoundary:
+    properties:
+      maxDispatches:
+        type: integer
+      windowSeconds:
+        type: integer
+    type: object
   response.RedeemResult:
     properties:
       allowedTaskCount:
@@ -3926,6 +4051,11 @@ definitions:
       data: {}
       msg:
         type: string
+    type: object
+  response.RetryBoundary:
+    properties:
+      maxAttemptsPerRequest:
+        type: integer
     type: object
   response.ReviewItem:
     properties:
@@ -8661,6 +8791,95 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: 为失败或未知终态创建新的通知尝试
+      tags:
+      - Deliveries
+  /care/notification-provider-callbacks/{providerCode}:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 供应商契约标识
+        in: path
+        name: providerCode
+        required: true
+        type: string
+      - description: Unix 秒时间戳
+        in: header
+        name: X-Notification-Timestamp
+        required: true
+        type: string
+      - description: 一次性 nonce
+        in: header
+        name: X-Notification-Nonce
+        required: true
+        type: string
+      - description: HMAC-SHA256 签名
+        in: header
+        name: X-Notification-Signature
+        required: true
+        type: string
+      - description: 标准回执
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.ProviderCallback'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_flipped-aurora_gin-vue-admin_server_model_casework_response.ActionResult'
+                msg:
+                  type: string
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Response'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 接收经过签名验证的供应商标准回执
+      tags:
+      - Deliveries
+  /care/notification-provider-readiness:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.ProviderReadiness'
+                msg:
+                  type: string
+              type: object
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: 查询通知供应商启用门禁与发送边界
       tags:
       - Deliveries
   /care/plan-instances/{id}/pause:

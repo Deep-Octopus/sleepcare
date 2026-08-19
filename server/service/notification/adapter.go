@@ -13,6 +13,8 @@ type SendCommand struct {
 	NotificationRequestID uint
 	NotificationAttemptID uint
 	TaskID                uint
+	CareClientID          uint
+	DeptID                uint
 	AttemptNo             int
 	RequestedAt           time.Time
 }
@@ -26,6 +28,7 @@ type DeliveryReceipt struct {
 }
 
 type NotificationPort interface {
+	Descriptor() AdapterDescriptor
 	Submit(context.Context, SendCommand) ([]DeliveryReceipt, error)
 }
 
@@ -34,6 +37,10 @@ type NotificationPort interface {
 type DemoNotificationAdapter struct {
 	Outcome string
 	Clock   Clock
+}
+
+func (DemoNotificationAdapter) Descriptor() AdapterDescriptor {
+	return AdapterDescriptor{Channel: notificationmodel.ChannelDemo}
 }
 
 func (a DemoNotificationAdapter) Submit(_ context.Context, command SendCommand) ([]DeliveryReceipt, error) {

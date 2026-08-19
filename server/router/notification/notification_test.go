@@ -9,12 +9,15 @@ import (
 func TestNotificationRoutesMatchEmployeeContract(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	engine := gin.New()
-	group := engine.Group("/api")
-	(&NotificationRouter{}).InitNotificationRouter(group)
+	private := engine.Group("/api")
+	public := engine.Group("/api")
+	(&NotificationRouter{}).InitNotificationRouter(private, public)
 
 	want := map[string]bool{
-		"GET /api/care/deliveries":             true,
-		"POST /api/care/deliveries/:id/resend": true,
+		"GET /api/care/deliveries":                                     true,
+		"GET /api/care/notification-provider-readiness":                true,
+		"POST /api/care/deliveries/:id/resend":                         true,
+		"POST /api/care/notification-provider-callbacks/:providerCode": true,
 	}
 	for _, route := range engine.Routes() {
 		delete(want, route.Method+" "+route.Path)

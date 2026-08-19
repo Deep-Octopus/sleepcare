@@ -27,6 +27,7 @@ func AccessLogMaxBytes() int {
 // 需脱敏的请求头（小写比较）
 var sensitiveHeaders = map[string]struct{}{
 	"authorization": {}, "cookie": {}, "set-cookie": {}, "x-token": {},
+	"x-notification-signature": {}, "x-notification-nonce": {},
 }
 
 func SanitizeHeaders(h http.Header) map[string]string {
@@ -53,7 +54,7 @@ var sensitiveBodyKeys = map[string]struct{}{
 	"password": {}, "newpassword": {}, "oldpassword": {}, "confirmpassword": {},
 	"passwd": {}, "pwd": {}, "token": {}, "accesstoken": {}, "refreshtoken": {},
 	"secret": {}, "clientsecret": {}, "apikey": {}, "privatekey": {}, "idcard": {},
-	"grant": {}, "answers": {},
+	"grant": {}, "answers": {}, "providermessageid": {}, "eventid": {},
 }
 
 func normalizeBodyKey(k string) string {

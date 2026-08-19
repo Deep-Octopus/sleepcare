@@ -49,6 +49,7 @@ func TestEnsureNotificationMetadataIsIdempotentAndRoleLimited(t *testing.T) {
 	}
 	for _, role := range []uint{syntheticStewardRole, syntheticClinicianRole, syntheticSupervisorRole} {
 		assertCaseWorkPolicy(t, db, role, "/care/deliveries", "GET", true)
+		assertCaseWorkPolicy(t, db, role, "/care/notification-provider-readiness", "GET", true)
 	}
 	assertCaseWorkPolicy(t, db, syntheticStewardRole, "/care/deliveries/:id/resend", "POST", true)
 	assertCaseWorkPolicy(t, db, syntheticClinicianRole, "/care/deliveries/:id/resend", "POST", false)

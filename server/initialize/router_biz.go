@@ -21,6 +21,6 @@ func initBizRouter(routers ...*gin.RouterGroup) {
 	router.RouterGroupApp.CarePath.CarePathRouter.InitCarePathRouter(privateGroup)
 	router.RouterGroupApp.CaseWork.CaseWorkRouter.InitCaseWorkRouter(privateGroup)
 	router.RouterGroupApp.Supervision.SupervisionRouter.InitSupervisionRouter(privateGroup)
-	router.RouterGroupApp.Notification.NotificationRouter.InitNotificationRouter(privateGroup)
+	router.RouterGroupApp.Notification.NotificationRouter.InitNotificationRouter(privateGroup, publicGroup)
 	router.RouterGroupApp.ClientAccess.ClientAccessRouter.InitClientAccessRouter(publicGroup)
 }

@@ -180,7 +180,10 @@ func attemptResponse(row attemptRow, events []notificationmodel.DeliveryEvent) n
 		Channel: attempt.Channel, Status: attempt.Status, RequestedAt: attempt.RequestedAt,
 		SubmittedAt: attempt.SubmittedAt, AcceptedAt: attempt.AcceptedAt,
 		DeliveredAt: attempt.DeliveredAt, FinalizedAt: attempt.FinalizedAt,
-		FailureCode: attempt.FailureCode, Version: attempt.Version, Events: eventRows,
+		FailureCode: attempt.FailureCode, ProviderCode: attempt.ProviderCode,
+		DispatchPolicyCode: attempt.DispatchPolicyCode, DispatchPolicyVersion: attempt.DispatchPolicyVersion,
+		TemplateCode: attempt.TemplateCode, EstimatedCostMinor: attempt.EstimatedCostMinor,
+		CostCurrency: attempt.CostCurrency, Version: attempt.Version, Events: eventRows,
 	}
 }
 

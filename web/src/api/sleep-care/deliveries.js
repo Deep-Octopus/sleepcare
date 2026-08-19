@@ -11,6 +11,12 @@ export const getCareDeliveries = (params) =>
     params
   })
 
+export const getNotificationProviderReadiness = () =>
+  service({
+    url: '/care/notification-provider-readiness',
+    method: 'get'
+  })
+
 export const resendCareDelivery = (id, data, idempotencyKey) =>
   service({
     url: `/care/deliveries/${id}/resend`,

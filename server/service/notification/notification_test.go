@@ -74,6 +74,29 @@ func TestDeliveryReceiptRejectsOutOfOrderTransition(t *testing.T) {
 	assertNotificationCount(t, fixture.db, &notificationmodel.DeliveryEvent{}, "notification_attempt_id = ?", stored.ID, 1)
 }
 
+func TestDeliveryReceiptRejectsChronologyRegression(t *testing.T) {
+	fixture := newNotificationFixture(t)
+	fixture.service.Adapter = noReceiptAdapter{}
+	systemCtx := datascope.WithSystem(context.Background())
+	pending, err := fixture.service.CreateInitial(systemCtx, fixture.task.ID, "invalid-time-order")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err = fixture.service.ApplyDeliveryReceipt(systemCtx, pending.ResourceID, DeliveryReceipt{
+		EventKey: "submitted", Status: notificationmodel.AttemptStatusSubmittedToProvider,
+		OccurredAt: fixture.now.Add(2 * time.Minute),
+	}); err != nil {
+		t.Fatal(err)
+	}
+	_, err = fixture.service.ApplyDeliveryReceipt(systemCtx, pending.ResourceID, DeliveryReceipt{
+		EventKey: "accepted-too-early", Status: notificationmodel.AttemptStatusAccepted,
+		OccurredAt: fixture.now.Add(time.Minute),
+	})
+	if notificationCode(err) != notificationmodel.CodeDeliveryEventInvalid {
+		t.Fatalf("chronology regression should be rejected, got %v", err)
+	}
+}
+
 func TestFailureResendAndUnknownPreserveTasksAndOneTodo(t *testing.T) {
 	fixture := newNotificationFixture(t)
 	systemCtx := datascope.WithSystem(context.Background())
@@ -233,6 +256,8 @@ func newNotificationFixture(t *testing.T) notificationFixture {
 		&caremodel.CareClient{}, &caremodel.CareAssignment{}, &caremodel.CareAuthorityProfile{},
 		&pathmodel.TaskInstance{}, &caseworkmodel.TodoItem{},
 		&notificationmodel.NotificationRequest{}, &notificationmodel.NotificationAttempt{}, &notificationmodel.DeliveryEvent{},
+		&notificationmodel.NotificationDispatchReservation{}, &notificationmodel.NotificationQuotaBucket{},
+		&notificationmodel.NotificationProviderCallback{},
 		&outbox.Event{}, testutil.WithDataScopeCallbacks(),
 	)
 	now := time.Date(2026, time.August, 18, 9, 0, 0, 0, time.FixedZone("CST", 8*60*60))
@@ -367,6 +392,10 @@ func notificationCode(err error) int {
 }
 
 type noReceiptAdapter struct{}
+
+func (noReceiptAdapter) Descriptor() AdapterDescriptor {
+	return AdapterDescriptor{Channel: notificationmodel.ChannelDemo}
+}
 
 func (noReceiptAdapter) Submit(context.Context, SendCommand) ([]DeliveryReceipt, error) {
 	return nil, nil

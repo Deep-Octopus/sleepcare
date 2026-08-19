@@ -286,3 +286,24 @@ care:
         cookie-path: /api/care/client
         cookie-secure: true
         allowed-origins: []
+    notification-provider:
+        mode: DISABLED
+        provider-code: ""
+        policy-code: ""
+        policy-version: 0
+        template-code: ""
+        request-signing-secret: ""
+        callback-verification-secret: ""
+        callback-max-skew-seconds: 300
+        qualification-evidence-reviewed: false
+        template-evidence-reviewed: false
+        receipt-semantics-reviewed: false
+        retry-policy-reviewed: false
+        fallback-reviewed: false
+        cost-boundary-reviewed: false
+        max-attempts-per-request: 0
+        rate-limit-window-seconds: 0
+        rate-limit-count: 0
+        cost-currency: ""
+        estimated-cost-minor: 0
+        daily-cost-limit-minor: 0

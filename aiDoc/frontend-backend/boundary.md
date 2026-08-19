@@ -143,3 +143,14 @@
 - 质量跟进状态为 `OPEN|IN_REVIEW|RESOLVED`。接收/解决都要求幂等键和版本；解决额外要求 `usageBoundaryConfirmed=true` 并在同一事务完成活动待办。
 - `CareSatisfaction` 菜单、三个按钮和五个员工 API 只授权上级，并叠加 DataScope、机构和质量责任校验。客户端路由继续使用受限会话和严格同源校验。
 - 当前只提供站内邀请、匿名列表和个案质量跟进，不提供外部发送、电话评价、正式排名、人员结论、真实短信或用户侧 AI；页面点触留到 P2-08。
+
+## P2-03 通知供应商契约与发送边界
+
+- `GET /care/notification-provider-readiness` 返回当前 provider 模式、非敏感门禁状态、阻塞项以及重试/限流/费用边界；密钥永不进入响应。管家、医护和上级可读，其他角色失败关闭。
+- 员工通知页只展示服务端返回的门禁事实，不自行推导“可正式发送”；`formalDeliveryEnabled=false` 时必须明确显示保持关闭。
+- `POST /care/notification-provider-callbacks/{providerCode}` 是无员工 JWT 的回调路径，要求 `X-Notification-Timestamp`、`X-Notification-Nonce`、`X-Notification-Signature` 和标准 JSON body。前端不调用该接口。
+- 回调 body 只包含 `eventId`、`providerMessageId`、标准 `status`、`occurredAt` 和可选标准 `failureCode`；服务端验签后只保存摘要，不向员工 DTO 返回原始标识。
+- provider attempt 在列表/详情新增 `providerCode`、`dispatchPolicyCode`、`dispatchPolicyVersion`、`templateCode`、`estimatedCostMinor` 和 `costCurrency`；本地记录这些字段为空。
+- 费用字段使用整数最小单位，前端不得自行换算小数位或推测真实价格；默认零值显示“未配置”。
+- provider 状态机继续使用 `PENDING -> SUBMITTED_TO_PROVIDER -> ACCEPTED -> DELIVERED|FAILED|UNKNOWN`；`ACCEPTED` 页面文案继续明确“尚未确认送达”。
+- 运行配置只允许 `DISABLED|CONTRACT_TEST`，仓库不包含 provider 网络客户端、手机号、通知正文或真实密钥；P2-03 不启用真实短信，也不安排页面点触。

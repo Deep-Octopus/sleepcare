@@ -12,6 +12,14 @@ const (
 	CodeCareAssignmentRequired = 41201
 	CodeNotificationFinalized  = 41601
 	CodeDeliveryEventInvalid   = 41602
+	CodeProviderGateClosed     = 41603
+	CodeRetryLimitExceeded     = 41604
+	CodeRateLimitExceeded      = 41605
+	CodeCostLimitExceeded      = 41606
+	CodeCallbackUnauthorized   = 41607
+	CodeCallbackReplay         = 41608
+	CodeProviderReceiptMissing = 41609
+	CodeProviderConfigInvalid  = 41610
 )
 
 type DomainError struct {

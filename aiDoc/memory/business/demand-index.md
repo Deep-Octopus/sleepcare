@@ -15,7 +15,7 @@
 - [睡眠康养：问卷与规则版本](active/sleep-care-questionnaire-versioning.md) — `active` — 发布不可变问卷/规则版本并保留答卷历史。
 - [睡眠康养：关注事项闭环](active/sleep-care-attention-case.md) — `active` — 规则命中后完成人工确认、处置、升级、关闭和重开。
 - [睡眠康养：员工责任范围工作台](active/sleep-care-staff-workbench.md) — `active` — 聚合职责范围任务与事项，并提供管家、医护分角色动作入口。
-- [睡眠康养：通知状态与重试](active/sleep-care-notification.md) — `active` — 区分受理、送达、失败和用户交互事件并支持重试。
+- [睡眠康养：通知状态与重试](active/sleep-care-notification.md) — `active` — 区分受理、送达与用户交互，并以默认关闭的 provider 契约控制验签、重试、限流和费用。
 - [睡眠康养：主动咨询服务](active/sleep-care-consultation.md) — `active` — 阶段二实现咨询分配、转交、升级、解决和关闭。
 - [睡眠康养：每日汇总与督导](active/sleep-care-supervision.md) — `active` — 生成可复算日报并支持上级指导和介入。
 - [睡眠康养：移动端受限访问](active/sleep-care-mobile-access.md) — `active` — 以独立移动布局和受限会话访问本人任务。
