@@ -3,9 +3,9 @@ info:
   title: Sleep Care Phase 1 Contract
   version: P1-01-v1
   description: >-
-    阶段一契约草案。只允许醒目标注的合成夹具；未批准医疗内容、真实通知、
-    真实数据和面向康养用户的 AI 均保持禁用。成功与错误均使用 GVA
-    {code,data,msg} 响应结构。
+    阶段一契约草案。只允许固定夹具，环境边界由页面提示和内部字段表达，
+    记录编码与名称采用普通业务值；未批准医疗内容、真实通知、真实数据和
+    面向康养用户的 AI 均保持禁用。成功与错误均使用 GVA {code,data,msg} 响应结构。
 servers:
   - url: /api
     description: Web/Nginx 对外入口；后端与 Casbin 路径不含 /api 前缀
@@ -1469,9 +1469,11 @@ components:
         displayCode:
           type: string
           maxLength: 64
+          description: 普通业务展示编码，不要求环境前缀。
         displayName:
           type: string
           maxLength: 100
+          description: 普通业务展示名称，不要求环境标签或特定子串。
         contactMobile:
           type: string
           maxLength: 32

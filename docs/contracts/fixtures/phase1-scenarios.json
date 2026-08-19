@@ -218,8 +218,8 @@
         "id": 20001,
         "organizationId": 9001,
         "teamId": 9101,
-        "displayCode": "SYN-CLIENT-A",
-        "displayName": "合成康养用户甲",
+        "displayCode": "CARE-A001",
+        "displayName": "林安然",
         "status": "ACTIVE",
         "synthetic": true
       },
@@ -398,8 +398,8 @@
         "id": 20002,
         "organizationId": 9001,
         "teamId": 9101,
-        "displayCode": "SYN-CLIENT-B",
-        "displayName": "合成康养用户乙",
+        "displayCode": "CARE-A002",
+        "displayName": "周知远",
         "status": "ACTIVE",
         "synthetic": true
       },

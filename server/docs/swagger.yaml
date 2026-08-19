@@ -6906,7 +6906,7 @@ paths:
         name: Idempotency-Key
         required: true
         type: string
-      - description: 测试康养用户公开资料
+      - description: 康养用户公开资料
         in: body
         name: data
         required: true
@@ -6932,7 +6932,7 @@ paths:
             $ref: '#/definitions/response.Response'
       security:
       - ApiKeyAuth: []
-      summary: 新建测试康养用户
+      summary: 新建康养用户
       tags:
       - CareClient
   /care/clients/{id}:
@@ -7006,7 +7006,7 @@ paths:
             $ref: '#/definitions/response.Response'
       security:
       - ApiKeyAuth: []
-      summary: 更新测试康养用户公开资料
+      summary: 更新康养用户公开资料
       tags:
       - CareClient
   /care/clients/{id}/assignments:

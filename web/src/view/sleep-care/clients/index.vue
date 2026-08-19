@@ -1,16 +1,16 @@
 <template>
   <div>
     <div class="mb-4 border border-amber-300 rounded-lg bg-amber-50 px-4 py-3 text-amber-900">
-      <div class="font-semibold">测试数据开发区</div>
+      <div class="font-semibold">本地演示环境</div>
       <div class="mt-1 text-sm">
-        P1-02/P1-04 只承载公开资料、责任关系和测试 D1–D5 计划，不包含医疗内容、真实短信、康养用户账号或 AI 能力。
+        P1-02/P1-04 只承载固定流程资料、责任关系和 D1–D5 计划，不包含医疗内容、真实短信、康养用户账号或 AI 能力。
       </div>
     </div>
 
     <div class="gva-search-box">
       <el-form :inline="true" :model="searchForm">
         <el-form-item label="编码或名称">
-          <el-input v-model="searchForm.keyword" clearable placeholder="仅搜索测试资料" @keyup.enter="search" />
+          <el-input v-model="searchForm.keyword" clearable placeholder="请输入编码或名称" @keyup.enter="search" />
         </el-form-item>
         <el-form-item label="状态">
           <el-select v-model="searchForm.status" clearable class="w-36">
@@ -27,7 +27,7 @@
 
     <div class="gva-table-box">
       <div class="gva-btn-list">
-        <el-button v-if="btnAuth.createClient" type="primary" @click="openCreate">新建测试用户</el-button>
+        <el-button v-if="btnAuth.createClient" type="primary" @click="openCreate">新建康养用户</el-button>
       </div>
       <el-table v-loading="loading" :data="tableData" row-key="id" empty-text="当前责任或组织范围内暂无康养用户">
         <el-table-column prop="displayCode" label="显示编码" min-width="150" />
@@ -50,11 +50,6 @@
             <el-tag :type="scope.row.status === 'ACTIVE' ? 'success' : 'info'">
               {{ scope.row.status === 'ACTIVE' ? '服务中' : '已停用' }}
             </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column label="数据" width="90">
-          <template #default="scope">
-            <el-tag v-if="scope.row.synthetic" type="warning">测试</el-tag>
           </template>
         </el-table-column>
         <el-table-column label="操作" fixed="right" min-width="290">
@@ -82,7 +77,6 @@
     <el-drawer v-model="detailVisible" title="康养用户与计划时间线" size="900px">
       <template v-if="detail">
         <el-descriptions :column="2" border>
-          <el-descriptions-item label="醒目标识"><el-tag type="warning">测试数据</el-tag></el-descriptions-item>
           <el-descriptions-item label="版本">{{ detail.version }}</el-descriptions-item>
           <el-descriptions-item label="显示编码">{{ detail.displayCode }}</el-descriptions-item>
           <el-descriptions-item label="显示名称">{{ detail.displayName }}</el-descriptions-item>
@@ -228,14 +222,24 @@
       </template>
     </el-drawer>
 
-    <el-dialog v-model="clientDialogVisible" :title="editingId ? '维护测试康养用户' : '新建测试康养用户'" width="620px">
-      <el-alert class="mb-4" type="warning" :closable="false" title="只允许录入测试公开资料，请勿输入真实个人信息或医疗内容。" />
+    <el-dialog v-model="clientDialogVisible" :title="editingId ? '维护康养用户' : '新建康养用户'" width="620px">
+      <el-alert class="mb-4" type="warning" :closable="false" title="本环境只允许录入固定演示资料，请勿输入真实个人信息或医疗内容。" />
       <el-form :model="clientForm" label-width="110px">
-        <el-form-item v-if="!editingId" label="显示编码" required><el-input v-model="clientForm.displayCode" placeholder="例如 SYN-CLIENT-A003" /></el-form-item>
-        <el-form-item label="显示名称" required><el-input v-model="clientForm.displayName" placeholder="必须包含测试标识" /></el-form-item>
-        <el-form-item label="联系电话"><el-input v-model="clientForm.contactMobile" placeholder="仅测试号码" /></el-form-item>
-        <el-form-item label="服务包编码"><el-input v-model="clientForm.servicePackageCode" placeholder="非医疗服务包编码" /></el-form-item>
-        <el-form-item label="服务原因"><el-input v-model="clientForm.serviceReason" type="textarea" :rows="3" placeholder="仅非医疗、测试说明" /></el-form-item>
+        <el-form-item v-if="!editingId" label="显示编码" required>
+          <el-input v-model="clientForm.displayCode" placeholder="例如 CARE-A003" />
+        </el-form-item>
+        <el-form-item label="显示名称" required>
+          <el-input v-model="clientForm.displayName" placeholder="请输入展示名称" />
+        </el-form-item>
+        <el-form-item label="联系电话">
+          <el-input v-model="clientForm.contactMobile" placeholder="仅用于页面展示，不会发送短信" />
+        </el-form-item>
+        <el-form-item label="服务包编码">
+          <el-input v-model="clientForm.servicePackageCode" placeholder="非医疗服务包编码" />
+        </el-form-item>
+        <el-form-item label="服务原因">
+          <el-input v-model="clientForm.serviceReason" type="textarea" :rows="3" placeholder="请输入非医疗服务说明" />
+        </el-form-item>
         <template v-if="!editingId">
           <el-form-item label="机构" required>
             <el-select v-model="clientForm.organizationId" class="w-full" @change="clientForm.teamId = undefined">
@@ -434,7 +438,16 @@
   const planPreviewKey = ref('')
   const planStartKey = ref('')
 
-  const emptyClientForm = () => ({ displayCode: '', displayName: '[测试] ', contactMobile: '', serviceReason: '', servicePackageCode: '', organizationId: undefined, teamId: undefined, status: 'ACTIVE' })
+  const emptyClientForm = () => ({
+    displayCode: '',
+    displayName: '',
+    contactMobile: '',
+    serviceReason: '',
+    servicePackageCode: '',
+    organizationId: undefined,
+    teamId: undefined,
+    status: 'ACTIVE'
+  })
   const clientForm = reactive(emptyClientForm())
   const assignmentForm = reactive({ roleType: 'CARE_STEWARD', assigneeId: undefined, validFrom: new Date(), reason: '' })
   const consentForm = reactive({ action: 'GRANT', textVersion: 'SYNTHETIC-V1', occurredAt: new Date(), reason: '固定测试授权记录' })
@@ -509,7 +522,10 @@
     clientDialogVisible.value = true
   }
   const saveClient = async () => {
-    if (!clientForm.displayName?.includes('测试')) return ElMessage.warning('显示名称必须醒目标注“测试”')
+    if (!clientForm.displayName?.trim()) {
+      ElMessage.warning('显示名称必填')
+      return
+    }
     let res
     if (editingId.value) {
       res = await updateCareClient(editingId.value, { expectedVersion: editingVersion.value, displayName: clientForm.displayName, contactMobile: clientForm.contactMobile, serviceReason: clientForm.serviceReason, servicePackageCode: clientForm.servicePackageCode, teamId: clientForm.teamId, status: clientForm.status })

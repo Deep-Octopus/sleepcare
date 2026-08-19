@@ -75,7 +75,7 @@ var phaseOneMenuSpecs = []phaseOneMenuSpec{
 var phaseOneHiddenButtonSpecs = map[string][]phaseOneButtonSpec{
 	"CareClientDetail": {
 		{Name: "viewDetail", Desc: "查看详情"},
-		{Name: "createClient", Desc: "新建测试用户"},
+		{Name: "createClient", Desc: "新建康养用户"},
 		{Name: "maintainClient", Desc: "维护公开资料"},
 		{Name: "assignCare", Desc: "记录责任关系"},
 		{Name: "recordConsent", Desc: "记录测试授权"},
@@ -353,6 +353,9 @@ func ensurePhaseOneHiddenButtons(tx *gorm.DB, menus map[string]system.SysBaseMen
 			if err := tx.Where("name = ? AND sys_base_menu_id = ?", spec.Name, menu.ID).
 				Attrs(button).FirstOrCreate(&button).Error; err != nil {
 				return fmt.Errorf("ensure %s button %s: %w", menuName, spec.Name, err)
+			}
+			if err := tx.Model(&button).Update("desc", spec.Desc).Error; err != nil {
+				return fmt.Errorf("update %s button %s: %w", menuName, spec.Name, err)
 			}
 		}
 	}

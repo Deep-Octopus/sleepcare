@@ -4072,7 +4072,7 @@ const docTemplate = `{
                 "tags": [
                     "CareClient"
                 ],
-                "summary": "新建测试康养用户",
+                "summary": "新建康养用户",
                 "parameters": [
                     {
                         "type": "string",
@@ -4082,7 +4082,7 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "测试康养用户公开资料",
+                        "description": "康养用户公开资料",
                         "name": "data",
                         "in": "body",
                         "required": true,
@@ -4190,7 +4190,7 @@ const docTemplate = `{
                 "tags": [
                     "CareClient"
                 ],
-                "summary": "更新测试康养用户公开资料",
+                "summary": "更新康养用户公开资料",
                 "parameters": [
                     {
                         "type": "integer",

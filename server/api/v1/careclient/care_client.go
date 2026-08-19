@@ -78,12 +78,12 @@ func (a *CareClientApi) GetCareClient(c *gin.Context) {
 
 // CreateCareClient
 // @Tags CareClient
-// @Summary 新建测试康养用户
+// @Summary 新建康养用户
 // @Security ApiKeyAuth
 // @Accept application/json
 // @Produce application/json
 // @Param Idempotency-Key header string true "幂等键"
-// @Param data body carereq.CreateCareClient true "测试康养用户公开资料"
+// @Param data body carereq.CreateCareClient true "康养用户公开资料"
 // @Success 200 {object} commonres.Response{data=careres.ActionResult,msg=string}
 // @Failure 403 {object} commonres.Response
 // @Router /care/clients [post]
@@ -103,7 +103,7 @@ func (a *CareClientApi) CreateCareClient(c *gin.Context) {
 
 // UpdateCareClient
 // @Tags CareClient
-// @Summary 更新测试康养用户公开资料
+// @Summary 更新康养用户公开资料
 // @Security ApiKeyAuth
 // @Accept application/json
 // @Produce application/json

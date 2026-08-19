@@ -170,9 +170,6 @@ func (s *CareClientService) Update(ctx context.Context, id uint, key string, req
 	if req.ExpectedVersion == 0 || strings.TrimSpace(req.DisplayName) == "" || !validClientStatus(req.Status) {
 		return careres.ActionResult{}, caremodel.NewDomainError(caremodel.CodeInvalidArgument, "expectedVersion、显示名称和有效状态必填")
 	}
-	if !strings.Contains(req.DisplayName, "测试") {
-		return careres.ActionResult{}, caremodel.NewDomainError(caremodel.CodeInvalidArgument, "显示名称必须醒目标注为测试数据")
-	}
 	if !sameOptionalID(client.TeamID, req.TeamID) {
 		var openAssignmentCount int64
 		now := s.now()
@@ -561,9 +558,6 @@ func (s *CareClientService) assignmentSummaries(ctx context.Context, assignments
 func validateCreate(req carereq.CreateCareClient) error {
 	if strings.TrimSpace(req.DisplayCode) == "" || strings.TrimSpace(req.DisplayName) == "" || req.OrganizationID == 0 {
 		return caremodel.NewDomainError(caremodel.CodeInvalidArgument, "显示编码、显示名称和机构必填")
-	}
-	if !strings.HasPrefix(strings.ToUpper(strings.TrimSpace(req.DisplayCode)), "SYN-") || !strings.Contains(req.DisplayName, "测试") {
-		return caremodel.NewDomainError(caremodel.CodeInvalidArgument, "显示编码和名称必须醒目标注为测试数据")
 	}
 	return nil
 }

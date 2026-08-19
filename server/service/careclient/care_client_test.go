@@ -126,11 +126,46 @@ func TestCareClientAccessPolicyIsFailClosedAndResponsibilityScoped(t *testing.T)
 	}
 }
 
+func TestCareClientDisplayFieldsAcceptNaturalBusinessValues(t *testing.T) {
+	service, db := newCareServiceTest(t)
+	ctx := identityContext(testSupervisor, roleSupervisor, testOrgA, datascope.ScopeDeptAndChild, []uint{testOrgA, testTeamA})
+	teamA := uint(testTeamA)
+
+	created, err := service.Create(ctx, "natural-display-create", carereq.CreateCareClient{
+		DisplayCode:    "CARE-A003",
+		DisplayName:    "林安然",
+		OrganizationID: testOrgA,
+		TeamID:         &teamA,
+		Synthetic:      true,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	updated, err := service.Update(ctx, created.CareClientID, "natural-display-update", carereq.UpdateCareClient{
+		ExpectedVersion: created.Version,
+		DisplayName:     "林知远",
+		TeamID:          &teamA,
+		Status:          caremodel.ClientStatusActive,
+	})
+	if err != nil || updated.Version != created.Version+1 {
+		t.Fatalf("update result=%+v err=%v", updated, err)
+	}
+
+	var stored caremodel.CareClient
+	if err = db.WithContext(datascope.WithSystem(context.Background())).First(&stored, created.CareClientID).Error; err != nil {
+		t.Fatal(err)
+	}
+	if stored.DisplayCode != "CARE-A003" || stored.DisplayName != "林知远" {
+		t.Fatalf("display fields differ: code=%q name=%q", stored.DisplayCode, stored.DisplayName)
+	}
+}
+
 func TestCareClientWritesAreIdempotentVersionedAndAppendHistory(t *testing.T) {
 	service, db := newCareServiceTest(t)
 	ctx := identityContext(testSupervisor, roleSupervisor, testOrgA, datascope.ScopeDeptAndChild, []uint{testOrgA, testTeamA})
 	teamA := uint(testTeamA)
-	createReq := carereq.CreateCareClient{DisplayCode: "SYN-NEW", DisplayName: "[测试] 新用户", OrganizationID: testOrgA, TeamID: &teamA, Synthetic: true}
+	createReq := carereq.CreateCareClient{DisplayCode: "CARE-A004", DisplayName: "周清和", OrganizationID: testOrgA, TeamID: &teamA, Synthetic: true}
 	created, err := service.Create(ctx, "create-key", createReq)
 	if err != nil {
 		t.Fatal(err)
@@ -140,7 +175,7 @@ func TestCareClientWritesAreIdempotentVersionedAndAppendHistory(t *testing.T) {
 		t.Fatalf("idempotent replay = %+v err=%v, want %+v", replayed, err, created)
 	}
 	changed := createReq
-	changed.DisplayName = "[测试] 另一个请求"
+	changed.DisplayName = "周明远"
 	if _, err = service.Create(ctx, "create-key", changed); !isDomainCode(err, caremodel.CodeIdempotencyConflict) {
 		t.Fatalf("different payload with same key should conflict, got %v", err)
 	}
@@ -149,7 +184,7 @@ func TestCareClientWritesAreIdempotentVersionedAndAppendHistory(t *testing.T) {
 	if err = db.WithContext(datascope.WithSystem(context.Background())).Create(&realClient).Error; err != nil {
 		t.Fatal(err)
 	}
-	if _, err = service.Update(ctx, realClient.ID, "real-update", carereq.UpdateCareClient{ExpectedVersion: 1, DisplayName: "[测试] 不应写入", TeamID: &teamA, Status: caremodel.ClientStatusActive}); !isDomainCode(err, caremodel.CodeOperationNotAllowed) {
+	if _, err = service.Update(ctx, realClient.ID, "real-update", carereq.UpdateCareClient{ExpectedVersion: 1, DisplayName: "不可写入", TeamID: &teamA, Status: caremodel.ClientStatusActive}); !isDomainCode(err, caremodel.CodeOperationNotAllowed) {
 		t.Fatalf("P1-02 must reject writes to non-synthetic clients, got %v", err)
 	}
 

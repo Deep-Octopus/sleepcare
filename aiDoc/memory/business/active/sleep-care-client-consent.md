@@ -46,5 +46,6 @@
 
 ## 相关需求
 
+- [固定数据自然化展示](sleep-care-fixture-presentation.md)
 - [组织角色与数据权限](sleep-care-access-control.md)
 - [移动端受限访问](sleep-care-mobile-access.md)

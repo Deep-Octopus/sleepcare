@@ -37,8 +37,8 @@ var careClientAPIs = []system.SysApi{
 	{ApiGroup: "康养用户", Method: "GET", Path: "/care/clients", Description: "获取康养用户列表"},
 	{ApiGroup: "康养用户", Method: "GET", Path: "/care/clients/:id", Description: "获取康养用户详情"},
 	{ApiGroup: "康养用户", Method: "GET", Path: "/care/client-options", Description: "获取康养用户维护选项"},
-	{ApiGroup: "康养用户", Method: "POST", Path: "/care/clients", Description: "新建测试康养用户"},
-	{ApiGroup: "康养用户", Method: "PUT", Path: "/care/clients/:id", Description: "更新测试康养用户"},
+	{ApiGroup: "康养用户", Method: "POST", Path: "/care/clients", Description: "新建康养用户"},
+	{ApiGroup: "康养用户", Method: "PUT", Path: "/care/clients/:id", Description: "更新康养用户"},
 	{ApiGroup: "康养用户", Method: "POST", Path: "/care/clients/:id/assignments", Description: "记录康养用户责任关系"},
 	{ApiGroup: "康养用户", Method: "POST", Path: "/care/clients/:id/consent-records", Description: "记录固定测试授权事实"},
 }
@@ -65,8 +65,12 @@ func EnsureCareClientData() error {
 func ensureCareClientMetadata(db *gorm.DB) error {
 	return db.Transaction(func(tx *gorm.DB) error {
 		for _, api := range careClientAPIs {
-			if err := tx.Where("path = ? AND method = ?", api.Path, api.Method).Attrs(api).FirstOrCreate(&system.SysApi{}).Error; err != nil {
+			var stored system.SysApi
+			if err := tx.Where("path = ? AND method = ?", api.Path, api.Method).Attrs(api).FirstOrCreate(&stored).Error; err != nil {
 				return fmt.Errorf("ensure care API %s: %w", api.Path, err)
+			}
+			if err := tx.Model(&stored).Updates(map[string]any{"api_group": api.ApiGroup, "description": api.Description}).Error; err != nil {
+				return fmt.Errorf("update care API %s metadata: %w", api.Path, err)
 			}
 		}
 		root := system.SysBaseMenu{Path: "sleep-care", Name: "SleepCare", Component: "view/routerHolder.vue", Sort: 20, Meta: system.Meta{Title: "睡眠康养随访", Icon: "user"}}
@@ -79,13 +83,17 @@ func ensureCareClientMetadata(db *gorm.DB) error {
 		}
 		buttons := []system.SysBaseMenuBtn{
 			{Name: "viewDetail", Desc: "查看详情", SysBaseMenuID: leaf.ID},
-			{Name: "createClient", Desc: "新建测试康养用户", SysBaseMenuID: leaf.ID},
+			{Name: "createClient", Desc: "新建康养用户", SysBaseMenuID: leaf.ID},
 			{Name: "maintainClient", Desc: "维护公开资料", SysBaseMenuID: leaf.ID},
 			{Name: "assignCare", Desc: "记录责任关系", SysBaseMenuID: leaf.ID},
 			{Name: "recordConsent", Desc: "记录固定测试授权", SysBaseMenuID: leaf.ID},
 		}
 		for i := range buttons {
-			if err := tx.Where("name = ? AND sys_base_menu_id = ?", buttons[i].Name, leaf.ID).Attrs(buttons[i]).FirstOrCreate(&buttons[i]).Error; err != nil {
+			var stored system.SysBaseMenuBtn
+			if err := tx.Where("name = ? AND sys_base_menu_id = ?", buttons[i].Name, leaf.ID).Attrs(buttons[i]).FirstOrCreate(&stored).Error; err != nil {
+				return err
+			}
+			if err := tx.Model(&stored).Update("desc", buttons[i].Desc).Error; err != nil {
 				return err
 			}
 		}
@@ -290,16 +298,51 @@ func seedCareClients(tx *gorm.DB) error {
 	assignmentValidFrom := time.Date(2026, time.August, 1, 0, 0, 0, 0, time.FixedZone("CST", 8*60*60))
 	teamA, teamB := uint(syntheticTeamAID), uint(syntheticTeamBID)
 	clients := []caremodel.CareClient{
-		{GVA_MODEL: global.GVA_MODEL{ID: 20001}, DisplayCode: "SYN-CLIENT-A001", DisplayName: "[测试] 康养用户甲", ContactMobile: "18800001001", ServiceReason: "固定测试：验证机构内责任关系与授权留痕", ServicePackageCode: "SYN-PACKAGE-A", OrganizationID: syntheticOrgAID, TeamID: &teamA, Status: caremodel.ClientStatusActive, SensitivityLevel: caremodel.SensitivitySensitive, Synthetic: true, Version: 1, DeptId: syntheticTeamAID, CreatedBy: syntheticSupervisorAID},
-		{GVA_MODEL: global.GVA_MODEL{ID: 20002}, DisplayCode: "SYN-CLIENT-A002", DisplayName: "[测试] 康养用户乙", ContactMobile: "18800001002", ServiceReason: "固定测试：验证同机构责任隔离", ServicePackageCode: "SYN-PACKAGE-A", OrganizationID: syntheticOrgAID, TeamID: &teamA, Status: caremodel.ClientStatusActive, SensitivityLevel: caremodel.SensitivitySensitive, Synthetic: true, Version: 1, DeptId: syntheticTeamAID, CreatedBy: syntheticSupervisorAID},
-		{GVA_MODEL: global.GVA_MODEL{ID: 20003}, DisplayCode: "SYN-CLIENT-B001", DisplayName: "[测试] 康养用户丙", ContactMobile: "18800002001", ServiceReason: "固定测试：验证跨机构不可见", ServicePackageCode: "SYN-PACKAGE-B", OrganizationID: syntheticOrgBID, TeamID: &teamB, Status: caremodel.ClientStatusActive, SensitivityLevel: caremodel.SensitivitySensitive, Synthetic: true, Version: 1, DeptId: syntheticTeamBID, CreatedBy: syntheticStewardBID},
+		{GVA_MODEL: global.GVA_MODEL{ID: 20001}, DisplayCode: "CARE-A001", DisplayName: "林安然", ContactMobile: "18800001001", ServiceReason: "日常康养服务跟进", ServicePackageCode: "CARE-BASIC-A", OrganizationID: syntheticOrgAID, TeamID: &teamA, Status: caremodel.ClientStatusActive, SensitivityLevel: caremodel.SensitivitySensitive, Synthetic: true, Version: 1, DeptId: syntheticTeamAID, CreatedBy: syntheticSupervisorAID},
+		{GVA_MODEL: global.GVA_MODEL{ID: 20002}, DisplayCode: "CARE-A002", DisplayName: "周知远", ContactMobile: "18800001002", ServiceReason: "周期服务安排与反馈记录", ServicePackageCode: "CARE-BASIC-A", OrganizationID: syntheticOrgAID, TeamID: &teamA, Status: caremodel.ClientStatusActive, SensitivityLevel: caremodel.SensitivitySensitive, Synthetic: true, Version: 1, DeptId: syntheticTeamAID, CreatedBy: syntheticSupervisorAID},
+		{GVA_MODEL: global.GVA_MODEL{ID: 20003}, DisplayCode: "CARE-B001", DisplayName: "许清和", ContactMobile: "18800002001", ServiceReason: "康养服务进度协同", ServicePackageCode: "CARE-BASIC-B", OrganizationID: syntheticOrgBID, TeamID: &teamB, Status: caremodel.ClientStatusActive, SensitivityLevel: caremodel.SensitivitySensitive, Synthetic: true, Version: 1, DeptId: syntheticTeamBID, CreatedBy: syntheticStewardBID},
+	}
+	legacyDisplays := map[uint]struct {
+		code           string
+		name           string
+		serviceReason  string
+		servicePackage string
+	}{
+		20001: {code: "SYN-CLIENT-A001", name: "[测试] 康养用户甲", serviceReason: "固定测试：验证机构内责任关系与授权留痕", servicePackage: "SYN-PACKAGE-A"},
+		20002: {code: "SYN-CLIENT-A002", name: "[测试] 康养用户乙", serviceReason: "固定测试：验证同机构责任隔离", servicePackage: "SYN-PACKAGE-A"},
+		20003: {code: "SYN-CLIENT-B001", name: "[测试] 康养用户丙", serviceReason: "固定测试：验证跨机构不可见", servicePackage: "SYN-PACKAGE-B"},
 	}
 	for i := range clients {
 		var existing caremodel.CareClient
 		err := tx.Unscoped().Where("id = ?", clients[i].ID).First(&existing).Error
 		if err == nil {
-			if existing.DisplayCode != clients[i].DisplayCode || !existing.Synthetic || existing.DeletedAt.Valid {
+			legacy := legacyDisplays[clients[i].ID]
+			if (existing.DisplayCode != clients[i].DisplayCode && existing.DisplayCode != legacy.code) || !existing.Synthetic || existing.DeletedAt.Valid {
 				return fmt.Errorf("synthetic care client id %d is occupied", clients[i].ID)
+			}
+			updates := map[string]any{}
+			if existing.DisplayCode == legacy.code {
+				updates["display_code"] = clients[i].DisplayCode
+			}
+			if existing.DisplayName == legacy.name {
+				updates["display_name"] = clients[i].DisplayName
+			}
+			if existing.ServiceReason == legacy.serviceReason {
+				updates["service_reason"] = clients[i].ServiceReason
+			}
+			if existing.ServicePackageCode == legacy.servicePackage {
+				updates["service_package_code"] = clients[i].ServicePackageCode
+			}
+			if len(updates) > 0 {
+				result := tx.Model(&caremodel.CareClient{}).
+					Where("id = ? AND synthetic = ?", clients[i].ID, true).
+					Updates(updates)
+				if result.Error != nil {
+					return result.Error
+				}
+				if result.RowsAffected != 1 {
+					return fmt.Errorf("synthetic care client id %d could not be reconciled", clients[i].ID)
+				}
 			}
 			continue
 		}

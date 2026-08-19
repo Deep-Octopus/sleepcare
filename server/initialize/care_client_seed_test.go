@@ -29,6 +29,46 @@ func TestEnsureCareClientSyntheticFixturesIsIdempotentAndDoesNotGrantAdmin(t *te
 		}
 	}
 
+	assertNaturalDisplay := func() {
+		t.Helper()
+		var client caremodel.CareClient
+		if err := db.First(&client, 20001).Error; err != nil {
+			t.Fatal(err)
+		}
+		if client.DisplayCode != "CARE-A001" || client.DisplayName != "林安然" || client.ServicePackageCode != "CARE-BASIC-A" {
+			t.Fatalf("care client display differs: %+v", client)
+		}
+	}
+	assertNaturalDisplay()
+
+	if err := db.Model(&caremodel.CareClient{}).Where("id = ?", 20001).Updates(map[string]any{
+		"display_code":         "SYN-CLIENT-A001",
+		"display_name":         "[测试] 康养用户甲",
+		"service_reason":       "固定测试：验证机构内责任关系与授权留痕",
+		"service_package_code": "SYN-PACKAGE-A",
+	}).Error; err != nil {
+		t.Fatal(err)
+	}
+	if err := ensureCareClientSyntheticFixtures(db, "local-synthetic-password"); err != nil {
+		t.Fatal(err)
+	}
+	assertNaturalDisplay()
+
+	var createAPI system.SysApi
+	if err := db.Where("path = ? AND method = ?", "/care/clients", "POST").First(&createAPI).Error; err != nil {
+		t.Fatal(err)
+	}
+	if createAPI.Description != "新建康养用户" {
+		t.Fatalf("create API description=%q", createAPI.Description)
+	}
+	var createButton system.SysBaseMenuBtn
+	if err := db.Where("name = ?", "createClient").First(&createButton).Error; err != nil {
+		t.Fatal(err)
+	}
+	if createButton.Desc != "新建康养用户" {
+		t.Fatalf("create button description=%q", createButton.Desc)
+	}
+
 	assertCount := func(model any, want int64) {
 		t.Helper()
 		var got int64
