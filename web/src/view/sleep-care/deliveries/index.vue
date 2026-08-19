@@ -5,11 +5,11 @@
         <div>
           <div class="mb-2 flex items-center gap-2 text-sm font-medium text-primary">
             <svg-icon icon="lucide:mail-check" />
-            <span>发送事实与回执证据</span>
+            <span>发送记录与结果</span>
           </div>
           <h1 class="text-2xl font-semibold tracking-tight">通知记录</h1>
           <p class="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
-            通道受理不代表已送达。每次补发都会形成新的尝试，旧的失败或未知事实始终保留。
+            当前不会发送真实短信。系统会记录每次通知处理结果，补发后仍保留之前的记录。
           </p>
         </div>
         <div class="grid min-w-72 grid-cols-3 gap-2">
@@ -22,7 +22,7 @@
             <p class="mt-1 text-xl font-semibold tabular-nums text-danger">{{ failedCount }}</p>
           </article>
           <article class="rounded-lg border border-border bg-muted p-3">
-            <p class="text-xs text-muted-foreground">本页未知</p>
+            <p class="text-xs text-muted-foreground">结果未知</p>
             <p class="mt-1 text-xl font-semibold tabular-nums text-warning">{{ unknownCount }}</p>
           </article>
         </div>
@@ -34,7 +34,7 @@
         :inline="true"
         :model="searchForm"
       >
-        <el-form-item label="尝试状态">
+        <el-form-item label="发送状态">
           <el-select
             v-model="searchForm.status"
             clearable
@@ -80,28 +80,29 @@
         >
           <template #default="scope">
             <p class="font-medium">{{ scope.row.careClientDisplayName }}</p>
-            <p class="mt-1 font-mono text-xs text-muted-foreground">
-              {{ scope.row.careClientDisplayCode }} · #{{ scope.row.careClientId }}
+            <p class="mt-1 text-xs text-muted-foreground">
+              用户编号 {{ scope.row.careClientDisplayCode }}
             </p>
           </template>
         </el-table-column>
         <el-table-column
-          label="任务 / 尝试"
+          label="任务 / 发送次数"
           min-width="150"
         >
           <template #default="scope">
-            <p class="font-mono text-sm">TASK #{{ scope.row.taskId }}</p>
+            <p class="text-sm">任务编号 {{ scope.row.taskId }}</p>
             <p class="mt-1 text-xs text-muted-foreground">
-              Attempt {{ scope.row.attemptNo }}
-              <span v-if="scope.row.retryOfAttemptId">· 补发自 #{{ scope.row.retryOfAttemptId }}</span>
+              第 {{ scope.row.attemptNo }} 次发送
+              <span v-if="scope.row.retryOfAttemptId">· 由之前记录补发</span>
             </p>
           </template>
         </el-table-column>
         <el-table-column
-          label="通道"
+          label="发送方式"
           width="90"
-          prop="channel"
-        />
+        >
+          <template #default="scope">{{ channelLabel(scope.row.channel) }}</template>
+        </el-table-column>
         <el-table-column
           label="当前状态"
           min-width="150"
@@ -122,13 +123,13 @@
           </template>
         </el-table-column>
         <el-table-column
-          label="请求时间"
+          label="开始时间"
           min-width="180"
         >
           <template #default="scope">{{ formatDateTime(scope.row.requestedAt) }}</template>
         </el-table-column>
         <el-table-column
-          label="受理 / 终结"
+          label="受理 / 完成"
           min-width="220"
         >
           <template #default="scope">
@@ -139,11 +140,11 @@
           </template>
         </el-table-column>
         <el-table-column
-          label="失败码"
+          label="失败原因"
           min-width="150"
         >
           <template #default="scope">
-            <span class="font-mono text-xs">{{ scope.row.failureCode || '-' }}</span>
+            <span class="text-xs">{{ failureCodeLabel(scope.row.failureCode) }}</span>
           </template>
         </el-table-column>
         <el-table-column
@@ -157,7 +158,7 @@
               type="primary"
               @click="openEvidence(scope.row)"
             >
-              回执证据
+              发送详情
             </el-button>
             <el-button
               v-if="btnAuth.resendNotice && canResend(scope.row)"
@@ -187,16 +188,16 @@
     <el-drawer
       v-model="evidenceVisible"
       size="min(680px, 100%)"
-      title="通知回执证据"
+      title="通知发送详情"
     >
       <template v-if="selected">
         <section class="rounded-xl border border-border bg-muted p-4">
           <div class="flex items-start justify-between gap-3">
             <div>
-              <p class="text-xs font-medium tracking-widest text-muted-foreground">DELIVERY ATTEMPT</p>
-              <h2 class="mt-2 text-xl font-semibold">Attempt {{ selected.attemptNo }}</h2>
+              <p class="text-xs font-medium text-muted-foreground">发送记录</p>
+              <h2 class="mt-2 text-xl font-semibold">第 {{ selected.attemptNo }} 次发送</h2>
               <p class="mt-1 text-sm text-muted-foreground">
-                任务 #{{ selected.taskId }} · 请求 #{{ selected.notificationRequestId }}
+                任务编号 {{ selected.taskId }}
               </p>
             </div>
             <el-tag
@@ -211,12 +212,11 @@
           v-if="selected.status === 'ACCEPTED'"
           class="mt-4"
           :closable="false"
-          title="当前证据仅能证明通道已受理，不能标记为已送达。"
+          title="当前只能确认发送流程已受理，还不能确认已经送达。"
           type="warning"
         />
         <div class="mb-3 mt-6">
-          <p class="text-xs font-medium tracking-widest text-muted-foreground">RECEIPT TIMELINE</p>
-          <h3 class="mt-1 text-lg font-semibold">标准状态时间线</h3>
+          <h3 class="text-lg font-semibold">发送状态记录</h3>
         </div>
         <el-timeline>
           <el-timeline-item
@@ -228,7 +228,7 @@
             <p class="font-medium">{{ eventLabel(event.eventType) }}</p>
             <p class="mt-1 text-sm text-muted-foreground">
               {{ transitionLabel(event) }}
-              <span v-if="event.failureCode"> · {{ event.failureCode }}</span>
+              <span v-if="event.failureCode"> · {{ failureCodeLabel(event.failureCode) }}</span>
             </p>
           </el-timeline-item>
         </el-timeline>
@@ -237,13 +237,13 @@
 
     <el-dialog
       v-model="resendVisible"
-      title="创建补发尝试"
+      title="再次发送通知"
       width="min(520px, 94vw)"
     >
       <el-alert
         class="mb-4"
         :closable="false"
-        title="补发会创建新的 attempt；当前记录不会被覆盖。"
+        title="补发会新增一条发送记录，当前记录仍会保留。"
         type="warning"
       />
       <el-form
@@ -268,7 +268,7 @@
           type="primary"
           @click="submitResend"
         >
-          创建新尝试
+          确认补发
         </el-button>
       </template>
     </el-dialog>
@@ -285,12 +285,12 @@
 
   const btnAuth = useBtnAuth()
   const statusOptions = [
-    { label: '待提交', value: 'PENDING' },
-    { label: '已提交通道', value: 'SUBMITTED_TO_PROVIDER' },
-    { label: '通道已受理', value: 'ACCEPTED' },
+    { label: '待处理', value: 'PENDING' },
+    { label: '已进入发送流程', value: 'SUBMITTED_TO_PROVIDER' },
+    { label: '发送流程已受理', value: 'ACCEPTED' },
     { label: '已送达', value: 'DELIVERED' },
-    { label: '失败', value: 'FAILED' },
-    { label: '回执未知', value: 'UNKNOWN' }
+    { label: '发送失败', value: 'FAILED' },
+    { label: '结果未知', value: 'UNKNOWN' }
   ]
   const searchForm = reactive({ status: '' })
   const page = ref(1)
@@ -373,7 +373,7 @@
     }
   }
 
-  const statusLabel = (value) => statusOptions.find((item) => item.value === value)?.label || value
+  const statusLabel = (value) => statusOptions.find((item) => item.value === value)?.label || '未说明'
   const statusTagType = (value) => ({
     ACCEPTED: 'primary',
     DELIVERED: 'success',
@@ -382,15 +382,22 @@
   }[value] || 'info')
   const eventLabel = (value) => ({
     NotificationRequested: '通知请求已建立',
-    NotificationSubmittedToProvider: '已提交测试通道',
-    NotificationAccepted: '测试通道已受理',
+    NotificationSubmittedToProvider: '已进入发送流程',
+    NotificationAccepted: '发送流程已受理',
     NotificationDelivered: '已确认送达',
     NotificationFailed: '本次尝试失败',
     NotificationUnknown: '最终回执未知'
-  }[value] || value)
+  }[value] || '状态已更新')
   const transitionLabel = (event) => event.fromStatus
-    ? `${event.fromStatus} → ${event.toStatus}`
-    : event.toStatus
+    ? `${statusLabel(event.fromStatus)}变为${statusLabel(event.toStatus)}`
+    : statusLabel(event.toStatus)
+  const channelLabel = (value) => ({
+    DEMO: '系统记录'
+  }[value] || '未启用外部发送')
+  const failureCodeLabel = (value) => ({
+    DEMO_REJECTED: '发送流程未受理',
+    DEMO_UNKNOWN: '未收到最终结果'
+  }[value] || (value ? '原因未说明' : '-'))
   const formatDateTime = (value) => value
     ? new Date(value).toLocaleString('zh-CN', { hour12: false })
     : '-'

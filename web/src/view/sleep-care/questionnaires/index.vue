@@ -1,9 +1,9 @@
 <template>
   <div>
-    <div class="mb-4 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-amber-900">
-      <div class="font-semibold">测试定义只读预览</div>
+    <div class="mb-4 rounded-lg border border-border bg-container px-4 py-3">
+      <div class="font-semibold">问卷内容管理</div>
       <div class="mt-1 text-sm leading-6">
-        P1-03 仅展示软件流程验证用问卷与关注规则版本。页面不采集答卷、不表达医疗判断，也不启用短信或面向用户的 AI。
+        查看已配置的题目和关注规则。本页不显示用户答卷，也不提供诊断或治疗建议。
       </div>
     </div>
 
@@ -12,15 +12,15 @@
         :inline="true"
         :model="searchForm"
       >
-        <el-form-item label="编码、版本或标题">
+        <el-form-item label="问卷名称">
           <el-input
             v-model="searchForm.keyword"
             clearable
-            placeholder="搜索测试问卷定义"
+            placeholder="请输入问卷名称"
             @keyup.enter="search"
           />
         </el-form-item>
-        <el-form-item label="生命周期">
+        <el-form-item label="状态">
           <el-select
             v-model="searchForm.status"
             clearable
@@ -32,16 +32,6 @@
               :label="item.label"
               :value="item.value"
             />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="使用范围">
-          <el-select
-            v-model="searchForm.usageScope"
-            clearable
-            class="w-36"
-          >
-            <el-option label="仅测试" value="TEST_ONLY" />
-            <el-option label="正式" value="FORMAL" />
           </el-select>
         </el-form-item>
         <el-form-item>
@@ -61,36 +51,16 @@
         v-loading="loading"
         :data="tableData"
         row-key="id"
-        empty-text="暂无可预览的问卷版本"
+        empty-text="暂无可用问卷"
       >
-        <el-table-column prop="code" label="问卷编码" min-width="180" />
-        <el-table-column prop="version" label="版本" min-width="145" />
-        <el-table-column prop="title" label="标题" min-width="220" />
-        <el-table-column label="生命周期" width="120">
+        <el-table-column label="问卷名称" min-width="260">
+          <template #default="scope">{{ readableQuestionnaireTitle(scope.row.title) }}</template>
+        </el-table-column>
+        <el-table-column label="状态" width="120">
           <template #default="scope">
             <el-tag :type="lifecycleTagType(scope.row.lifecycleStatus)">
               {{ lifecycleLabel(scope.row.lifecycleStatus) }}
             </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column label="门禁" min-width="190">
-          <template #default="scope">
-            <div class="flex flex-wrap gap-1">
-              <el-tag type="warning">{{ usageScopeLabel(scope.row.usageScope) }}</el-tag>
-              <el-tag
-                v-if="scope.row.synthetic"
-                type="warning"
-                effect="plain"
-              >
-                测试
-              </el-tag>
-              <el-tag
-                :type="scope.row.productionEnabled ? 'danger' : 'info'"
-                effect="plain"
-              >
-                {{ scope.row.productionEnabled ? '生产已启用' : '生产未启用' }}
-              </el-tag>
-            </div>
           </template>
         </el-table-column>
         <el-table-column label="内容规模" width="130">
@@ -98,12 +68,9 @@
             {{ scope.row.questionCount }} 题 / {{ scope.row.ruleCount }} 条规则
           </template>
         </el-table-column>
-        <el-table-column label="工程复核" min-width="180">
+        <el-table-column label="内容确认时间" min-width="180">
           <template #default="scope">
-            <div>{{ reviewTypeLabel(scope.row.reviewRecord?.reviewType) }}</div>
-            <div class="mt-1 text-xs text-gray-500">
-              {{ formatTimestamp(scope.row.reviewRecord?.reviewedAt) }}
-            </div>
+            {{ formatTimestamp(scope.row.reviewRecord?.reviewedAt) }}
           </template>
         </el-table-column>
         <el-table-column label="发布时间" min-width="170">
@@ -140,7 +107,7 @@
 
     <el-drawer
       v-model="detailVisible"
-      title="问卷与规则版本预览"
+      title="问卷内容预览"
       size="760px"
     >
       <div
@@ -152,53 +119,35 @@
       <template v-else-if="detail">
         <el-alert
           class="mb-4"
-          type="warning"
+          type="info"
           :closable="false"
-          title="该定义只用于测试软件验收，不得解释为医疗问卷或关注建议。"
+          title="请按页面内容核对题目与关注流程。本页不会展示用户作答结果。"
         />
 
         <el-descriptions
           :column="2"
           border
         >
-          <el-descriptions-item label="醒目标识">
-            <el-tag type="warning">测试定义</el-tag>
-          </el-descriptions-item>
-          <el-descriptions-item label="生命周期">
+          <el-descriptions-item label="状态">
             {{ lifecycleLabel(detail.lifecycleStatus) }}
-          </el-descriptions-item>
-          <el-descriptions-item label="编码">{{ detail.code }}</el-descriptions-item>
-          <el-descriptions-item label="版本">{{ detail.version }}</el-descriptions-item>
-          <el-descriptions-item label="使用范围">
-            {{ usageScopeLabel(detail.usageScope) }}
-          </el-descriptions-item>
-          <el-descriptions-item label="生产门禁">
-            {{ detail.productionEnabled ? '已启用' : '未启用' }}
           </el-descriptions-item>
           <el-descriptions-item label="预计耗时">
             {{ detail.expectedMinutes }} 分钟
           </el-descriptions-item>
-          <el-descriptions-item label="定义协议">
-            {{ detail.definitionSchemaVersion }}
-          </el-descriptions-item>
-          <el-descriptions-item label="标题" :span="2">
-            {{ detail.title }}
+          <el-descriptions-item label="问卷名称" :span="2">
+              {{ readableQuestionnaireTitle(detail.title) }}
           </el-descriptions-item>
           <el-descriptions-item label="用途" :span="2">
-            {{ detail.purpose }}
+              {{ readableQuestionnairePurpose(detail.purpose) }}
           </el-descriptions-item>
-          <el-descriptions-item label="复核" :span="2">
-            {{ reviewTypeLabel(detail.reviewRecord?.reviewType) }} ·
+          <el-descriptions-item label="内容确认记录" :span="2">
             {{ formatTimestamp(detail.reviewRecord?.reviewedAt) }} ·
-            {{ detail.reviewRecord?.note || '-' }}
-          </el-descriptions-item>
-          <el-descriptions-item label="定义哈希" :span="2">
-            <span class="break-all font-mono text-xs">{{ detail.definitionHash }}</span>
+            {{ readableReviewNote(detail.reviewRecord?.note) }}
           </el-descriptions-item>
         </el-descriptions>
 
         <div class="mb-2 mt-6 flex items-center justify-between">
-          <h3 class="font-semibold">题目定义</h3>
+          <h3 class="font-semibold">题目预览</h3>
           <span class="text-sm text-gray-500">{{ detail.questions?.length || 0 }} 题</span>
         </div>
         <div class="flex flex-col gap-3">
@@ -208,7 +157,7 @@
             class="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3"
           >
             <div class="flex flex-wrap items-center gap-2">
-              <span class="font-semibold">{{ question.order }}. {{ question.title }}</span>
+              <span class="font-semibold">{{ question.order }}. {{ readableQuestionTitle(question.title) }}</span>
               <el-tag size="small" effect="plain">{{ questionTypeLabel(question.type) }}</el-tag>
               <el-tag
                 v-if="question.required"
@@ -219,10 +168,6 @@
                 必答
               </el-tag>
             </div>
-            <div class="mt-2 text-xs text-gray-500">
-              题目编码：<span class="font-mono">{{ question.code }}</span>
-              · 校验协议：{{ question.validationSchemaVersion }}
-            </div>
             <div
               v-if="question.options?.length"
               class="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2"
@@ -232,23 +177,19 @@
                 :key="option.id"
                 class="rounded border border-gray-200 bg-white px-3 py-2 text-sm"
               >
-                <span class="font-mono text-xs text-gray-500">{{ option.code }}</span>
-                <span class="ml-2">{{ option.label }}</span>
+                <span>{{ readableOptionLabel(option.label) }}</span>
               </div>
-            </div>
-            <div class="mt-3 text-xs text-gray-500">
-              校验约束：<span class="font-mono">{{ formatObject(question.validation) }}</span>
             </div>
           </div>
         </div>
 
         <div class="mb-2 mt-6 flex items-center justify-between">
-          <h3 class="font-semibold">绑定关注规则版本</h3>
+          <h3 class="font-semibold">关注规则</h3>
           <span class="text-sm text-gray-500">{{ detail.rules?.length || 0 }} 条</span>
         </div>
         <el-empty
           v-if="!detail.rules?.length"
-          description="当前版本没有规则定义"
+          description="当前问卷没有关注规则"
           :image-size="72"
         />
         <div
@@ -261,23 +202,10 @@
             class="rounded-lg border border-gray-200 px-4 py-3"
           >
             <div class="flex flex-wrap items-center gap-2">
-              <span class="font-semibold">{{ rule.title }}</span>
+              <span class="font-semibold">{{ readableRuleTitle(rule.title) }}</span>
               <el-tag :type="lifecycleTagType(rule.lifecycleStatus)" size="small">
                 {{ lifecycleLabel(rule.lifecycleStatus) }}
               </el-tag>
-              <el-tag type="warning" size="small" effect="plain">
-                {{ usageScopeLabel(rule.usageScope) }}
-              </el-tag>
-              <el-tag
-                :type="rule.productionEnabled ? 'danger' : 'info'"
-                size="small"
-                effect="plain"
-              >
-                {{ rule.productionEnabled ? '生产已启用' : '生产未启用' }}
-              </el-tag>
-            </div>
-            <div class="mt-2 text-xs text-gray-500">
-              {{ rule.code }} · {{ rule.version }} · {{ reviewTypeLabel(rule.reviewRecord?.reviewType) }}
             </div>
             <el-descriptions
               class="mt-3"
@@ -285,20 +213,14 @@
               size="small"
               border
             >
-              <el-descriptions-item label="测试关注级别">
-                {{ rule.attentionLevel }}
+              <el-descriptions-item label="关注程度">
+                需要工作人员关注
               </el-descriptions-item>
-              <el-descriptions-item label="触发条件">
-                <span class="break-all font-mono text-xs">{{ formatObject(rule.condition) }}</span>
+              <el-descriptions-item label="触发说明">
+                {{ readableAttentionReason(rule.reasonSnapshot) }}
               </el-descriptions-item>
-              <el-descriptions-item label="原因快照">
-                {{ rule.reasonSnapshot }}
-              </el-descriptions-item>
-              <el-descriptions-item label="接收角色">
-                {{ rule.recipients?.join('、') || '-' }}
-              </el-descriptions-item>
-              <el-descriptions-item label="去重模板">
-                <span class="font-mono text-xs">{{ rule.dedupKeyTemplate }}</span>
+              <el-descriptions-item label="由谁处理">
+                {{ recipientLabels(rule.recipients) }}
               </el-descriptions-item>
             </el-descriptions>
           </div>
@@ -314,6 +236,15 @@
   import { getQuestionnaireVersion, getQuestionnaireVersions } from '@/api/sleep-care/questionnaires'
   import { useBtnAuth } from '@/utils/btnAuth'
   import { formatDate } from '@/utils/format'
+  import {
+    readableAttentionReason,
+    readableOptionLabel,
+    readableQuestionnairePurpose,
+    readableQuestionnaireTitle,
+    readableQuestionTitle,
+    readableReviewNote,
+    readableRuleTitle
+  } from '@/utils/sleep-care-display'
 
   defineOptions({ name: 'CareQuestionnaires' })
 
@@ -388,7 +319,7 @@
     }
   }
 
-  const lifecycleLabel = (value) => lifecycleOptions.find((item) => item.value === value)?.label || value || '-'
+  const lifecycleLabel = (value) => lifecycleOptions.find((item) => item.value === value)?.label || '未说明'
 
   const lifecycleTagType = (value) => ({
     DRAFT: 'info',
@@ -398,26 +329,20 @@
     DISABLED: 'danger'
   })[value] || 'info'
 
-  const usageScopeLabel = (value) => ({
-    TEST_ONLY: '仅测试',
-    FORMAL: '正式'
-  })[value] || value || '-'
-
-  const reviewTypeLabel = (value) => ({
-    ENGINEERING_FIXTURE_REVIEW: '工程夹具复核',
-    FORMAL_MEDICAL_REVIEW: '正式医疗复核'
-  })[value] || value || '未复核'
-
   const questionTypeLabel = (value) => ({
     SINGLE_CHOICE: '单选',
     MULTIPLE_CHOICE: '多选',
     TEXT: '文本',
     NUMBER: '数字',
     DATE: '日期',
-    BOOLEAN: '布尔'
-  })[value] || value
+    BOOLEAN: '是或否'
+  })[value] || '其他题型'
 
-  const formatObject = (value) => JSON.stringify(value || {})
+  const recipientLabels = (values = []) => values.map((value) => ({
+    CARE_STEWARD: '健康管家',
+    CLINICIAN: '一线医护',
+    SUPERVISOR: '上级医师'
+  })[value] || '工作人员').join('、') || '未指定'
 
   const formatTimestamp = (value) => value ? formatDate(value) : '-'
 

@@ -1,9 +1,9 @@
 <template>
   <div>
-    <div class="mb-4 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-amber-900">
-      <div class="font-semibold">测试 OSA 计划定义</div>
+    <div class="mb-4 rounded-lg border border-border bg-container px-4 py-3">
+      <div class="font-semibold">服务计划模板</div>
       <div class="mt-1 text-sm leading-6">
-        本页只读展示 D1–D5 软件调度定义。所有任务均为测试流程验证内容，通知保持禁用，不提供医疗解释、真实短信或面向用户的 AI。
+        查看每套计划包含的任务次数、开放时间和截止时间。系统目前不会自动发送通知。
       </div>
     </div>
 
@@ -12,15 +12,15 @@
         :inline="true"
         :model="searchForm"
       >
-        <el-form-item label="编码、版本或标题">
+        <el-form-item label="计划名称">
           <el-input
             v-model="searchForm.keyword"
             clearable
-            placeholder="搜索测试计划定义"
+            placeholder="请输入计划名称"
             @keyup.enter="search"
           />
         </el-form-item>
-        <el-form-item label="生命周期">
+        <el-form-item label="状态">
           <el-select
             v-model="searchForm.status"
             clearable
@@ -47,40 +47,29 @@
         v-loading="loading"
         :data="tableData"
         row-key="id"
-        empty-text="暂无可预览的计划模板版本"
+        empty-text="暂无可用的计划模板"
       >
-        <el-table-column prop="pathCode" label="路径" width="90" />
-        <el-table-column prop="code" label="计划编码" min-width="170" />
-        <el-table-column prop="version" label="版本" min-width="145" />
-        <el-table-column prop="title" label="标题" min-width="240" />
-        <el-table-column label="调度边界" min-width="230">
+        <el-table-column label="计划名称" min-width="240">
+          <template #default="scope">{{ readablePlanTitle(scope.row.title) }}</template>
+        </el-table-column>
+        <el-table-column label="任务安排" min-width="300">
           <template #default="scope">
             <div class="flex flex-wrap gap-1">
-              <el-tag effect="plain">D1–D{{ scope.row.taskCount }}</el-tag>
+              <el-tag effect="plain">共 {{ scope.row.taskCount }} 次</el-tag>
               <el-tag type="info" effect="plain">
-                {{ scope.row.pauseStrategy }}
+                {{ pauseStrategyLabel(scope.row.pauseStrategy) }}
               </el-tag>
               <el-tag type="warning" effect="plain">
-                {{ scope.row.lateSubmissionPolicy }}
+                {{ latePolicyLabel(scope.row.lateSubmissionPolicy) }}
               </el-tag>
             </div>
           </template>
         </el-table-column>
-        <el-table-column label="门禁" min-width="200">
+        <el-table-column label="状态" min-width="120">
           <template #default="scope">
-            <div class="flex flex-wrap gap-1">
-              <el-tag type="warning">仅测试</el-tag>
-              <el-tag
-                v-if="scope.row.synthetic"
-                type="warning"
-                effect="plain"
-              >
-                测试
-              </el-tag>
-              <el-tag type="info" effect="plain">
-                生产未启用
-              </el-tag>
-            </div>
+            <el-tag :type="scope.row.status === 'PUBLISHED' ? 'success' : 'info'">
+              {{ scope.row.status === 'PUBLISHED' ? '可使用' : '已停用' }}
+            </el-tag>
           </template>
         </el-table-column>
         <el-table-column label="发布时间" min-width="170">
@@ -117,7 +106,7 @@
 
     <el-drawer
       v-model="detailVisible"
-      title="OSA 计划模板版本预览"
+      title="服务计划详情"
       size="860px"
     >
       <div
@@ -127,54 +116,43 @@
         <template v-if="detail">
           <el-alert
             class="mb-4"
-            type="warning"
+            type="info"
             :closable="false"
-            title="该模板仅验证软件调度；不构成医疗路径、诊疗建议或真实服务安排。"
+            title="这里展示任务时间安排，不提供诊断或治疗建议。"
           />
 
           <el-descriptions
             :column="2"
             border
           >
-            <el-descriptions-item label="路径 / 计划">
-              {{ detail.pathCode }} / {{ detail.code }}
+            <el-descriptions-item label="计划名称" :span="2">
+              {{ readablePlanTitle(detail.title) }}
             </el-descriptions-item>
-            <el-descriptions-item label="版本">
-              {{ detail.version }}
+            <el-descriptions-item label="开始时间">
+              以启动计划时选择的时间为准
             </el-descriptions-item>
-            <el-descriptions-item label="锚点定义" :span="2">
-              <span class="font-mono text-xs">{{ detail.anchorDefinition }}</span>
+            <el-descriptions-item label="暂停后安排">
+              {{ pauseStrategyLabel(detail.pauseStrategy) }}
             </el-descriptions-item>
-            <el-descriptions-item label="暂停策略">
-              {{ detail.pauseStrategy }}
-            </el-descriptions-item>
-            <el-descriptions-item label="逾期策略">
-              {{ detail.lateSubmissionPolicy }}
-            </el-descriptions-item>
-            <el-descriptions-item label="标题" :span="2">
-              {{ detail.title }}
+            <el-descriptions-item label="超过截止时间">
+              {{ latePolicyLabel(detail.lateSubmissionPolicy) }}
             </el-descriptions-item>
             <el-descriptions-item label="用途" :span="2">
-              {{ detail.purpose }}
+              {{ readablePlanPurpose(detail.purpose) }}
             </el-descriptions-item>
-            <el-descriptions-item label="工程复核" :span="2">
-              {{ detail.reviewRecord?.reviewType }} ·
+            <el-descriptions-item label="确认记录" :span="2">
               {{ formatDateTime(detail.reviewRecord?.reviewedAt) }} ·
-              {{ detail.reviewRecord?.note }}
-            </el-descriptions-item>
-            <el-descriptions-item label="定义哈希" :span="2">
-              <span class="break-all font-mono text-xs">{{ detail.definitionHash }}</span>
+              {{ readableReviewNote(detail.reviewRecord?.note) }}
             </el-descriptions-item>
           </el-descriptions>
 
           <div class="mb-3 mt-7 flex items-end justify-between gap-4">
             <div>
-              <div class="text-xs font-semibold tracking-widest text-gray-400">ANCHOR → D5</div>
-              <h3 class="mt-1 text-lg font-semibold">五日调度轨道</h3>
+              <h3 class="text-lg font-semibold">任务时间安排</h3>
             </div>
             <div class="text-right text-xs leading-5 text-gray-500">
-              相对时间由 anchorAt 冻结计算<br>
-              通知策略全部为 DISABLED
+              时间按计划开始时间计算<br>
+              系统目前不会自动发送通知
             </div>
           </div>
 
@@ -185,11 +163,11 @@
               class="relative overflow-hidden rounded-lg border border-slate-200 bg-slate-50 px-3 pb-3 pt-9"
             >
               <div class="absolute left-0 top-0 flex w-full items-center justify-between bg-slate-900 px-3 py-2 text-white">
-                <span class="font-mono text-sm font-semibold tracking-wider">{{ task.dayCode }}</span>
-                <span class="text-[10px] text-slate-300">{{ task.executionRole }}</span>
+                <span class="text-sm font-semibold">{{ dayLabel(task.dayCode) }}</span>
+                <span class="text-[10px] text-slate-300">{{ executionRoleLabel(task.executionRole) }}</span>
               </div>
               <div class="mt-3 min-h-12 text-sm font-medium leading-5">
-                {{ task.title }}
+                {{ readableTaskTitle(task.title, task.dayCode) }}
               </div>
               <div class="mt-3 border-t border-slate-200 pt-2 text-xs leading-5 text-slate-600">
                 <div>开放 {{ formatOffset(task.openOffsetSeconds) }}</div>
@@ -202,7 +180,7 @@
                   type="warning"
                   effect="plain"
                 >
-                  问卷 {{ task.questionnaireVersionId }}
+                  需要填写问卷
                 </el-tag>
                 <el-tag
                   v-if="task.boundRuleVersionIds?.length"
@@ -210,7 +188,7 @@
                   type="warning"
                   effect="plain"
                 >
-                  规则 {{ task.boundRuleVersionIds.join(', ') }}
+                  已设置关注规则
                 </el-tag>
                 <el-tag
                   v-if="task.reviewRequired"
@@ -218,7 +196,7 @@
                   type="info"
                   effect="plain"
                 >
-                  复核 {{ task.reviewRole }}
+                  {{ reviewRoleLabel(task.reviewRole) }}复核
                 </el-tag>
                 <el-tag
                   v-if="!task.questionnaireVersionId"
@@ -226,7 +204,7 @@
                   type="info"
                   effect="plain"
                 >
-                  无问卷绑定
+                  无需填写问卷
                 </el-tag>
                 <el-tag
                   v-if="!task.boundRuleVersionIds?.length"
@@ -234,7 +212,7 @@
                   type="info"
                   effect="plain"
                 >
-                  无规则绑定
+                  没有额外关注规则
                 </el-tag>
               </div>
             </div>
@@ -248,6 +226,12 @@
 <script setup>
   import { onMounted, reactive, ref } from 'vue'
   import { useBtnAuth } from '@/utils/btnAuth'
+  import {
+    readablePlanPurpose,
+    readablePlanTitle,
+    readableReviewNote,
+    readableTaskTitle
+  } from '@/utils/sleep-care-display'
   import {
     getPlanVersion,
     getPlanVersions
@@ -320,8 +304,26 @@
   const formatOffset = (seconds) => {
     const day = Math.floor(seconds / 86400) + 1
     const hour = Math.floor((seconds % 86400) / 3600)
-    return `D${day} ${String(hour).padStart(2, '0')}:00`
+    return `第${day}天 ${String(hour).padStart(2, '0')}:00`
   }
+
+  const dayLabel = (value) => `第${String(value || '').replace(/^D/, '') || '-'}次`
+  const pauseStrategyLabel = (value) => ({
+    KEEP_WINDOWS: '暂停后保留原任务时间'
+  }[value] || '按原任务时间执行')
+  const latePolicyLabel = (value) => ({
+    DENY: '截止后不能提交'
+  }[value] || '按页面提示处理')
+  const executionRoleLabel = (value) => ({
+    CARE_CLIENT: '用户填写',
+    CARE_STEWARD: '健康管家处理',
+    CLINICIAN: '一线医护处理'
+  }[value] || '按安排处理')
+  const reviewRoleLabel = (value) => ({
+    CARE_STEWARD: '健康管家',
+    CLINICIAN: '一线医护',
+    SUPERVISOR: '上级医师'
+  }[value] || '工作人员')
 
   const formatDateTime = (value) => value
     ? new Date(value).toLocaleString('zh-CN', { hour12: false })

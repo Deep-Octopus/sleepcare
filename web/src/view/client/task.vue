@@ -22,12 +22,13 @@
     <template v-else-if="task">
       <div class="flex items-center gap-3">
         <div class="flex h-14 w-12 flex-col items-center justify-center rounded-xl bg-[#e5f0ec] text-[#276b5b] dark:bg-emerald-950 dark:text-emerald-200">
-          <span class="text-[10px] font-semibold tracking-wider">DAY</span>
+          <span class="text-[10px] font-semibold">第</span>
           <span class="text-lg font-bold leading-none">{{ task.dayCode.replace('D', '') }}</span>
+          <span class="text-[10px] font-semibold">次</span>
         </div>
         <div>
           <p class="text-sm text-[#60766f] dark:text-slate-400">{{ taskStateCopy(task).label }}</p>
-          <h1 class="mt-0.5 text-[1.75rem] font-semibold leading-tight tracking-[-0.035em]">{{ task.title }}</h1>
+          <h1 class="mt-0.5 text-[1.75rem] font-semibold leading-tight tracking-[-0.035em]">{{ readableTaskTitle(task.title, task.dayCode) }}</h1>
         </div>
       </div>
 
@@ -76,6 +77,7 @@
   import { useRoute, useRouter } from 'vue-router'
   import { getClientTask, recordClientInteraction } from '@/api/sleep-care/client-access'
   import { formatTaskTime, newIdempotencyKey, taskStateCopy, unwrapClientResponse } from './state'
+  import { readableTaskTitle } from '@/utils/sleep-care-display'
 
   defineOptions({
     name: 'ClientTask'

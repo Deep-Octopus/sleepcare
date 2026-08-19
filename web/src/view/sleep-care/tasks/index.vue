@@ -1,9 +1,9 @@
 <template>
   <div>
-    <div class="mb-4 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-amber-900">
-      <div class="font-semibold">责任范围内的固定测试任务</div>
+    <div class="mb-4 rounded-lg border border-border bg-container px-4 py-3">
+      <div class="font-semibold">计划任务</div>
       <div class="mt-1 text-sm leading-6">
-        执行、时效和复核是三个独立状态轴。可追加人工联系事实；未开放任务不能提前填写，本阶段不启用真实通知或医疗处置。
+        查看责任范围内的任务进度、截止情况和复核状态。尚未开放的任务不能提前填写。
       </div>
     </div>
 
@@ -12,7 +12,7 @@
         :inline="true"
         :model="searchForm"
       >
-        <el-form-item label="康养用户 ID">
+        <el-form-item label="用户编号">
           <el-input-number
             v-model="searchForm.careClientId"
             :min="1"
@@ -29,7 +29,7 @@
             <el-option
               v-for="day in dayOptions"
               :key="day"
-              :label="day"
+              :label="dayLabel(day)"
               :value="day"
             />
           </el-select>
@@ -81,33 +81,35 @@
         row-key="id"
         empty-text="当前责任或组织范围内暂无计划任务"
       >
-        <el-table-column label="日序" width="82">
+        <el-table-column label="任务次序" width="100">
           <template #default="scope">
-            <span class="font-mono text-base font-semibold text-slate-800">
-              {{ scope.row.dayCode }}
+            <span class="text-base font-semibold text-slate-800">
+              {{ dayLabel(scope.row.dayCode) }}
             </span>
           </template>
         </el-table-column>
         <el-table-column label="康养用户" min-width="180">
           <template #default="scope">
             <div class="font-medium">{{ scope.row.careClientDisplayName }}</div>
-            <div class="mt-1 font-mono text-xs text-gray-400">
-              {{ scope.row.careClientDisplayCode }} · #{{ scope.row.careClientId }}
+            <div class="mt-1 text-xs text-gray-400">
+              用户编号 {{ scope.row.careClientDisplayCode }}
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="title" label="任务" min-width="220" />
-        <el-table-column label="三轴状态" min-width="290">
+        <el-table-column label="任务" min-width="220">
+          <template #default="scope">{{ readableTaskTitle(scope.row.title, scope.row.dayCode) }}</template>
+        </el-table-column>
+        <el-table-column label="当前进度" min-width="290">
           <template #default="scope">
             <div class="flex flex-wrap gap-1">
               <el-tag :type="executionTagType(scope.row.executionStatus)">
-                执行 · {{ statusLabel(scope.row.executionStatus) }}
+                任务 · {{ statusLabel(scope.row.executionStatus) }}
               </el-tag>
               <el-tag
                 :type="timingTagType(scope.row.timingStatus)"
                 effect="plain"
               >
-                时效 · {{ statusLabel(scope.row.timingStatus) }}
+                时间 · {{ statusLabel(scope.row.timingStatus) }}
               </el-tag>
               <el-tag
                 :type="reviewTagType(scope.row.reviewStatus)"
@@ -185,26 +187,26 @@
         <template v-if="detail">
           <el-alert
             class="mb-4"
-            type="warning"
+            type="info"
             :closable="false"
-            title="固定测试任务；本页不提供填写、提交、补填、重排或真实通知动作。"
+            title="这里用于查看任务安排和记录联系情况；填写与提交请从用户任务入口完成。"
           />
 
           <div class="mb-4 overflow-hidden rounded-lg border border-slate-200 bg-slate-50">
             <div class="flex items-center justify-between bg-slate-900 px-4 py-3 text-white">
               <div class="flex items-center gap-3">
-                <span class="font-mono text-xl font-semibold tracking-widest">{{ detail.dayCode }}</span>
-                <span class="text-sm text-slate-300">{{ detail.title }}</span>
+                <span class="text-xl font-semibold">{{ dayLabel(detail.dayCode) }}</span>
+                <span class="text-sm text-slate-300">{{ readableTaskTitle(detail.title, detail.dayCode) }}</span>
               </div>
-              <span class="font-mono text-xs text-slate-400">TASK #{{ detail.id }}</span>
+              <span class="text-xs text-slate-400">任务编号 {{ detail.id }}</span>
             </div>
             <div class="grid grid-cols-1 gap-px bg-slate-200 md:grid-cols-3">
               <div class="bg-white px-4 py-3">
-                <div class="text-xs text-gray-400">执行状态</div>
+                <div class="text-xs text-gray-400">任务状态</div>
                 <div class="mt-1 font-semibold">{{ statusLabel(detail.executionStatus) }}</div>
               </div>
               <div class="bg-white px-4 py-3">
-                <div class="text-xs text-gray-400">时效状态</div>
+                <div class="text-xs text-gray-400">时间状态</div>
                 <div class="mt-1 font-semibold">{{ statusLabel(detail.timingStatus) }}</div>
               </div>
               <div class="bg-white px-4 py-3">
@@ -233,17 +235,17 @@
             <el-descriptions-item label="截止时间">
               {{ formatDateTime(detail.dueAt) }}
             </el-descriptions-item>
-            <el-descriptions-item label="逾期策略">
-              {{ detail.lateSubmissionPolicy }}
+            <el-descriptions-item label="超过截止时间">
+              {{ latePolicyLabel(detail.lateSubmissionPolicy) }}
             </el-descriptions-item>
-            <el-descriptions-item label="通知策略">
-              {{ detail.notificationPolicy }}
+            <el-descriptions-item label="通知安排">
+              {{ notificationPolicyLabel(detail.notificationPolicy) }}
             </el-descriptions-item>
-            <el-descriptions-item label="问卷版本">
-              {{ detail.questionnaireVersionId || '未绑定' }}
+            <el-descriptions-item label="填写内容">
+              {{ detail.questionnaireVersionId ? '需要填写问卷' : '无需填写问卷' }}
             </el-descriptions-item>
-            <el-descriptions-item label="冻结规则版本">
-              {{ detail.ruleVersionIds?.length ? detail.ruleVersionIds.join(', ') : '无' }}
+            <el-descriptions-item label="关注规则">
+              {{ detail.ruleVersionIds?.length ? '已设置' : '无' }}
             </el-descriptions-item>
             <el-descriptions-item label="复核角色" :span="2">
               {{ detail.reviewRole ? roleLabel(detail.reviewRole) : '无需复核' }}
@@ -251,8 +253,7 @@
           </el-descriptions>
 
           <div class="mb-3 mt-7">
-            <div class="text-xs font-semibold tracking-widest text-gray-400">AUDIT TRAIL</div>
-            <h3 class="mt-1 text-lg font-semibold">状态时间线</h3>
+            <h3 class="text-lg font-semibold">状态记录</h3>
           </div>
           <el-empty
             v-if="!detail.timeline?.length"
@@ -337,6 +338,7 @@
   import { onMounted, reactive, ref } from 'vue'
   import { ElMessage } from 'element-plus'
   import { useBtnAuth } from '@/utils/btnAuth'
+  import { readableTaskTitle } from '@/utils/sleep-care-display'
   import {
     getCareTask,
     getCareTasks,
@@ -363,9 +365,9 @@
   ]
   const timingOptions = [
     { label: '未开放', value: 'NOT_OPEN' },
-    { label: '窗口内', value: 'WITHIN_WINDOW' },
-    { label: '已逾期', value: 'OVERDUE' },
-    { label: '已过期', value: 'EXPIRED' }
+    { label: '可按时完成', value: 'WITHIN_WINDOW' },
+    { label: '已超过截止时间', value: 'OVERDUE' },
+    { label: '已结束', value: 'EXPIRED' }
   ]
   const searchForm = reactive({
     careClientId: undefined,
@@ -478,9 +480,9 @@
     SUBMITTED: '已提交',
     CANCELLED: '已取消',
     NOT_OPEN: '未开放',
-    WITHIN_WINDOW: '窗口内',
-    OVERDUE: '已逾期',
-    EXPIRED: '已过期',
+    WITHIN_WINDOW: '可按时完成',
+    OVERDUE: '已超过截止时间',
+    EXPIRED: '已结束',
     NOT_READY: '尚不可复核',
     NOT_REQUIRED: '无需复核',
     PENDING: '待复核',
@@ -491,7 +493,7 @@
     PAUSED: '已暂停'
   }
 
-  const statusLabel = (value) => statusLabels[value] || value
+  const statusLabel = (value) => statusLabels[value] || '未说明'
   const executionTagType = (value) => ({
     OPEN: 'success',
     SUBMITTED: 'primary',
@@ -512,20 +514,27 @@
     CARE_CLIENT: '康养用户',
     CARE_STEWARD: '健康管家',
     CLINICIAN: '一线医护'
-  }[value] || value)
+  }[value] || '未说明')
   const sourceLabel = (value) => ({
     SYSTEM: '系统调度',
     CARE_STEWARD: '健康管家',
     CLINICIAN: '一线医护',
     SUPERVISOR: '上级医师'
-  }[value] || value)
+  }[value] || '工作人员')
   const eventLabel = (value) => ({
     CarePlanStarted: '计划已启动',
     CarePlanPaused: '计划已暂停',
     CarePlanResumed: '计划已恢复',
     TaskOpened: '任务已开放',
     TaskContactRecorded: '已记录人工联系'
-  }[value] || value)
+  }[value] || '状态已更新')
+  const dayLabel = (value) => `第${String(value || '').replace(/^D/, '') || '-'}次`
+  const latePolicyLabel = (value) => ({
+    DENY: '截止后不能提交'
+  }[value] || '请按页面提示处理')
+  const notificationPolicyLabel = (value) => ({
+    DISABLED: '系统不会自动通知'
+  }[value] || '按现有方式联系用户')
   const formatDateTime = (value) => value
     ? new Date(value).toLocaleString('zh-CN', { hour12: false })
     : '-'

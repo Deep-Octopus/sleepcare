@@ -33,7 +33,7 @@
           class="p-4"
           :class="index ? 'border-t border-[#e5ece9] dark:border-slate-800' : ''"
         >
-          <p class="text-sm leading-6 text-[#60766f] dark:text-slate-400">{{ question.title }}</p>
+          <p class="text-sm leading-6 text-[#60766f] dark:text-slate-400">{{ readableQuestionTitle(question.title) }}</p>
           <p class="mt-1.5 break-words text-base font-medium leading-6">{{ answerLabel(question) }}</p>
         </div>
       </div>
@@ -62,6 +62,7 @@
   import { useRoute, useRouter } from 'vue-router'
   import { getClientQuestionnaire, submitClientTask } from '@/api/sleep-care/client-access'
   import { clearLocalTaskState, compactAnswers, getOrCreateSubmitKey, readLocalDraft, unwrapClientResponse } from './state'
+  import { readableOptionLabel, readableQuestionTitle } from '@/utils/sleep-care-display'
 
   defineOptions({
     name: 'ClientTaskConfirm'
@@ -96,11 +97,15 @@
   const answerLabel = (question) => {
     const value = answers.value[question.code]
     if (question.type === 'SINGLE_CHOICE') {
-      return question.options.find((option) => option.code === value)?.label || '未填写'
+      const option = question.options.find((item) => item.code === value)
+      return option ? readableOptionLabel(option.label) : '未填写'
     }
     if (question.type === 'MULTIPLE_CHOICE') {
       const values = Array.isArray(value) ? value : []
-      return values.map((code) => question.options.find((option) => option.code === code)?.label || code).join('、') || '未填写'
+      return values.map((code) => {
+        const option = question.options.find((item) => item.code === code)
+        return option ? readableOptionLabel(option.label) : '未识别选项'
+      }).join('、') || '未填写'
     }
     if (question.type === 'BOOLEAN') {
       return typeof value === 'boolean' ? (value ? '是' : '否') : '未填写'

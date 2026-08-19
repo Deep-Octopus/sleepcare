@@ -21,7 +21,7 @@
         class="flex items-center gap-3 rounded-2xl border border-[#dce8e3] bg-[#f7faf8] p-4 dark:border-slate-800 dark:bg-slate-900"
       >
         <span class="h-2.5 w-2.5 animate-pulse rounded-full bg-[#2c806c] motion-reduce:animate-none" />
-        <span class="text-sm text-[#49645d] dark:text-slate-300">正在验证访问范围</span>
+        <span class="text-sm text-[#49645d] dark:text-slate-300">正在确认访问权限</span>
       </div>
       <el-button
         v-else-if="state === 'invalid'"
@@ -32,7 +32,7 @@
         重新检查
       </el-button>
       <p class="mt-4 text-center text-xs leading-5 text-[#7b8e89] dark:text-slate-500">
-        页面不会显示姓名、联系方式或内部任务信息
+        为保护隐私，本页不会显示多余的个人信息
       </p>
     </div>
   </section>

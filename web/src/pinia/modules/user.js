@@ -9,6 +9,7 @@ import { useStorage } from '@vueuse/core'
 
 import { useThemeStore } from '@/pinia'
 import { clearCachedThemeSettings } from '@/theme/shared'
+import { resolvePostLoginRoute } from '@/utils/login-navigation'
 
 export const useUserStore = defineStore('user', () => {
   const themeStore = useThemeStore()
@@ -66,7 +67,10 @@ export const useUserStore = defineStore('user', () => {
       if (res.code !== 0) {
         return false
       }
-      // 登陆成功，设置用户信息和权限相关信息
+      // 账号可能已经切换，先清除上一账号留下的页签和页面状态。
+      sessionStorage.clear()
+
+      // 登录成功，设置用户信息和权限相关信息
       setUserInfo(res.data.user)
       setToken(res.data.token)
 
@@ -86,19 +90,21 @@ export const useUserStore = defineStore('user', () => {
         router.addRoute(asyncRouter)
       })
 
-      if(router.currentRoute.value.query.redirect) {
-        await router.replace(router.currentRoute.value.query.redirect)
-        return true
-      }
-
-      if (!router.hasRoute(userInfo.value.authority.defaultRouter)) {
-        ElMessage.error('不存在可以登陆的首页，请联系管理员进行配置')
-      } else {
-        await router.replace({ name: userInfo.value.authority.defaultRouter })
+      const landingRoute = resolvePostLoginRoute({
+        defaultRouter: userInfo.value.authority.defaultRouter,
+        routes: asyncRouters
+      })
+      if (!landingRoute) {
+        ElMessage.error('当前账号没有可用首页，请联系管理员')
+        return false
       }
 
       const isWindows = /windows/i.test(navigator.userAgent)
       window.localStorage.setItem('osType', isWindows ? 'WIN' : 'MAC')
+
+      await router.replace(landingRoute)
+      // 重新加载后只注册当前账号路由，避免沿用上一账号的动态路由。
+      window.location.reload()
 
       // 全部操作均结束，关闭loading并返回
       return true

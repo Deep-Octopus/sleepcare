@@ -9,7 +9,7 @@
           </div>
           <h1 class="text-2xl font-semibold tracking-tight">待复核事项</h1>
           <p class="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
-            这里展示管理范围内已请求上级复核的流程事项。指导和介入均保留操作事实及责任链。
+            这里展示需要上级确认的事项，并完整记录处理过程和责任人变化。
           </p>
         </div>
         <el-button
@@ -37,8 +37,8 @@
           min-width="130"
         >
           <template #default="scope">
-            <div class="font-mono font-semibold">#{{ scope.row.id }}</div>
-            <div class="mt-1 text-xs text-muted-foreground">关注事项 #{{ scope.row.attentionCaseId }}</div>
+            <div class="font-semibold">编号 {{ scope.row.id }}</div>
+            <div class="mt-1 text-xs text-muted-foreground">关注事项 {{ scope.row.attentionCaseId }}</div>
           </template>
         </el-table-column>
         <el-table-column
@@ -53,12 +53,6 @@
               {{ reviewStatusLabel(scope.row.status) }}
             </el-tag>
           </template>
-        </el-table-column>
-        <el-table-column
-          label="请求人"
-          min-width="110"
-        >
-          <template #default="scope">#{{ scope.row.requestedBy }}</template>
         </el-table-column>
         <el-table-column
           label="请求时间"
@@ -110,9 +104,9 @@
           <section class="rounded-xl border border-border bg-muted p-4">
             <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div>
-                <p class="text-xs font-medium tracking-widest text-muted-foreground">REVIEW #{{ selectedReview?.id }}</p>
-                <h2 class="mt-2 text-xl font-semibold">关注事项 #{{ detail.id }}</h2>
-                <p class="mt-2 text-sm leading-6">{{ detail.reasonSummary }}</p>
+                <p class="text-xs font-medium text-muted-foreground">复核编号 {{ selectedReview?.id }}</p>
+                <h2 class="mt-2 text-xl font-semibold">关注事项 {{ detail.id }}</h2>
+                <p class="mt-2 text-sm leading-6">{{ readableAttentionReason(detail.reasonSummary) }}</p>
               </div>
               <el-tag
                 :type="reviewStatusTag(selectedReview?.status)"
@@ -129,7 +123,7 @@
               type="primary"
               @click="openAction('guidance')"
             >
-              追加指导
+              给出处理意见
             </el-button>
             <el-button
               v-if="btnAuth.discuss && canAct"
@@ -158,12 +152,11 @@
             :column="2"
             border
           >
-            <el-descriptions-item label="康养用户">#{{ detail.careClientId }}</el-descriptions-item>
-            <el-descriptions-item label="计划任务">#{{ detail.taskId }}</el-descriptions-item>
+            <el-descriptions-item label="康养用户">编号 {{ detail.careClientId }}</el-descriptions-item>
+            <el-descriptions-item label="计划任务">编号 {{ detail.taskId }}</el-descriptions-item>
             <el-descriptions-item label="事项状态">{{ caseStatusLabel(detail.status) }}</el-descriptions-item>
-            <el-descriptions-item label="版本">v{{ detail.version }}</el-descriptions-item>
             <el-descriptions-item label="当前责任人">
-              {{ detail.assigneeId ? `#${detail.assigneeId}` : '待分配' }}
+              {{ detail.assigneeId ? '已分配' : '待分配' }}
             </el-descriptions-item>
             <el-descriptions-item label="目标时间">{{ formatTimestamp(detail.dueAt) }}</el-descriptions-item>
             <el-descriptions-item
@@ -176,8 +169,7 @@
 
           <section class="mt-7">
             <div class="mb-3">
-              <p class="text-xs font-medium tracking-widest text-muted-foreground">ACTION TRAIL</p>
-              <h3 class="mt-1 text-lg font-semibold">行动时间线</h3>
+              <h3 class="text-lg font-semibold">处理记录</h3>
             </div>
             <el-empty
               v-if="!detail.actions?.length"
@@ -252,7 +244,7 @@
               <el-option
                 v-for="item in clinicianOptions"
                 :key="item.assigneeId"
-                :label="`${item.assigneeDisplayName}（#${item.assigneeId}）`"
+                :label="item.assigneeDisplayName"
                 :value="item.assigneeId"
               />
             </el-select>
@@ -300,6 +292,7 @@
   } from '@/api/sleep-care/supervision'
   import { useBtnAuth } from '@/utils/btnAuth'
   import { formatDate } from '@/utils/format'
+  import { readableAttentionReason } from '@/utils/sleep-care-display'
 
   defineOptions({ name: 'CareReviewQueue' })
 
@@ -334,13 +327,13 @@
 
   const canAct = computed(() => detail.value?.status === 'WAITING_SUPERVISOR')
   const actionTitle = computed(() => ({
-    guidance: '追加上级指导',
+    guidance: '给出处理意见',
     discussion: '安排流程讨论',
     intervene: '记录上级直接介入'
   }[actionMode.value]))
   const actionHint = computed(() => actionMode.value === 'intervene'
-    ? '介入后事项回到处理中，并由所选责任医护继续承接活动待办。'
-    : '提交后事项仍处于待上级复核，活动待办转交给所选责任医护并更新时限。'
+    ? '介入后事项回到处理中，并由所选责任医护继续处理。'
+    : '提交后事项继续等待上级确认，并由所选责任医护跟进。'
   )
   const actionContentLabel = computed(() => ({
     guidance: '指导内容',
@@ -472,7 +465,7 @@
     GUIDED: '已指导',
     INTERVENED: '已介入',
     COMPLETED: '已完成'
-  }[value] || value || '-')
+  }[value] || '未说明')
   const reviewStatusTag = (value) => ({
     PENDING: 'warning',
     GUIDED: 'primary',
@@ -484,27 +477,27 @@
     ACKNOWLEDGED: '已确认',
     HANDLING: '处理中',
     WAITING_CLIENT: '等待用户',
-    WAITING_COLLABORATION: '等待协作',
+    WAITING_COLLABORATION: '等待责任医护处理',
     WAITING_SUPERVISOR: '等待上级复核',
     RESOLVED: '已解决',
     CLOSED: '已关闭'
-  }[value] || value)
+  }[value] || '未说明')
   const actionTypeLabel = (value) => ({
     ACKNOWLEDGE: '确认',
     CONTACT: '联系',
     HANDLING: '处置',
-    ESCALATE: '升级',
+    ESCALATE: '转交责任医护',
     GUIDANCE: '上级指导',
     INTERVENE: '上级介入',
     RESOLVE: '解决',
     CLOSE: '关闭',
     REOPEN: '重开'
-  }[value] || value)
+  }[value] || '其他操作')
   const actorRoleLabel = (value) => ({
     CARE_STEWARD: '健康管家',
     CLINICIAN: '一线医护',
     SUPERVISOR: '上级医师'
-  }[value] || value)
+  }[value] || '工作人员')
   const formatTimestamp = (value) => value ? formatDate(value) : '-'
 
   onMounted(async () => {

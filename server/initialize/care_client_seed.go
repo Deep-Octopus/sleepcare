@@ -40,7 +40,7 @@ var careClientAPIs = []system.SysApi{
 	{ApiGroup: "康养用户", Method: "POST", Path: "/care/clients", Description: "新建康养用户"},
 	{ApiGroup: "康养用户", Method: "PUT", Path: "/care/clients/:id", Description: "更新康养用户"},
 	{ApiGroup: "康养用户", Method: "POST", Path: "/care/clients/:id/assignments", Description: "记录康养用户责任关系"},
-	{ApiGroup: "康养用户", Method: "POST", Path: "/care/clients/:id/consent-records", Description: "记录固定测试授权事实"},
+	{ApiGroup: "康养用户", Method: "POST", Path: "/care/clients/:id/consent-records", Description: "记录参与状态"},
 }
 
 // EnsureCareClientData keeps metadata available for already initialized GVA
@@ -86,7 +86,7 @@ func ensureCareClientMetadata(db *gorm.DB) error {
 			{Name: "createClient", Desc: "新建康养用户", SysBaseMenuID: leaf.ID},
 			{Name: "maintainClient", Desc: "维护公开资料", SysBaseMenuID: leaf.ID},
 			{Name: "assignCare", Desc: "记录责任关系", SysBaseMenuID: leaf.ID},
-			{Name: "recordConsent", Desc: "记录固定测试授权", SysBaseMenuID: leaf.ID},
+			{Name: "recordConsent", Desc: "记录参与状态", SysBaseMenuID: leaf.ID},
 		}
 		for i := range buttons {
 			var stored system.SysBaseMenuBtn
@@ -126,17 +126,28 @@ func ensureCareClientSyntheticFixtures(db *gorm.DB, password string) error {
 func seedCareDepartments(tx *gorm.DB) error {
 	active := true
 	departments := []system.SysDepartment{
-		{GVA_MODEL: global.GVA_MODEL{ID: syntheticOrgAID}, Name: "[测试] 睡眠康养机构A", ParentId: 1, Ancestors: "0,1", Sort: 90, Status: &active},
-		{GVA_MODEL: global.GVA_MODEL{ID: syntheticOrgBID}, Name: "[测试] 睡眠康养机构B", ParentId: 1, Ancestors: "0,1", Sort: 91, Status: &active},
-		{GVA_MODEL: global.GVA_MODEL{ID: syntheticTeamAID}, Name: "[测试] 随访团队A", ParentId: syntheticOrgAID, Ancestors: "0,1,9001", Sort: 1, Status: &active},
-		{GVA_MODEL: global.GVA_MODEL{ID: syntheticTeamBID}, Name: "[测试] 随访团队B", ParentId: syntheticOrgBID, Ancestors: "0,1,9002", Sort: 1, Status: &active},
+		{GVA_MODEL: global.GVA_MODEL{ID: syntheticOrgAID}, Name: "安和康养服务中心", ParentId: 1, Ancestors: "0,1", Sort: 90, Status: &active},
+		{GVA_MODEL: global.GVA_MODEL{ID: syntheticOrgBID}, Name: "清宁康养服务中心", ParentId: 1, Ancestors: "0,1", Sort: 91, Status: &active},
+		{GVA_MODEL: global.GVA_MODEL{ID: syntheticTeamAID}, Name: "关怀服务一组", ParentId: syntheticOrgAID, Ancestors: "0,1,9001", Sort: 1, Status: &active},
+		{GVA_MODEL: global.GVA_MODEL{ID: syntheticTeamBID}, Name: "关怀服务二组", ParentId: syntheticOrgBID, Ancestors: "0,1,9002", Sort: 1, Status: &active},
+	}
+	legacyNames := map[uint]string{
+		syntheticOrgAID:  "[测试] 睡眠康养机构A",
+		syntheticOrgBID:  "[测试] 睡眠康养机构B",
+		syntheticTeamAID: "[测试] 随访团队A",
+		syntheticTeamBID: "[测试] 随访团队B",
 	}
 	for i := range departments {
 		var existing system.SysDepartment
 		err := tx.Unscoped().Where("id = ?", departments[i].ID).First(&existing).Error
 		if err == nil {
-			if existing.Name != departments[i].Name || existing.DeletedAt.Valid {
+			if (existing.Name != departments[i].Name && existing.Name != legacyNames[departments[i].ID]) || existing.DeletedAt.Valid {
 				return fmt.Errorf("synthetic department id %d is occupied", departments[i].ID)
+			}
+			if existing.Name != departments[i].Name {
+				if err = tx.Model(&existing).Update("name", departments[i].Name).Error; err != nil {
+					return err
+				}
 			}
 			continue
 		}
@@ -164,10 +175,16 @@ func seedCareDepartments(tx *gorm.DB) error {
 func seedCareAuthorities(tx *gorm.DB) error {
 	parentID := uint(888)
 	authorities := []system.SysAuthority{
-		{AuthorityId: phaseOneContentAdminRole, AuthorityName: "[测试] 内容管理员", ParentId: &parentID, DataScope: datascope.ScopeSelf, DefaultRouter: "CareQuestionnaires"},
-		{AuthorityId: syntheticStewardRole, AuthorityName: "[测试] 健康管家", ParentId: &parentID, DataScope: datascope.ScopeDept, DefaultRouter: "CareClients"},
-		{AuthorityId: syntheticClinicianRole, AuthorityName: "[测试] 一线医护", ParentId: &parentID, DataScope: datascope.ScopeDept, DefaultRouter: "CareClients"},
-		{AuthorityId: syntheticSupervisorRole, AuthorityName: "[测试] 上级医师", ParentId: &parentID, DataScope: datascope.ScopeDeptAndChild, DefaultRouter: "CareClients"},
+		{AuthorityId: phaseOneContentAdminRole, AuthorityName: "内容管理员", ParentId: &parentID, DataScope: datascope.ScopeSelf, DefaultRouter: "CareQuestionnaires"},
+		{AuthorityId: syntheticStewardRole, AuthorityName: "健康管家", ParentId: &parentID, DataScope: datascope.ScopeDept, DefaultRouter: "CareClients"},
+		{AuthorityId: syntheticClinicianRole, AuthorityName: "一线医护", ParentId: &parentID, DataScope: datascope.ScopeDept, DefaultRouter: "CareClients"},
+		{AuthorityId: syntheticSupervisorRole, AuthorityName: "上级医师", ParentId: &parentID, DataScope: datascope.ScopeDeptAndChild, DefaultRouter: "CareClients"},
+	}
+	legacyNames := map[uint]string{
+		phaseOneContentAdminRole: "[测试] 内容管理员",
+		syntheticStewardRole:     "[测试] 健康管家",
+		syntheticClinicianRole:   "[测试] 一线医护",
+		syntheticSupervisorRole:  "[测试] 上级医师",
 	}
 	profiles := []caremodel.CareAuthorityProfile{
 		{AuthorityID: phaseOneContentAdminRole, RoleType: caremodel.AuthorityRoleContentAdmin, Synthetic: true, Active: true},
@@ -179,8 +196,13 @@ func seedCareAuthorities(tx *gorm.DB) error {
 		var existing system.SysAuthority
 		err := tx.Unscoped().Where("authority_id = ?", authorities[i].AuthorityId).First(&existing).Error
 		if err == nil {
-			if existing.AuthorityName != authorities[i].AuthorityName || existing.DeletedAt != nil {
+			if (existing.AuthorityName != authorities[i].AuthorityName && existing.AuthorityName != legacyNames[authorities[i].AuthorityId]) || existing.DeletedAt != nil {
 				return fmt.Errorf("synthetic authority id %d is occupied", authorities[i].AuthorityId)
+			}
+			if existing.AuthorityName != authorities[i].AuthorityName {
+				if err = tx.Model(&existing).Update("authority_name", authorities[i].AuthorityName).Error; err != nil {
+					return err
+				}
 			}
 		} else if errors.Is(err, gorm.ErrRecordNotFound) {
 			if err = tx.Create(&authorities[i]).Error; err != nil {
@@ -198,12 +220,12 @@ func seedCareAuthorities(tx *gorm.DB) error {
 
 func seedCareUsers(tx *gorm.DB, password string) error {
 	users := []system.SysUser{
-		{GVA_MODEL: global.GVA_MODEL{ID: phaseOneContentAdminAID}, UUID: uuid.New(), Username: "test_content_admin_a", NickName: "[测试] 内容管理员甲", AuthorityId: phaseOneContentAdminRole, DeptId: syntheticOrgAID, Enable: 1},
-		{GVA_MODEL: global.GVA_MODEL{ID: syntheticStewardAID}, UUID: uuid.New(), Username: "syn_steward_a", NickName: "[测试] 管家甲", AuthorityId: syntheticStewardRole, DeptId: syntheticTeamAID, Enable: 1},
-		{GVA_MODEL: global.GVA_MODEL{ID: syntheticClinicianAID}, UUID: uuid.New(), Username: "syn_clinician_a", NickName: "[测试] 医护甲", AuthorityId: syntheticClinicianRole, DeptId: syntheticTeamAID, Enable: 1},
-		{GVA_MODEL: global.GVA_MODEL{ID: syntheticSupervisorAID}, UUID: uuid.New(), Username: "syn_supervisor_a", NickName: "[测试] 上级医师甲", AuthorityId: syntheticSupervisorRole, DeptId: syntheticOrgAID, Enable: 1},
-		{GVA_MODEL: global.GVA_MODEL{ID: syntheticStewardA2ID}, UUID: uuid.New(), Username: "syn_steward_a2", NickName: "[测试] 管家乙", AuthorityId: syntheticStewardRole, DeptId: syntheticTeamAID, Enable: 1},
-		{GVA_MODEL: global.GVA_MODEL{ID: syntheticStewardBID}, UUID: uuid.New(), Username: "syn_steward_b", NickName: "[测试] 跨机构管家", AuthorityId: syntheticStewardRole, DeptId: syntheticTeamBID, Enable: 1},
+		{GVA_MODEL: global.GVA_MODEL{ID: phaseOneContentAdminAID}, UUID: uuid.New(), Username: "test_content_admin_a", NickName: "内容管理员", AuthorityId: phaseOneContentAdminRole, DeptId: syntheticOrgAID, Enable: 1},
+		{GVA_MODEL: global.GVA_MODEL{ID: syntheticStewardAID}, UUID: uuid.New(), Username: "syn_steward_a", NickName: "健康管家陈晨", AuthorityId: syntheticStewardRole, DeptId: syntheticTeamAID, Enable: 1},
+		{GVA_MODEL: global.GVA_MODEL{ID: syntheticClinicianAID}, UUID: uuid.New(), Username: "syn_clinician_a", NickName: "一线医护李敏", AuthorityId: syntheticClinicianRole, DeptId: syntheticTeamAID, Enable: 1},
+		{GVA_MODEL: global.GVA_MODEL{ID: syntheticSupervisorAID}, UUID: uuid.New(), Username: "syn_supervisor_a", NickName: "上级医师王宁", AuthorityId: syntheticSupervisorRole, DeptId: syntheticOrgAID, Enable: 1},
+		{GVA_MODEL: global.GVA_MODEL{ID: syntheticStewardA2ID}, UUID: uuid.New(), Username: "syn_steward_a2", NickName: "健康管家赵欣", AuthorityId: syntheticStewardRole, DeptId: syntheticTeamAID, Enable: 1},
+		{GVA_MODEL: global.GVA_MODEL{ID: syntheticStewardBID}, UUID: uuid.New(), Username: "syn_steward_b", NickName: "健康管家孙悦", AuthorityId: syntheticStewardRole, DeptId: syntheticTeamBID, Enable: 1},
 	}
 	passwordHash := utils.BcryptHash(password)
 	for i := range users {
@@ -212,6 +234,15 @@ func seedCareUsers(tx *gorm.DB, password string) error {
 		if err == nil {
 			if existing.Username != users[i].Username || existing.DeletedAt.Valid {
 				return fmt.Errorf("synthetic user id %d is occupied", users[i].ID)
+			}
+			updates := map[string]any{
+				"nick_name": users[i].NickName,
+			}
+			if !utils.BcryptCheck(password, existing.Password) {
+				updates["password"] = passwordHash
+			}
+			if err = tx.Model(&existing).Updates(updates).Error; err != nil {
+				return err
 			}
 		} else if errors.Is(err, gorm.ErrRecordNotFound) {
 			users[i].Password = passwordHash

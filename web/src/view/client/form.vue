@@ -27,8 +27,8 @@
         <p class="text-sm font-medium text-[#47766b] dark:text-emerald-300">
           预计 {{ questionnaire.expectedMinutes || 1 }} 分钟
         </p>
-        <h1 class="mt-2 text-[1.75rem] font-semibold leading-tight tracking-[-0.035em]">{{ questionnaire.title }}</h1>
-        <p v-if="questionnaire.purpose" class="mt-3 text-sm leading-6 text-[#60766f] dark:text-slate-300">{{ questionnaire.purpose }}</p>
+        <h1 class="mt-2 text-[1.75rem] font-semibold leading-tight tracking-[-0.035em]">{{ readableQuestionnaireTitle(questionnaire.title) }}</h1>
+        <p v-if="questionnaire.purpose" class="mt-3 text-sm leading-6 text-[#60766f] dark:text-slate-300">{{ readableQuestionnairePurpose(questionnaire.purpose) }}</p>
       </div>
 
       <div class="mt-7 space-y-7">
@@ -39,7 +39,7 @@
         >
           <legend class="mb-3 block w-full text-base font-semibold leading-6">
             <span class="mr-2 text-sm font-medium text-[#47766b] dark:text-emerald-300">{{ String(index + 1).padStart(2, '0') }}</span>
-            {{ question.title }}
+            {{ readableQuestionTitle(question.title) }}
             <span v-if="question.required" class="ml-1 text-red-500">*</span>
           </legend>
 
@@ -55,7 +55,7 @@
               border
               class="!m-0 !h-auto !min-h-12 !w-full !rounded-xl !px-4"
             >
-              {{ option.label }}
+              {{ readableOptionLabel(option.label) }}
             </el-radio>
           </el-radio-group>
 
@@ -71,7 +71,7 @@
               border
               class="!m-0 !h-auto !min-h-12 !w-full !rounded-xl !px-4"
             >
-              {{ option.label }}
+              {{ readableOptionLabel(option.label) }}
             </el-checkbox>
           </el-checkbox-group>
 
@@ -139,6 +139,12 @@
   import { useRoute, useRouter } from 'vue-router'
   import { getClientQuestionnaire, saveClientDraft } from '@/api/sleep-care/client-access'
   import { compactAnswers, newIdempotencyKey, readLocalDraft, unwrapClientResponse, writeLocalDraft } from './state'
+  import {
+    readableOptionLabel,
+    readableQuestionnairePurpose,
+    readableQuestionnaireTitle,
+    readableQuestionTitle
+  } from '@/utils/sleep-care-display'
 
   defineOptions({
     name: 'ClientTaskForm'
@@ -242,7 +248,7 @@
   const goToConfirm = async () => {
     const missing = questionnaire.value.questions.find((question) => question.required && answerIsEmpty(answers[question.code]))
     if (missing) {
-      validationMessage.value = `请完成“${missing.title}”`
+      validationMessage.value = `请完成“${readableQuestionTitle(missing.title)}”`
       return
     }
     validationMessage.value = ''

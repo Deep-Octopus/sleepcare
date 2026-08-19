@@ -113,19 +113,33 @@ func (s *CaseWorkService) RecordHandling(ctx context.Context, id uint, key strin
 		if err != nil {
 			return caseworkres.ActionResult{}, err
 		}
+		automaticTransfer := decision.RoleType == caremodel.AuthorityRoleCareSteward &&
+			req.ActionType == caseworkmodel.CaseActionContact &&
+			req.NextStatus == caseworkmodel.CaseStatusWaitingCollaboration
+		var automaticTarget caremodel.CareAssignment
+		if automaticTransfer {
+			automaticTarget, err = activeAssignmentForRole(tx, attentionCase.CareClientID, caremodel.AssignmentRoleClinician, s.now())
+			if err != nil {
+				return caseworkres.ActionResult{}, err
+			}
+		}
+		handlingTargetStatus := req.NextStatus
+		if automaticTransfer {
+			handlingTargetStatus = caseworkmodel.CaseStatusHandling
+		}
 		now := s.now()
 		action := caseworkmodel.CaseAction{
 			AttentionCaseID: attentionCase.ID, ActionType: req.ActionType,
 			ActorID: decision.Identity.UserID, ActorRole: decision.RoleType,
 			OrganizationID: assignment.OrganizationID, TeamID: assignment.TeamID,
 			Source: caseworkmodel.ActionSourceStaff, Result: strings.TrimSpace(req.Result), Reason: strings.TrimSpace(req.NextAction),
-			FromStatus: attentionCase.Status, ToStatus: req.NextStatus,
+			FromStatus: attentionCase.Status, ToStatus: handlingTargetStatus,
 			OccurredAt: now, CommandKeyDigest: keyDigest, Synthetic: attentionCase.Synthetic,
 		}
 		if err = tx.Create(&action).Error; err != nil {
 			return caseworkres.ActionResult{}, err
 		}
-		updates := map[string]any{"status": req.NextStatus, "version": gorm.Expr("version + 1")}
+		updates := map[string]any{"status": handlingTargetStatus, "version": gorm.Expr("version + 1")}
 		if req.ActionType == caseworkmodel.CaseActionHandling {
 			updates["handling_result"] = strings.TrimSpace(req.Result)
 		}
@@ -156,10 +170,25 @@ func (s *CaseWorkService) RecordHandling(ctx context.Context, id uint, key strin
 				return caseworkres.ActionResult{}, err
 			}
 		}
-		return caseworkres.ActionResult{
+		result := caseworkres.ActionResult{
 			ResourceID: attentionCase.ID, ActionID: action.ID, Status: req.NextStatus,
 			Version: req.ExpectedVersion + 1, OccurredAt: now,
-		}, nil
+		}
+		if automaticTransfer {
+			caseAfterContact := attentionCase
+			caseAfterContact.Status = handlingTargetStatus
+			caseAfterContact.Version = result.Version
+			reason := strings.TrimSpace(req.NextAction)
+			if reason == "" {
+				reason = "联系完成后由系统转交责任医护"
+			}
+			if _, err = transferCaseToClinician(tx, caseAfterContact, assignment, automaticTarget, result.Version, reason, attentionCase.DueAt, now, keyDigest, caseworkmodel.ActionSourceSystem); err != nil {
+				return caseworkres.ActionResult{}, err
+			}
+			result.Status = caseworkmodel.CaseStatusWaitingCollaboration
+			result.Version++
+		}
+		return result, nil
 	})
 }
 
@@ -192,6 +221,9 @@ func (s *CaseWorkService) Escalate(ctx context.Context, id uint, key string, req
 		if !isCurrentAssignee(attentionCase, decision.Identity.UserID) {
 			return caseworkres.ActionResult{}, caseworkmodel.NewForbiddenError(caseworkmodel.CodeCaseResponsibilityRequired, "当前人员不是事项责任人")
 		}
+		if attentionCase.AssigneeID != nil && *attentionCase.AssigneeID == req.TargetAssigneeID {
+			return caseworkres.ActionResult{}, caseworkmodel.NewDomainError(caseworkmodel.CodeCaseTransitionDenied, "目标责任医护已是当前责任人")
+		}
 		actorAssignment, err := currentActorAssignment(tx, attentionCase.CareClientID, decision.Identity.UserID, decision.RoleType, s.now())
 		if err != nil {
 			return caseworkres.ActionResult{}, err
@@ -201,45 +233,8 @@ func (s *CaseWorkService) Escalate(ctx context.Context, id uint, key string, req
 			return caseworkres.ActionResult{}, err
 		}
 		now := s.now()
-		action := caseworkmodel.CaseAction{
-			AttentionCaseID: attentionCase.ID, ActionType: caseworkmodel.CaseActionEscalate,
-			ActorID: decision.Identity.UserID, ActorRole: decision.RoleType,
-			OrganizationID: actorAssignment.OrganizationID, TeamID: actorAssignment.TeamID,
-			Source: caseworkmodel.ActionSourceStaff, Result: "已升级至责任医护", Reason: strings.TrimSpace(req.Reason),
-			FromStatus: attentionCase.Status, ToStatus: caseworkmodel.CaseStatusWaitingCollaboration,
-			TargetAssigneeID: &target.AssigneeID, TargetRole: target.RoleType, DueAt: req.DueAt,
-			OccurredAt: now, CommandKeyDigest: keyDigest, Synthetic: attentionCase.Synthetic,
-		}
-		if err = tx.Create(&action).Error; err != nil {
-			return caseworkres.ActionResult{}, err
-		}
-		if err = supersedeActiveTodo(tx, attentionCase.ID, now, "事项已升级并转交"); err != nil {
-			return caseworkres.ActionResult{}, err
-		}
-		active := caseworkmodel.TodoActiveSlot
-		todo := caseworkmodel.TodoItem{
-			Category: caseworkmodel.TodoCategoryContentAttention, SourceType: caseworkmodel.TodoSourceAttentionCase,
-			SourceID: attentionCase.ID, ActiveSlot: &active, CareClientID: attentionCase.CareClientID,
-			AssigneeID: target.AssigneeID, AssigneeRole: target.RoleType, Status: caseworkmodel.TodoStatusOpen,
-			OpenedAt: now, DueAt: req.DueAt, Version: 1, Synthetic: attentionCase.Synthetic,
-		}
-		if err = tx.Create(&todo).Error; err != nil {
-			return caseworkres.ActionResult{}, err
-		}
-		update := tx.Model(&caseworkmodel.AttentionCase{}).
-			Where("id = ? AND version = ?", attentionCase.ID, req.ExpectedVersion).
-			Updates(map[string]any{
-				"status":      caseworkmodel.CaseStatusWaitingCollaboration,
-				"assignee_id": target.AssigneeID, "assignee_role": target.RoleType,
-				"due_at": req.DueAt, "version": gorm.Expr("version + 1"),
-			})
-		if update.Error != nil {
-			return caseworkres.ActionResult{}, update.Error
-		}
-		if update.RowsAffected != 1 {
-			return caseworkres.ActionResult{}, caseworkmodel.NewDomainError(caseworkmodel.CodeVersionConflict, "关注事项版本已变化")
-		}
-		if err = appendCaseEvent(tx, attentionCase, action, caseworkmodel.EventAttentionCaseEscalated); err != nil {
+		action, err := transferCaseToClinician(tx, attentionCase, actorAssignment, target, req.ExpectedVersion, strings.TrimSpace(req.Reason), req.DueAt, now, keyDigest, caseworkmodel.ActionSourceStaff)
+		if err != nil {
 			return caseworkres.ActionResult{}, err
 		}
 		return caseworkres.ActionResult{
@@ -247,6 +242,66 @@ func (s *CaseWorkService) Escalate(ctx context.Context, id uint, key string, req
 			Version: req.ExpectedVersion + 1, OccurredAt: now,
 		}, nil
 	})
+}
+
+func transferCaseToClinician(
+	tx *gorm.DB,
+	attentionCase caseworkmodel.AttentionCase,
+	actorAssignment caremodel.CareAssignment,
+	target caremodel.CareAssignment,
+	expectedVersion uint,
+	reason string,
+	dueAt *time.Time,
+	now time.Time,
+	keyDigest string,
+	source string,
+) (caseworkmodel.CaseAction, error) {
+	result := "已转交责任医护"
+	if source == caseworkmodel.ActionSourceSystem {
+		result = "已自动转交责任医护"
+	}
+	action := caseworkmodel.CaseAction{
+		AttentionCaseID: attentionCase.ID, ActionType: caseworkmodel.CaseActionEscalate,
+		ActorID: actorAssignment.AssigneeID, ActorRole: actorAssignment.RoleType,
+		OrganizationID: actorAssignment.OrganizationID, TeamID: actorAssignment.TeamID,
+		Source: source, Result: result, Reason: reason,
+		FromStatus: attentionCase.Status, ToStatus: caseworkmodel.CaseStatusWaitingCollaboration,
+		TargetAssigneeID: &target.AssigneeID, TargetRole: target.RoleType, DueAt: dueAt,
+		OccurredAt: now, CommandKeyDigest: keyDigest, Synthetic: attentionCase.Synthetic,
+	}
+	if err := tx.Create(&action).Error; err != nil {
+		return caseworkmodel.CaseAction{}, err
+	}
+	if err := supersedeActiveTodo(tx, attentionCase.ID, now, "事项已转交责任医护"); err != nil {
+		return caseworkmodel.CaseAction{}, err
+	}
+	active := caseworkmodel.TodoActiveSlot
+	todo := caseworkmodel.TodoItem{
+		Category: caseworkmodel.TodoCategoryContentAttention, SourceType: caseworkmodel.TodoSourceAttentionCase,
+		SourceID: attentionCase.ID, ActiveSlot: &active, CareClientID: attentionCase.CareClientID,
+		AssigneeID: target.AssigneeID, AssigneeRole: target.RoleType, Status: caseworkmodel.TodoStatusOpen,
+		OpenedAt: now, DueAt: dueAt, Version: 1, Synthetic: attentionCase.Synthetic,
+	}
+	if err := tx.Create(&todo).Error; err != nil {
+		return caseworkmodel.CaseAction{}, err
+	}
+	update := tx.Model(&caseworkmodel.AttentionCase{}).
+		Where("id = ? AND version = ?", attentionCase.ID, expectedVersion).
+		Updates(map[string]any{
+			"status":      caseworkmodel.CaseStatusWaitingCollaboration,
+			"assignee_id": target.AssigneeID, "assignee_role": target.RoleType,
+			"due_at": dueAt, "version": gorm.Expr("version + 1"),
+		})
+	if update.Error != nil {
+		return caseworkmodel.CaseAction{}, update.Error
+	}
+	if update.RowsAffected != 1 {
+		return caseworkmodel.CaseAction{}, caseworkmodel.NewDomainError(caseworkmodel.CodeVersionConflict, "关注事项版本已变化")
+	}
+	if err := appendCaseEvent(tx, attentionCase, action, caseworkmodel.EventAttentionCaseEscalated); err != nil {
+		return caseworkmodel.CaseAction{}, err
+	}
+	return action, nil
 }
 
 func canEscalateFrom(status string) bool {
@@ -269,6 +324,17 @@ func activeAssignmentForTarget(db *gorm.DB, careClientID, assigneeID uint, role 
 		Order("valid_from DESC, id DESC").First(&assignment).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return assignment, caseworkmodel.NewDomainError(caseworkmodel.CodeCaseResponsibilityRequired, "目标责任人不在当前有效责任链中")
+	}
+	return assignment, err
+}
+
+func activeAssignmentForRole(db *gorm.DB, careClientID uint, role string, now time.Time) (caremodel.CareAssignment, error) {
+	var assignment caremodel.CareAssignment
+	err := db.Where("care_client_id = ? AND role_type = ? AND cancelled_at IS NULL AND valid_from <= ?", careClientID, role, now).
+		Where("valid_until IS NULL OR valid_until > ?", now).
+		Order("valid_from DESC, id DESC").First(&assignment).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return assignment, caseworkmodel.NewDomainError(caseworkmodel.CodeCaseResponsibilityRequired, "尚未配置当前责任医护，无法自动转交")
 	}
 	return assignment, err
 }

@@ -5,11 +5,11 @@
         <div class="max-w-3xl">
           <div class="mb-3 flex items-center gap-2 text-sm font-medium text-primary">
             <svg-icon icon="lucide:radio-tower" />
-            <span>实时责任范围</span>
+            <span>今日待办</span>
           </div>
           <h1 class="text-2xl font-semibold tracking-tight">今日工作台</h1>
           <p class="mt-2 text-sm leading-6 text-muted-foreground">
-            聚合今日任务、未结事项和待复核工作。所有数字都按当前角色、部门和有效责任关系实时计算。
+            汇总今天需要完成的任务、尚未处理完的事项和待复核工作，只显示当前账号负责的内容。
           </p>
         </div>
         <div class="flex flex-wrap items-center gap-3">
@@ -77,7 +77,7 @@
         <div>
           <h2 class="text-lg font-semibold">执行入口</h2>
           <p class="mt-1 text-sm text-muted-foreground">
-            用户资料、任务与事项沿用同一责任范围，页面入口不会扩大后端授权。
+            从这里可以直接进入日常使用最多的用户、任务和关注事项页面。
           </p>
         </div>
         <div
@@ -141,7 +141,7 @@
       key: 'dueToday',
       label: '今日应随访',
       value: metrics.value.dueToday,
-      description: '今日截止且尚未提交或取消的计划任务。',
+      description: '今天到期且还没有提交或取消的任务。',
       icon: 'lucide:calendar-clock',
       routeName: 'CareTasks'
     },
@@ -157,7 +157,7 @@
       key: 'deliveryIssues',
       label: '通知异常',
       value: metrics.value.deliveryIssues,
-      description: '统一待办中仍未完成的通知异常记录。',
+      description: '尚未处理完的通知异常记录。',
       icon: 'lucide:message-square-warning',
       routeName: ''
     },
@@ -165,7 +165,7 @@
       key: 'attentionCases',
       label: '问卷关注',
       value: metrics.value.attentionCases,
-      description: '已生成但尚未关闭的关注事项。',
+      description: '已经出现、但还没有关闭的关注事项。',
       icon: 'lucide:clipboard-list',
       routeName: 'CareAttentionCases'
     },
@@ -173,7 +173,7 @@
       key: 'assignedToMe',
       label: '待本人处理',
       value: metrics.value.assignedToMe,
-      description: '当前分配给本人且仍开放的统一待办。',
+      description: '当前分配给本人、还需要继续处理的事项。',
       icon: 'lucide:inbox',
       routeName: 'CareAttentionCases'
     },

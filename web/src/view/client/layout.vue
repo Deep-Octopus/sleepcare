@@ -12,7 +12,7 @@
             </p>
           </div>
           <span class="rounded-full border border-[#bfd4cc] bg-[#edf5f1] px-3 py-1 text-xs text-[#35675c] dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-200">
-            演示环境
+            安全访问
           </span>
         </div>
       </header>

@@ -107,6 +107,108 @@ func TestStewardCanContactButCannotWriteProfessionalHandling(t *testing.T) {
 	}
 }
 
+func TestStewardWaitingCollaborationAutomaticallyTransfersToClinician(t *testing.T) {
+	fixture := newCaseWorkFixture(t, caremodel.AuthorityRoleCareSteward)
+	seedCaseActor(t, fixture.db, fixture.now, 43, 503, fixture.caseRow.CareClientID, caremodel.AuthorityRoleClinician)
+
+	acknowledged, err := fixture.service.Acknowledge(fixture.ctx, fixture.caseRow.ID, "ack-auto-transfer", caseworkreq.AcknowledgeCase{
+		ExpectedVersion: fixture.caseRow.Version,
+		Result:          "已确认并准备联系",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	transferred, err := fixture.service.RecordHandling(fixture.ctx, fixture.caseRow.ID, "contact-auto-transfer", caseworkreq.HandlingRecord{
+		ExpectedVersion: acknowledged.Version,
+		ActionType:      caseworkmodel.CaseActionContact,
+		Result:          "已完成联系",
+		NextAction:      "请责任医护继续处理",
+		NextStatus:      caseworkmodel.CaseStatusWaitingCollaboration,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if transferred.Status != caseworkmodel.CaseStatusWaitingCollaboration || transferred.Version != 4 {
+		t.Fatalf("contact should finish with an automatic clinician transfer: %+v", transferred)
+	}
+
+	seedCtx := datascope.WithSystem(context.Background())
+	var stored caseworkmodel.AttentionCase
+	if err = fixture.db.WithContext(seedCtx).First(&stored, fixture.caseRow.ID).Error; err != nil {
+		t.Fatal(err)
+	}
+	if stored.AssigneeID == nil || *stored.AssigneeID != 43 || stored.AssigneeRole != caremodel.AssignmentRoleClinician {
+		t.Fatalf("automatic transfer did not assign the current clinician: %+v", stored)
+	}
+
+	var todos []caseworkmodel.TodoItem
+	if err = fixture.db.WithContext(seedCtx).Where("source_id = ?", fixture.caseRow.ID).Order("id ASC").Find(&todos).Error; err != nil {
+		t.Fatal(err)
+	}
+	if len(todos) != 2 || todos[0].Status != caseworkmodel.TodoStatusSuperseded ||
+		todos[1].Status != caseworkmodel.TodoStatusOpen || todos[1].AssigneeID != 43 || todos[1].ActiveSlot == nil {
+		t.Fatalf("automatic transfer must replace the steward todo with a clinician todo: %+v", todos)
+	}
+
+	var actions []caseworkmodel.CaseAction
+	if err = fixture.db.WithContext(seedCtx).Where("attention_case_id = ?", fixture.caseRow.ID).Order("id ASC").Find(&actions).Error; err != nil {
+		t.Fatal(err)
+	}
+	if len(actions) != 3 || actions[2].ActionType != caseworkmodel.CaseActionEscalate ||
+		actions[2].Source != caseworkmodel.ActionSourceSystem || actions[2].TargetAssigneeID == nil || *actions[2].TargetAssigneeID != 43 {
+		t.Fatalf("automatic transfer must retain a separate system action: %+v", actions)
+	}
+}
+
+func TestStewardAutomaticTransferRollsBackWithoutClinician(t *testing.T) {
+	fixture := newCaseWorkFixture(t, caremodel.AuthorityRoleCareSteward)
+	acknowledged, err := fixture.service.Acknowledge(fixture.ctx, fixture.caseRow.ID, "ack-auto-transfer-without-clinician", caseworkreq.AcknowledgeCase{
+		ExpectedVersion: fixture.caseRow.Version,
+		Result:          "已确认并准备联系",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = fixture.service.RecordHandling(fixture.ctx, fixture.caseRow.ID, "contact-auto-transfer-without-clinician", caseworkreq.HandlingRecord{
+		ExpectedVersion: acknowledged.Version,
+		ActionType:      caseworkmodel.CaseActionContact,
+		Result:          "已完成联系",
+		NextStatus:      caseworkmodel.CaseStatusWaitingCollaboration,
+	})
+	if caseDomainCode(err) != caseworkmodel.CodeCaseResponsibilityRequired {
+		t.Fatalf("automatic transfer without a clinician should be rejected, got %v", err)
+	}
+
+	seedCtx := datascope.WithSystem(context.Background())
+	var stored caseworkmodel.AttentionCase
+	if err = fixture.db.WithContext(seedCtx).First(&stored, fixture.caseRow.ID).Error; err != nil {
+		t.Fatal(err)
+	}
+	if stored.Status != caseworkmodel.CaseStatusAcknowledged || stored.Version != acknowledged.Version ||
+		stored.AssigneeID == nil || *stored.AssigneeID != 42 {
+		t.Fatalf("failed automatic transfer must leave the acknowledged case unchanged: %+v", stored)
+	}
+
+	var actionCount int64
+	if err = fixture.db.WithContext(seedCtx).Model(&caseworkmodel.CaseAction{}).
+		Where("attention_case_id = ?", fixture.caseRow.ID).Count(&actionCount).Error; err != nil {
+		t.Fatal(err)
+	}
+	if actionCount != 1 {
+		t.Fatalf("failed automatic transfer must roll back the contact action, got %d actions", actionCount)
+	}
+
+	var todos []caseworkmodel.TodoItem
+	if err = fixture.db.WithContext(seedCtx).Where("source_id = ?", fixture.caseRow.ID).Find(&todos).Error; err != nil {
+		t.Fatal(err)
+	}
+	if len(todos) != 1 || todos[0].Status != caseworkmodel.TodoStatusOpen || todos[0].AssigneeID != 42 || todos[0].ActiveSlot == nil {
+		t.Fatalf("failed automatic transfer must retain the steward todo: %+v", todos)
+	}
+}
+
 func TestEscalatedClinicianCanResolveCloseAndReopen(t *testing.T) {
 	fixture := newCaseWorkFixture(t, caremodel.AuthorityRoleCareSteward)
 	clinicianCtx := seedCaseActor(t, fixture.db, fixture.now, 43, 503, fixture.caseRow.CareClientID, caremodel.AuthorityRoleClinician)
@@ -241,6 +343,21 @@ func TestEscalatedClinicianCanRequestSupervisorReviewAndTodoRemainsOpen(t *testi
 	}
 	if reviewRequested.Status != caseworkmodel.CaseStatusWaitingSupervisor || reviewRequested.Version != 5 {
 		t.Fatalf("unexpected review request result: %+v", reviewRequested)
+	}
+	_, err = fixture.service.Escalate(clinicianCtx, fixture.caseRow.ID, "self-escalate-review-key", caseworkreq.EscalateCase{
+		ExpectedVersion:  reviewRequested.Version,
+		TargetAssigneeID: 43,
+		Reason:           "重复转交给当前责任医护",
+	})
+	if caseDomainCode(err) != caseworkmodel.CodeCaseTransitionDenied {
+		t.Fatalf("self escalation should preserve supervisor review with %d, got %v", caseworkmodel.CodeCaseTransitionDenied, err)
+	}
+	var storedCase caseworkmodel.AttentionCase
+	if err = fixture.db.WithContext(datascope.WithSystem(context.Background())).First(&storedCase, fixture.caseRow.ID).Error; err != nil {
+		t.Fatal(err)
+	}
+	if storedCase.Status != caseworkmodel.CaseStatusWaitingSupervisor || storedCase.Version != reviewRequested.Version {
+		t.Fatalf("rejected self escalation changed the case: %+v", storedCase)
 	}
 
 	seedCtx := datascope.WithSystem(context.Background())

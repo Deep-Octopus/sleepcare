@@ -9,7 +9,7 @@
           </div>
           <h1 class="text-2xl font-semibold tracking-tight">关注事项</h1>
           <p class="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
-            列表仅展示处理所需摘要。规则命中表示需要人工关注，不代表诊断；原始答卷不会在这里展示。
+            当系统发现需要工作人员跟进的情况时，会在这里生成事项。页面只显示处理所需摘要，不显示完整答卷。
           </p>
         </div>
         <el-button
@@ -45,14 +45,6 @@
             />
           </el-select>
         </el-form-item>
-        <el-form-item label="责任人 ID">
-          <el-input-number
-            v-model="searchForm.assigneeId"
-            :min="1"
-            class="w-40"
-            controls-position="right"
-          />
-        </el-form-item>
         <el-form-item>
           <el-button
             type="primary"
@@ -77,8 +69,7 @@
           min-width="110"
         >
           <template #default="scope">
-            <div class="font-mono font-semibold">#{{ scope.row.id }}</div>
-            <div class="mt-1 text-xs text-muted-foreground">v{{ scope.row.version }}</div>
+            <div class="font-semibold">编号 {{ scope.row.id }}</div>
           </template>
         </el-table-column>
         <el-table-column
@@ -86,8 +77,8 @@
           min-width="170"
         >
           <template #default="scope">
-            <div>康养用户 #{{ scope.row.careClientId }}</div>
-            <div class="mt-1 text-xs text-muted-foreground">任务 #{{ scope.row.taskId }}</div>
+            <div>用户编号 {{ scope.row.careClientId }}</div>
+            <div class="mt-1 text-xs text-muted-foreground">任务编号 {{ scope.row.taskId }}</div>
           </template>
         </el-table-column>
         <el-table-column
@@ -104,16 +95,17 @@
           </template>
         </el-table-column>
         <el-table-column
-          label="关注等级"
+          label="关注程度"
           min-width="150"
-          prop="attentionLevel"
-        />
+        >
+          <template #default="scope">{{ attentionLevelLabel(scope.row.attentionLevel) }}</template>
+        </el-table-column>
         <el-table-column
           label="触发摘要"
           min-width="300"
         >
           <template #default="scope">
-            <p class="line-clamp-2 leading-6">{{ scope.row.reasonSummary }}</p>
+            <p class="line-clamp-2 leading-6">{{ readableAttentionReason(scope.row.reasonSummary) }}</p>
           </template>
         </el-table-column>
         <el-table-column
@@ -121,7 +113,7 @@
           min-width="130"
         >
           <template #default="scope">
-            {{ scope.row.assigneeId ? `#${scope.row.assigneeId}` : '待分配' }}
+            {{ scope.row.assigneeId ? '已分配' : '待分配' }}
           </template>
         </el-table-column>
         <el-table-column
@@ -176,15 +168,15 @@
           <section class="mb-5 rounded-xl border border-border bg-muted p-4">
             <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div>
-                <p class="text-xs font-medium tracking-widest text-muted-foreground">ATTENTION CASE #{{ detail.id }}</p>
+                <p class="text-xs font-medium text-muted-foreground">事项编号 {{ detail.id }}</p>
                 <h2 class="mt-2 text-xl font-semibold">{{ statusLabel(detail.status) }}</h2>
-                <p class="mt-2 text-sm leading-6">{{ detail.reasonSummary }}</p>
+                <p class="mt-2 text-sm leading-6">{{ readableAttentionReason(detail.reasonSummary) }}</p>
               </div>
               <el-tag
                 :type="statusTagType(detail.status)"
                 effect="plain"
               >
-                {{ detail.attentionLevel }}
+                {{ attentionLevelLabel(detail.attentionLevel) }}
               </el-tag>
             </div>
           </section>
@@ -195,7 +187,7 @@
               type="primary"
               @click="openAction('acknowledge')"
             >
-              确认事项
+              确认接收
             </el-button>
             <el-button
               v-if="btnAuth.recordContact && canRecordHandling"
@@ -208,13 +200,7 @@
               type="primary"
               @click="openAction('handling')"
             >
-              处置 / 请求复核
-            </el-button>
-            <el-button
-              v-if="btnAuth.escalate && canEscalate"
-              @click="openEscalation"
-            >
-              升级责任医护
+              记录处理结果
             </el-button>
             <el-button
               v-if="btnAuth.close && detail.status === 'RESOLVED'"
@@ -236,12 +222,11 @@
             :column="2"
             border
           >
-            <el-descriptions-item label="康养用户">#{{ detail.careClientId }}</el-descriptions-item>
-            <el-descriptions-item label="计划任务">#{{ detail.taskId }}</el-descriptions-item>
+            <el-descriptions-item label="康养用户">编号 {{ detail.careClientId }}</el-descriptions-item>
+            <el-descriptions-item label="计划任务">编号 {{ detail.taskId }}</el-descriptions-item>
             <el-descriptions-item label="当前责任人">
-              {{ detail.assigneeId ? `#${detail.assigneeId}` : '待分配' }}
+              {{ detail.assigneeId ? '已分配' : '待分配' }}
             </el-descriptions-item>
-            <el-descriptions-item label="版本">v{{ detail.version }}</el-descriptions-item>
             <el-descriptions-item label="打开时间">{{ formatTimestamp(detail.openedAt) }}</el-descriptions-item>
             <el-descriptions-item label="目标时间">{{ formatTimestamp(detail.dueAt) }}</el-descriptions-item>
             <el-descriptions-item
@@ -260,13 +245,12 @@
 
           <section class="mt-7">
             <div class="mb-3">
-              <p class="text-xs font-medium tracking-widest text-muted-foreground">RULE HIT SNAPSHOT</p>
-              <h3 class="mt-1 text-lg font-semibold">规则命中快照</h3>
+              <h3 class="mt-1 text-lg font-semibold">触发原因记录</h3>
             </div>
             <el-empty
               v-if="!detail.ruleHits?.length"
               :image-size="64"
-              description="暂无规则命中快照"
+              description="暂无触发原因记录"
             />
             <div
               v-else
@@ -278,18 +262,16 @@
                 class="rounded-lg border border-border bg-container p-4"
               >
                 <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
-                  <span>规则版本 #{{ hit.ruleVersionId }}</span>
                   <span>{{ formatTimestamp(hit.occurredAt) }}</span>
                 </div>
-                <p class="mt-2 text-sm leading-6">{{ hit.reasonSnapshot }}</p>
+                <p class="mt-2 text-sm leading-6">{{ readableAttentionReason(hit.reasonSnapshot) }}</p>
               </article>
             </div>
           </section>
 
           <section class="mt-7">
             <div class="mb-3">
-              <p class="text-xs font-medium tracking-widest text-muted-foreground">ACTION TRAIL</p>
-              <h3 class="mt-1 text-lg font-semibold">行动时间线</h3>
+              <h3 class="mt-1 text-lg font-semibold">处理记录</h3>
             </div>
             <el-empty
               v-if="!detail.actions?.length"
@@ -317,7 +299,7 @@
                   v-if="action.reason"
                   class="mt-1 text-sm leading-6 text-muted-foreground"
                 >
-                  后续 / 原因：{{ action.reason }}
+                  说明：{{ action.reason }}
                 </p>
               </el-timeline-item>
             </el-timeline>
@@ -350,7 +332,7 @@
           />
         </el-form-item>
         <template v-if="actionMode === 'contact' || actionMode === 'handling'">
-          <el-form-item label="下一状态" required>
+          <el-form-item label="处理后怎么继续" required>
             <el-select
               v-model="actionForm.nextStatus"
               class="w-full"
@@ -363,14 +345,21 @@
               />
             </el-select>
           </el-form-item>
-          <el-form-item label="下一步安排">
+          <el-form-item label="补充说明（可选）">
             <el-input
               v-model="actionForm.nextAction"
               maxlength="1000"
-              placeholder="可选，记录后续流程安排"
+              placeholder="可补充需要后续人员了解的情况"
               show-word-limit
             />
           </el-form-item>
+          <el-alert
+            v-if="actionForm.nextStatus === 'WAITING_COLLABORATION'"
+            :closable="false"
+            class="mb-3"
+            title="提交后系统会自动转交给当前责任医护，无需再次操作。"
+            type="success"
+          />
           <el-alert
             v-if="actionForm.nextStatus === 'WAITING_SUPERVISOR'"
             :closable="false"
@@ -406,86 +395,23 @@
       </template>
     </el-dialog>
 
-    <el-dialog
-      v-model="escalationVisible"
-      title="升级至责任医护"
-      width="min(560px, 92vw)"
-    >
-      <div v-loading="escalationOptionsLoading">
-        <el-alert
-          :closable="false"
-          class="mb-4"
-          title="升级会结束当前活动待办，并为所选责任医护创建新的活动待办；既有行动记录不会被覆盖。"
-          type="info"
-        />
-        <el-form
-          label-position="top"
-          :model="escalationForm"
-        >
-          <el-form-item label="目标责任医护" required>
-            <el-select
-              v-model="escalationForm.targetAssigneeId"
-              class="w-full"
-              placeholder="选择当前有效责任医护"
-            >
-              <el-option
-                v-for="item in clinicianOptions"
-                :key="item.assigneeId"
-                :label="`${item.assigneeDisplayName}（#${item.assigneeId}）`"
-                :value="item.assigneeId"
-              />
-            </el-select>
-          </el-form-item>
-          <el-form-item label="升级原因" required>
-            <el-input
-              v-model="escalationForm.reason"
-              maxlength="2000"
-              placeholder="请记录需要协作处理的流程原因"
-              :rows="4"
-              show-word-limit
-              type="textarea"
-            />
-          </el-form-item>
-          <el-form-item label="目标时间">
-            <el-date-picker
-              v-model="escalationForm.dueAt"
-              class="w-full"
-              placeholder="可选"
-              type="datetime"
-            />
-          </el-form-item>
-        </el-form>
-      </div>
-      <template #footer>
-        <el-button @click="escalationVisible = false">取消</el-button>
-        <el-button
-          :disabled="!clinicianOptions.length"
-          :loading="escalationSubmitting"
-          type="primary"
-          @click="submitEscalation"
-        >
-          确认升级
-        </el-button>
-      </template>
-    </el-dialog>
   </main>
 </template>
 
 <script setup>
   import { computed, onMounted, reactive, ref } from 'vue'
   import { ElMessage } from 'element-plus'
-  import { getCareClient } from '@/api/sleep-care/care-clients'
   import {
     acknowledgeAttentionCase,
     closeAttentionCase,
     createAttentionHandlingRecord,
-    escalateAttentionCase,
     getAttentionCase,
     getAttentionCases,
     reopenAttentionCase
   } from '@/api/sleep-care/case-work'
   import { useBtnAuth } from '@/utils/btnAuth'
   import { formatDate } from '@/utils/format'
+  import { readableAttentionReason } from '@/utils/sleep-care-display'
 
   defineOptions({ name: 'CareAttentionCases' })
 
@@ -501,8 +427,8 @@
     { label: '待确认', value: 'PENDING_ACK' },
     { label: '已确认', value: 'ACKNOWLEDGED' },
     { label: '处理中', value: 'HANDLING' },
-    { label: '等待用户', value: 'WAITING_CLIENT' },
-    { label: '等待协作', value: 'WAITING_COLLABORATION' },
+    { label: '等待用户补充', value: 'WAITING_CLIENT' },
+    { label: '等待责任医护处理', value: 'WAITING_COLLABORATION' },
     { label: '等待上级复核', value: 'WAITING_SUPERVISOR' },
     { label: '已解决', value: 'RESOLVED' },
     { label: '已关闭', value: 'CLOSED' }
@@ -510,12 +436,11 @@
   const contactStatusOptions = [
     { label: '进入处理中', value: 'HANDLING' },
     { label: '等待用户补充', value: 'WAITING_CLIENT' },
-    { label: '等待协作', value: 'WAITING_COLLABORATION' }
+    { label: '转交责任医护继续处理（自动）', value: 'WAITING_COLLABORATION' }
   ]
   const handlingStatusOptions = [
     { label: '继续处理', value: 'HANDLING' },
     { label: '等待用户补充', value: 'WAITING_CLIENT' },
-    { label: '等待协作', value: 'WAITING_COLLABORATION' },
     { label: '请求上级复核', value: 'WAITING_SUPERVISOR' },
     { label: '标记已解决', value: 'RESOLVED' }
   ]
@@ -547,20 +472,9 @@
     nextStatus: 'HANDLING',
     reason: ''
   })
-  const escalationVisible = ref(false)
-  const escalationOptionsLoading = ref(false)
-  const escalationSubmitting = ref(false)
-  const clinicianOptions = ref([])
-  const escalationForm = reactive({
-    targetAssigneeId: undefined,
-    reason: '',
-    dueAt: null
-  })
-
   const canRecordHandling = computed(() => actionableStatuses.includes(detail.value?.status))
-  const canEscalate = computed(() => actionableStatuses.includes(detail.value?.status))
   const actionTitle = computed(() => ({
-    acknowledge: '确认关注事项',
+    acknowledge: '确认接收关注事项',
     contact: '记录联系结果',
     handling: '记录处置结果',
     close: '关闭关注事项',
@@ -568,7 +482,7 @@
   }[actionMode.value]))
   const actionResultLabel = computed(() => actionMode.value === 'acknowledge' ? '确认结果' : actionMode.value === 'contact' ? '联系结果' : '处置结果')
   const actionResultPlaceholder = computed(() => ({
-    acknowledge: '请记录已接收并确认处理',
+    acknowledge: '请简要记录已接收并开始跟进',
     contact: '请记录流程联系结果，不填写专业判断',
     handling: '请记录本次流程处理结果'
   }[actionMode.value] || '请输入处理结果'))
@@ -674,7 +588,14 @@
         })
       }
       if (res.code === 0) {
-        ElMessage.success('操作已记录')
+        const successMessage = {
+          acknowledge: '事项已确认',
+          contact: actionForm.nextStatus === 'WAITING_COLLABORATION' ? '已记录联系结果，并自动转交责任医护' : '联系结果已记录',
+          handling: '处理结果已记录',
+          close: '事项已关闭',
+          reopen: '事项已重新打开'
+        }[actionMode.value]
+        ElMessage.success(successMessage)
         actionDialogVisible.value = false
         await refreshAfterAction()
       }
@@ -683,52 +604,7 @@
     }
   }
 
-  const openEscalation = async () => {
-    escalationForm.targetAssigneeId = undefined
-    escalationForm.reason = ''
-    escalationForm.dueAt = null
-    clinicianOptions.value = []
-    escalationVisible.value = true
-    escalationOptionsLoading.value = true
-    try {
-      const res = await getCareClient(detail.value.careClientId)
-      if (res.code === 0) {
-        clinicianOptions.value = (res.data.currentAssignments || []).filter((item) =>
-          item.roleType === 'CLINICIAN' && item.status === 'ACTIVE'
-        )
-        if (clinicianOptions.value.length === 1) {
-          escalationForm.targetAssigneeId = clinicianOptions.value[0].assigneeId
-        }
-      }
-    } finally {
-      escalationOptionsLoading.value = false
-    }
-  }
-
-  const submitEscalation = async () => {
-    if (!escalationForm.targetAssigneeId || !escalationForm.reason.trim()) {
-      ElMessage.warning('请选择责任医护并填写升级原因')
-      return
-    }
-    escalationSubmitting.value = true
-    try {
-      const res = await escalateAttentionCase(detail.value.id, {
-        expectedVersion: detail.value.version,
-        targetAssigneeId: escalationForm.targetAssigneeId,
-        reason: escalationForm.reason.trim(),
-        dueAt: escalationForm.dueAt || undefined
-      })
-      if (res.code === 0) {
-        ElMessage.success('事项已升级')
-        escalationVisible.value = false
-        await refreshAfterAction()
-      }
-    } finally {
-      escalationSubmitting.value = false
-    }
-  }
-
-  const statusLabel = (value) => statusOptions.find((item) => item.value === value)?.label || value
+  const statusLabel = (value) => statusOptions.find((item) => item.value === value)?.label || '未说明'
   const statusTagType = (value) => ({
     PENDING_ACK: 'warning',
     ACKNOWLEDGED: 'primary',
@@ -743,18 +619,19 @@
     ACKNOWLEDGE: '确认',
     CONTACT: '联系',
     HANDLING: '处置',
-    ESCALATE: '升级',
+    ESCALATE: '转交责任医护',
     GUIDANCE: '指导',
     INTERVENE: '介入',
     RESOLVE: '解决',
     CLOSE: '关闭',
     REOPEN: '重开'
-  }[value] || value)
+  }[value] || '其他操作')
   const actorRoleLabel = (value) => ({
     CARE_STEWARD: '健康管家',
     CLINICIAN: '一线医护',
     SUPERVISOR: '上级医师'
-  }[value] || value)
+  }[value] || '工作人员')
+  const attentionLevelLabel = () => '需要关注'
   const formatTimestamp = (value) => value ? formatDate(value) : '-'
 
   onMounted(async () => {

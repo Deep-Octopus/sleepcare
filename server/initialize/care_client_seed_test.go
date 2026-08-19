@@ -9,6 +9,7 @@ import (
 	"github.com/flipped-aurora/gin-vue-admin/server/internal/testutil"
 	caremodel "github.com/flipped-aurora/gin-vue-admin/server/model/careclient"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/system"
+	"github.com/flipped-aurora/gin-vue-admin/server/utils"
 	"github.com/flipped-aurora/gin-vue-admin/server/utils/datascope"
 )
 
@@ -41,6 +42,38 @@ func TestEnsureCareClientSyntheticFixturesIsIdempotentAndDoesNotGrantAdmin(t *te
 	}
 	assertNaturalDisplay()
 
+	var department system.SysDepartment
+	if err := db.First(&department, syntheticOrgAID).Error; err != nil {
+		t.Fatal(err)
+	}
+	if department.Name != "安和康养服务中心" {
+		t.Fatalf("department display name=%q", department.Name)
+	}
+	var stewardRole system.SysAuthority
+	if err := db.Where("authority_id = ?", syntheticStewardRole).First(&stewardRole).Error; err != nil {
+		t.Fatal(err)
+	}
+	if stewardRole.AuthorityName != "健康管家" {
+		t.Fatalf("authority display name=%q", stewardRole.AuthorityName)
+	}
+	var stewardUser system.SysUser
+	if err := db.First(&stewardUser, syntheticStewardAID).Error; err != nil {
+		t.Fatal(err)
+	}
+	if stewardUser.NickName != "健康管家陈晨" {
+		t.Fatalf("user display name=%q", stewardUser.NickName)
+	}
+
+	if err := ensureCareClientSyntheticFixtures(db, "rotated-local-password"); err != nil {
+		t.Fatal(err)
+	}
+	if err := db.First(&stewardUser, syntheticStewardAID).Error; err != nil {
+		t.Fatal(err)
+	}
+	if !utils.BcryptCheck("rotated-local-password", stewardUser.Password) || utils.BcryptCheck("local-synthetic-password", stewardUser.Password) {
+		t.Fatal("fixed account password was not reconciled")
+	}
+
 	if err := db.Model(&caremodel.CareClient{}).Where("id = ?", 20001).Updates(map[string]any{
 		"display_code":         "SYN-CLIENT-A001",
 		"display_name":         "[测试] 康养用户甲",
@@ -49,7 +82,7 @@ func TestEnsureCareClientSyntheticFixturesIsIdempotentAndDoesNotGrantAdmin(t *te
 	}).Error; err != nil {
 		t.Fatal(err)
 	}
-	if err := ensureCareClientSyntheticFixtures(db, "local-synthetic-password"); err != nil {
+	if err := ensureCareClientSyntheticFixtures(db, "rotated-local-password"); err != nil {
 		t.Fatal(err)
 	}
 	assertNaturalDisplay()

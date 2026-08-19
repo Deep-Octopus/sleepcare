@@ -55,12 +55,13 @@
       >
         <div class="flex gap-4">
           <div class="flex h-14 w-12 shrink-0 flex-col items-center justify-center rounded-xl bg-[#e5f0ec] text-[#276b5b] dark:bg-emerald-950 dark:text-emerald-200">
-            <span class="text-[10px] font-semibold tracking-wider">DAY</span>
+            <span class="text-[10px] font-semibold">第</span>
             <span class="text-lg font-bold leading-none">{{ task.dayCode.replace('D', '') }}</span>
+            <span class="text-[10px] font-semibold">次</span>
           </div>
           <div class="min-w-0 flex-1">
             <div class="flex items-start justify-between gap-3">
-              <h2 class="text-base font-semibold leading-6">{{ task.title }}</h2>
+              <h2 class="text-base font-semibold leading-6">{{ readableTaskTitle(task.title, task.dayCode) }}</h2>
               <span
                 class="shrink-0 rounded-full px-2.5 py-1 text-xs font-medium"
                 :class="stateClass(taskStateCopy(task).tone)"
@@ -77,7 +78,7 @@
     </div>
 
     <p class="mt-8 border-t border-[#e5ece9] pt-5 text-xs leading-5 text-[#7b8e89] dark:border-slate-800 dark:text-slate-500">
-      当前会话只允许访问列表中的任务，不会进入员工管理页面。
+      为保护信息安全，你只能查看本页列出的任务。
     </p>
   </section>
 </template>
@@ -87,6 +88,7 @@
   import { useRouter } from 'vue-router'
   import { getClientTasks } from '@/api/sleep-care/client-access'
   import { formatTaskTime, taskStateCopy, unwrapClientResponse } from './state'
+  import { readableTaskTitle } from '@/utils/sleep-care-display'
 
   defineOptions({
     name: 'ClientTasks'

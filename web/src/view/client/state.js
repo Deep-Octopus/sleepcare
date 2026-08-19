@@ -90,7 +90,7 @@ export const taskStateCopy = (task) => {
     return { label: '尚未开放', tone: 'muted' }
   }
   if (task.timingStatus === 'EXPIRED') {
-    return { label: '已过期', tone: 'danger' }
+    return { label: '已结束', tone: 'danger' }
   }
   if (task.executionStatus === 'IN_PROGRESS') {
     return { label: '继续填写', tone: 'active' }
