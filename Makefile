@@ -6,7 +6,7 @@ SWAG := $(LOCAL_BIN)/swag
 SWAG_VERSION := v1.16.4
 GVA_GO_PROXY ?= https://goproxy.cn,direct
 
-.PHONY: init tools up down restart ps logs credentials swagger swagger-check backend-check backend-test frontend-check frontend-lint frontend-build verify reset
+.PHONY: init tools up down restart ps logs credentials swagger swagger-check backend-check backend-test frontend-check frontend-lint frontend-build phase2-rehearsal-check verify reset
 
 init:
 	@./scripts/init-local-env.sh
@@ -64,6 +64,10 @@ frontend-check:
 frontend-lint: frontend-check
 
 frontend-build: frontend-check
+
+phase2-rehearsal-check:
+	@mkdir -p "$(GO_CACHE)"
+	@cd server && GOCACHE="$(GO_CACHE)" go test -mod=readonly ./config -run '^TestPhaseTwoRehearsalContract$$' -count=1
 
 verify: backend-check swagger-check frontend-check
 	docker compose --env-file .env.example config --quiet

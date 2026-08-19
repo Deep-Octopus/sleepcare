@@ -21,6 +21,7 @@
 - [睡眠康养：移动端受限访问](active/sleep-care-mobile-access.md) — `active` — 以独立移动布局和受限会话访问本人任务。
 - [睡眠康养：满意度评价](active/sleep-care-satisfaction.md) — `active` — 服务闭环后发起评价并保留关联与质量跟进。
 - [睡眠康养：AI 与审核知识](active/sleep-care-ai-assist.md) — `active` — 阶段二可选影子验证，阶段三正式受限交付，自动回复另设门禁。
+- [睡眠康养：阶段二试用准备与桌面演练](active/sleep-care-trial-rehearsal.md) — `active` — UAT/培训资产、灰度门禁和无副作用暂停/回滚桌面演练。
 - [睡眠康养：设备数据](active/sleep-care-device-data.md) — `active` — 先支持人工观察数据，后续以 adapter 接入厂商。
 - [睡眠康养：失眠 CBT-I 与睡眠日记](active/sleep-care-insomnia-cbti.md) — `active` — 阶段三建设独立路径，首期只预留多路径模型。
 

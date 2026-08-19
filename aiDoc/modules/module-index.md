@@ -29,6 +29,7 @@
 - `notification.md`: 通知请求/尝试、供应商契约、请求签名、回调验签、重试/限流/费用边界、异常待办与任务联系记录
 - `data-governance.md`: 数据治理准备状态、正式能力关闭门禁、追加式生命周期请求、权限与迁移边界
 - `ai-assist.md`: 工作人员 AI 影子能力的关闭态、只读门禁、前置条件和后续启用边界
+- `trial-rehearsal.md`: 阶段二 UAT/培训准备、灰度门禁和无副作用暂停/回滚桌面演练
 - `phase-one-access-control.md`: 阶段一四角色菜单、按钮、Casbin、DataScope、责任关系、内容只读边界与隐藏详情路由收敛
 
 ## 命名建议

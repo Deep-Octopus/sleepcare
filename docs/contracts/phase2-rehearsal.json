@@ -1,0 +1,231 @@
+{
+  "schemaVersion": "P2-07-v1",
+  "task": "P2-07",
+  "environment": "LOCAL_TEST",
+  "dataScope": "FIXED_TEST_ONLY",
+  "executionMode": "TABLETOP",
+  "realTrialEnabled": false,
+  "promotionAllowed": false,
+  "capabilities": {
+    "realDataEnabled": false,
+    "formalNotificationEnabled": false,
+    "staffAIShadowEnabled": false,
+    "userFacingAIEnabled": false,
+    "externalCallsEnabled": false
+  },
+  "gates": [
+    {
+      "code": "REAL_TRIAL_SCOPE_APPROVED",
+      "status": "BLOCKED",
+      "owner": "UNASSIGNED"
+    },
+    {
+      "code": "FORMAL_CONTENT_APPROVED",
+      "status": "BLOCKED",
+      "owner": "UNASSIGNED"
+    },
+    {
+      "code": "REAL_IDENTITY_AND_CONSENT_APPROVED",
+      "status": "BLOCKED",
+      "owner": "UNASSIGNED"
+    },
+    {
+      "code": "FORMAL_NOTIFICATION_APPROVED",
+      "status": "BLOCKED",
+      "owner": "UNASSIGNED"
+    },
+    {
+      "code": "SERVICE_SLA_APPROVED",
+      "status": "BLOCKED",
+      "owner": "UNASSIGNED"
+    },
+    {
+      "code": "CAPACITY_TARGETS_APPROVED",
+      "status": "BLOCKED",
+      "owner": "UNASSIGNED"
+    },
+    {
+      "code": "MONITORING_AND_INCIDENT_OWNERS_ASSIGNED",
+      "status": "BLOCKED",
+      "owner": "UNASSIGNED"
+    },
+    {
+      "code": "BACKUP_RPO_RTO_APPROVED",
+      "status": "BLOCKED",
+      "owner": "UNASSIGNED"
+    },
+    {
+      "code": "RESTORE_REHEARSAL_COMPLETED",
+      "status": "BLOCKED",
+      "owner": "UNASSIGNED"
+    },
+    {
+      "code": "SECURITY_REVIEW_COMPLETED",
+      "status": "BLOCKED",
+      "owner": "UNASSIGNED"
+    },
+    {
+      "code": "AI_SHADOW_SELECTED",
+      "status": "NOT_SELECTED",
+      "owner": "UNASSIGNED"
+    }
+  ],
+  "uatCases": [
+    {
+      "id": "P2-UAT-01",
+      "scope": "ROLE_AND_ORGANIZATION_BOUNDARY",
+      "executionStatus": "DEFERRED_TO_P2_08"
+    },
+    {
+      "id": "P2-UAT-02",
+      "scope": "CONSULTATION_LIFECYCLE",
+      "executionStatus": "DEFERRED_TO_P2_08"
+    },
+    {
+      "id": "P2-UAT-03",
+      "scope": "SATISFACTION_AND_FOLLOW_UP",
+      "executionStatus": "DEFERRED_TO_P2_08"
+    },
+    {
+      "id": "P2-UAT-04",
+      "scope": "NOTIFICATION_CONTRACT_BOUNDARY",
+      "executionStatus": "DEFERRED_TO_P2_08"
+    },
+    {
+      "id": "P2-UAT-05",
+      "scope": "DASHBOARD_SUMMARY_AND_REVISION",
+      "executionStatus": "DEFERRED_TO_P2_08"
+    },
+    {
+      "id": "P2-UAT-06",
+      "scope": "DATA_GOVERNANCE_CLOSED_STATE",
+      "executionStatus": "DEFERRED_TO_P2_08"
+    },
+    {
+      "id": "P2-UAT-07",
+      "scope": "AI_SHADOW_CLOSED_STATE",
+      "executionStatus": "DEFERRED_TO_P2_08"
+    },
+    {
+      "id": "P2-UAT-08",
+      "scope": "PAUSE_RESUME_REOPEN_RECOVERY",
+      "executionStatus": "DEFERRED_TO_P2_08"
+    },
+    {
+      "id": "P2-UAT-09",
+      "scope": "IDEMPOTENCY_AND_RETRY",
+      "executionStatus": "DEFERRED_TO_P2_08"
+    },
+    {
+      "id": "P2-UAT-10",
+      "scope": "NO_EXTERNAL_SIDE_EFFECTS",
+      "executionStatus": "DEFERRED_TO_P2_08"
+    }
+  ],
+  "trainingModules": [
+    {
+      "role": "CARE_CLIENT",
+      "topics": [
+        "RESTRICTED_ACCESS",
+        "CONSULTATION",
+        "SATISFACTION"
+      ],
+      "deliveryStatus": "PREPARED_NOT_DELIVERED"
+    },
+    {
+      "role": "CARE_STEWARD",
+      "topics": [
+        "WORKBENCH",
+        "TASK_CONTACT",
+        "CONSULTATION",
+        "ATTENTION_CASE"
+      ],
+      "deliveryStatus": "PREPARED_NOT_DELIVERED"
+    },
+    {
+      "role": "CLINICIAN",
+      "topics": [
+        "WORKBENCH",
+        "ATTENTION_CASE",
+        "SUPERVISOR_HANDOFF"
+      ],
+      "deliveryStatus": "PREPARED_NOT_DELIVERED"
+    },
+    {
+      "role": "SUPERVISOR",
+      "topics": [
+        "DAILY_SUMMARY",
+        "OPERATIONS_DASHBOARD",
+        "SATISFACTION_FOLLOW_UP",
+        "CLOSED_GATES"
+      ],
+      "deliveryStatus": "PREPARED_NOT_DELIVERED"
+    },
+    {
+      "role": "CONTENT_ADMIN",
+      "topics": [
+        "READ_ONLY_CONTENT",
+        "RUNTIME_ACCESS_DENIAL"
+      ],
+      "deliveryStatus": "PREPARED_NOT_DELIVERED"
+    },
+    {
+      "role": "SYSTEM_ADMIN_NEGATIVE_BOUNDARY",
+      "topics": [
+        "NO_CARE_RUNTIME_ACCESS"
+      ],
+      "deliveryStatus": "PREPARED_NOT_DELIVERED"
+    }
+  ],
+  "tabletop": {
+    "initialState": "HOLD",
+    "rollbackStrategy": "CODE_ONLY_RETAIN_DATA",
+    "controls": {
+      "networkCallsAllowed": false,
+      "deploymentAllowed": false,
+      "databaseWritesAllowed": false,
+      "databaseRestoreAllowed": false,
+      "volumeResetAllowed": false,
+      "gitHistoryRewriteAllowed": false,
+      "retainBusinessData": true,
+      "credentialsRecorded": false
+    },
+    "steps": [
+      {
+        "order": 1,
+        "action": "BEGIN_DRY_RUN",
+        "from": "HOLD",
+        "to": "DRY_RUN",
+        "expected": "ALLOWED"
+      },
+      {
+        "order": 2,
+        "action": "PROMOTE",
+        "from": "DRY_RUN",
+        "to": "DRY_RUN",
+        "expected": "DENIED"
+      },
+      {
+        "order": 3,
+        "action": "PAUSE",
+        "from": "DRY_RUN",
+        "to": "DRY_RUN_PAUSED",
+        "expected": "ALLOWED"
+      },
+      {
+        "order": 4,
+        "action": "ROLLBACK",
+        "from": "DRY_RUN_PAUSED",
+        "to": "DRY_RUN_ROLLED_BACK",
+        "expected": "ALLOWED"
+      },
+      {
+        "order": 5,
+        "action": "VERIFY_AND_HOLD",
+        "from": "DRY_RUN_ROLLED_BACK",
+        "to": "HOLD",
+        "expected": "ALLOWED"
+      }
+    ]
+  }
+}
