@@ -17,7 +17,7 @@
 - [睡眠康养：员工责任范围工作台](active/sleep-care-staff-workbench.md) — `active` — 聚合职责范围任务与事项，并提供管家、医护分角色动作入口。
 - [睡眠康养：通知状态与重试](active/sleep-care-notification.md) — `active` — 区分受理、送达与用户交互，并以默认关闭的 provider 契约控制验签、重试、限流和费用。
 - [睡眠康养：主动咨询服务](active/sleep-care-consultation.md) — `active` — 阶段二实现咨询分配、转交、升级、解决和关闭。
-- [睡眠康养：每日汇总与督导](active/sleep-care-supervision.md) — `active` — 生成可复算日报并支持上级指导和介入。
+- [睡眠康养：每日汇总与督导](active/sleep-care-supervision.md) — `active` — 生成十二项机构级日报、运营覆盖与追加修正，并支持上级指导和介入。
 - [睡眠康养：移动端受限访问](active/sleep-care-mobile-access.md) — `active` — 以独立移动布局和受限会话访问本人任务。
 - [睡眠康养：满意度评价](active/sleep-care-satisfaction.md) — `active` — 服务闭环后发起评价并保留关联与质量跟进。
 - [睡眠康养：AI 与审核知识](active/sleep-care-ai-assist.md) — `active` — 阶段二可选影子验证，阶段三正式受限交付，自动回复另设门禁。

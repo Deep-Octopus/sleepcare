@@ -4,6 +4,14 @@ const (
 	SummaryTypeRealtimePreview   = "REALTIME_PREVIEW"
 	SummaryTypeVersionedSnapshot = "VERSIONED_SNAPSHOT"
 	MetricDefinitionVersionV1    = "P1-08-v1"
+	MetricDefinitionVersionV2    = "P2-04-v2"
+
+	SummaryGenerationLegacy          = "LEGACY"
+	SummaryGenerationScheduled       = "SCHEDULED"
+	SummaryGenerationCorrection      = "CORRECTION"
+	SummaryGenerationSystemRecompute = "SYSTEM_RECOMPUTE"
+	SummaryUsageTestOnly             = "TEST_ONLY"
+	SummaryAttributionPending        = "PENDING_APPROVAL"
 
 	GuidanceActionGuidance  = "GUIDANCE"
 	GuidanceActionIntervene = "INTERVENE"

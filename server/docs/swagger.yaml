@@ -2196,6 +2196,17 @@ definitions:
     - resolution
     - usageBoundaryConfirmed
     type: object
+  request.ReviseDailySummary:
+    properties:
+      expectedVersion:
+        type: integer
+      reason:
+        maxLength: 1000
+        type: string
+    required:
+    - expectedVersion
+    - reason
+    type: object
   request.SaveDraft:
     properties:
       answers:
@@ -3328,13 +3339,35 @@ definitions:
     properties:
       businessDate:
         type: string
+      consultationsClosed:
+        type: integer
+      consultationsOpened:
+        type: integer
+      correctionReason:
+        type: string
       deliveryIssues:
         type: integer
       dueTasks:
         type: integer
+      generatedAt:
+        type: string
+      generationType:
+        type: string
       id:
         type: integer
+      isLatest:
+        type: boolean
+      metricDefinitionVersion:
+        type: string
       openAttentionCases:
+        type: integer
+      openConsultations:
+        type: integer
+      openTodos:
+        type: integer
+      overdueTasks:
+        type: integer
+      previousVersionId:
         type: integer
       resolvedAttentionCases:
         type: integer
@@ -3342,6 +3375,8 @@ definitions:
         type: integer
       servedClients:
         type: integer
+      sourceCutoffAt:
+        type: string
       submittedTasks:
         type: integer
       summaryType:
@@ -3353,6 +3388,12 @@ definitions:
     properties:
       businessDate:
         type: string
+      consultationsClosed:
+        type: integer
+      consultationsOpened:
+        type: integer
+      correctionReason:
+        type: string
       deliveryIssues:
         type: integer
       dueTasks:
@@ -3361,21 +3402,58 @@ definitions:
         items:
           $ref: '#/definitions/response.AttentionCaseSummary'
         type: array
+      focusCasesChanged:
+        type: boolean
+      generatedAt:
+        type: string
+      generationType:
+        type: string
       id:
         type: integer
+      isLatest:
+        type: boolean
+      metricDefinitionVersion:
+        type: string
       openAttentionCases:
+        type: integer
+      openConsultations:
+        type: integer
+      openTodos:
+        type: integer
+      overdueTasks:
+        type: integer
+      previousVersionId:
         type: integer
       resolvedAttentionCases:
         type: integer
       reviewRequired:
         type: integer
+      revisionChanges:
+        items:
+          $ref: '#/definitions/response.MetricChange'
+        type: array
       servedClients:
         type: integer
+      sourceCutoffAt:
+        type: string
       submittedTasks:
         type: integer
       summaryType:
         type: string
       version:
+        type: integer
+    type: object
+  response.DashboardCoverage:
+    properties:
+      missingDates:
+        items:
+          type: string
+        type: array
+      requestedPastDays:
+        type: integer
+      revisedDates:
+        type: integer
+      snapshotDays:
         type: integer
     type: object
   response.DeliveryEvent:
@@ -3512,6 +3590,15 @@ definitions:
       user:
         $ref: '#/definitions/system.SysUser'
     type: object
+  response.MetricChange:
+    properties:
+      after:
+        type: integer
+      before:
+        type: integer
+      key:
+        type: string
+    type: object
   response.NotificationAttempt:
     properties:
       acceptedAt:
@@ -3564,6 +3651,29 @@ definitions:
         type: string
       version:
         type: integer
+    type: object
+  response.OperationsDashboard:
+    properties:
+      asOf:
+        type: string
+      attributionPolicyStatus:
+        type: string
+      coverage:
+        $ref: '#/definitions/response.DashboardCoverage'
+      current:
+        $ref: '#/definitions/response.DailySummary'
+      formalReportingEnabled:
+        type: boolean
+      metricDefinitionVersion:
+        type: string
+      recentSnapshots:
+        items:
+          $ref: '#/definitions/response.DailySummary'
+        type: array
+      timeZone:
+        type: string
+      usageScope:
+        type: string
     type: object
   response.OrgUnitOption:
     properties:
@@ -8704,6 +8814,50 @@ paths:
       summary: 查询授权范围历史日报版本详情
       tags:
       - Supervision
+  /care/daily-summaries/{id}/revisions:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 当前最新日报版本ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 幂等键
+        in: header
+        name: Idempotency-Key
+        required: true
+        type: string
+      - description: 当前版本和事实性修正原因
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.ReviseDailySummary'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.DailySummaryDetail'
+                msg:
+                  type: string
+              type: object
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: 根据已修正原始记录追加日报版本
+      tags:
+      - Supervision
   /care/deliveries:
     get:
       parameters:
@@ -8882,6 +9036,36 @@ paths:
       summary: 查询通知供应商启用门禁与发送边界
       tags:
       - Deliveries
+  /care/operations-dashboard:
+    get:
+      parameters:
+      - description: 窗口天数，1到31，默认7
+        in: query
+        name: days
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.OperationsDashboard'
+                msg:
+                  type: string
+              type: object
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: 查询机构级实时运营概览与最近日报覆盖情况
+      tags:
+      - Supervision
   /care/plan-instances/{id}/pause:
     post:
       consumes:

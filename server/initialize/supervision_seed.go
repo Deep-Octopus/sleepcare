@@ -2,6 +2,7 @@ package initialize
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -15,8 +16,10 @@ import (
 )
 
 var supervisionAPIs = []system.SysApi{
+	{ApiGroup: "督导中心", Method: "GET", Path: "/care/operations-dashboard", Description: "查询机构级运营概览"},
 	{ApiGroup: "督导中心", Method: "GET", Path: "/care/daily-summaries", Description: "查询每日汇总"},
 	{ApiGroup: "督导中心", Method: "GET", Path: "/care/daily-summaries/:id", Description: "查询日报版本详情"},
+	{ApiGroup: "督导中心", Method: "POST", Path: "/care/daily-summaries/:id/revisions", Description: "追加日报修正版"},
 	{ApiGroup: "督导中心", Method: "GET", Path: "/care/reviews", Description: "查询上级复核队列"},
 	{ApiGroup: "督导中心", Method: "POST", Path: "/care/reviews/:id/guidance", Description: "追加上级指导"},
 	{ApiGroup: "督导中心", Method: "POST", Path: "/care/reviews/:id/intervene", Description: "记录上级介入"},
@@ -34,6 +37,9 @@ func EnsureSupervisionData() error {
 	ctx := datascope.WithSystem(context.Background())
 	db := global.GVA_DB.WithContext(ctx)
 	if err := ensureSupervisionMetadata(db, global.GVA_CONFIG.Care.SyntheticFixturesEnabled); err != nil {
+		return err
+	}
+	if err := ensureDailySummaryTimedTask(db, global.GVA_CONFIG.Care.SyntheticFixturesEnabled); err != nil {
 		return err
 	}
 	if !global.GVA_CONFIG.Care.SyntheticFixturesEnabled {
@@ -132,6 +138,7 @@ func ensureSupervisionMenus(tx *gorm.DB) (
 	}
 	dailyButtons = []system.SysBaseMenuBtn{
 		{Name: "viewDetail", Desc: "查看日报版本详情", SysBaseMenuID: dailyMenu.ID},
+		{Name: "revise", Desc: "根据修正记录追加日报版本", SysBaseMenuID: dailyMenu.ID},
 	}
 	reviewButtons = []system.SysBaseMenuBtn{
 		{Name: "viewDetail", Desc: "查看待复核事项详情", SysBaseMenuID: reviewMenu.ID},
@@ -194,7 +201,8 @@ func ensureInitialSupervisionSnapshot(ctx context.Context, db *gorm.DB) error {
 	businessDate := time.Date(2026, time.August, 18, 0, 0, 0, 0, time.FixedZone("CST", 8*60*60))
 	var count int64
 	if err := db.Model(&supervisionmodel.DailySummaryVersion{}).
-		Where("organization_id = ? AND business_date = ?", syntheticOrgAID, businessDate).
+		Where("organization_id = ? AND business_date = ? AND metric_definition_version = ?",
+			syntheticOrgAID, businessDate, supervisionmodel.MetricDefinitionVersionV2).
 		Count(&count).Error; err != nil {
 		return err
 	}
@@ -202,8 +210,38 @@ func ensureInitialSupervisionSnapshot(ctx context.Context, db *gorm.DB) error {
 		return nil
 	}
 	fixedNow := time.Date(2026, time.August, 19, 0, 5, 0, 0, time.FixedZone("CST", 8*60*60))
-	_, err := (&supervisionservice.SupervisionService{
-		DB: db, Now: func() time.Time { return fixedNow },
-	}).GenerateSnapshot(ctx, syntheticOrgAID, businessDate)
+	enabled := true
+	_, _, err := (&supervisionservice.SupervisionService{
+		DB: db, Now: func() time.Time { return fixedNow }, SyntheticFixturesEnabled: &enabled,
+	}).EnsureScheduledSnapshot(ctx, syntheticOrgAID, businessDate)
 	return err
+}
+
+func ensureDailySummaryTimedTask(db *gorm.DB, enabled bool) error {
+	const taskName = "CareDailySummary"
+	var existing system.SysTimedTask
+	err := db.Where("name = ?", taskName).First(&existing).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		if !enabled {
+			return nil
+		}
+		return db.Create(&system.SysTimedTask{
+			Name:         taskName,
+			Description:  "每日生成前一自然日的机构汇总；仅固定记录门禁开启时登记",
+			Spec:         "CRON_TZ=Asia/Shanghai 10 0 * * *",
+			ExecutorType: system.TimedTaskExecutorMethod,
+			MethodName:   "GenerateCareDailySummaries",
+			Enabled:      true,
+		}).Error
+	}
+	if err != nil {
+		return err
+	}
+	if existing.ExecutorType != system.TimedTaskExecutorMethod || existing.MethodName != "GenerateCareDailySummaries" {
+		return fmt.Errorf("daily summary timed task executor differs from the registered method")
+	}
+	if !enabled && existing.Enabled {
+		return db.Model(&system.SysTimedTask{}).Where("id = ?", existing.ID).Update("enabled", false).Error
+	}
+	return nil
 }

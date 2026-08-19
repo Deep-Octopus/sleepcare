@@ -154,3 +154,14 @@
 - 费用字段使用整数最小单位，前端不得自行换算小数位或推测真实价格；默认零值显示“未配置”。
 - provider 状态机继续使用 `PENDING -> SUBMITTED_TO_PROVIDER -> ACCEPTED -> DELIVERED|FAILED|UNKNOWN`；`ACCEPTED` 页面文案继续明确“尚未确认送达”。
 - 运行配置只允许 `DISABLED|CONTRACT_TEST`，仓库不包含 provider 网络客户端、手机号、通知正文或真实密钥；P2-03 不启用真实短信，也不安排页面点触。
+
+## P2-04 完整日报、运营看板与历史修正契约
+
+- `GET /care/operations-dashboard?days=7` 只允许上级角色读取其管理机构，`days` 允许 1–31；返回今日实时投影、历史日的最新版本、缺失日期和已有修正日期数。
+- 看板固定返回 `usageScope=TEST_ONLY`、`formalReportingEnabled=false`、`attributionPolicyStatus=PENDING_APPROVAL` 和 `metricDefinitionVersion=P2-04-v2`。前端不得自行把结果解释为正式经营报表、人员评价或团队绩效。
+- `P2-04-v2` 返回服务人数、应执行/已提交/逾期任务、通知异常、未关闭/当日解决事项、新增/关闭/未结咨询、活动待办和待上级复核共十二项指标。
+- 今日数据仍为不持久化的 `REALTIME_PREVIEW`；历史数据为 `VERSIONED_SNAPSHOT`。历史响应增加生成方式、生成/截止时间、前一版本、修正原因、是否最新和本版差异。
+- `POST /care/daily-summaries/{id}/revisions` 要求 `Idempotency-Key`、`expectedVersion` 和事实性修正原因。接口只接受已结束业务日的当前最新版本，并重新读取原始记录；来源未变化时不创建新版本。
+- 修正版只能追加，不能覆盖或直接编辑指标。相同键与相同请求返回原版本；该版本后来不再最新时，重放结果也必须返回 `isLatest=false`。相同键与不同请求、旧版本和跨机构请求均拒绝。
+- `CareDailySummary` 方法任务在固定测试门禁开启时，于 `Asia/Shanghai` 每日 00:10 幂等生成前一日机构快照；没有初始生成 HTTP 接口，门禁关闭时任务停用。
+- 当前只冻结机构级归属。团队转交、人员归属、正式 KPI、跨机构分析和导出仍待批准，不进入当前接口或数据模型；P2-04 不启用真实短信、医疗内容或用户侧 AI，也不安排页面点触。

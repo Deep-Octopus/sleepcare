@@ -301,6 +301,7 @@ func newSupervisionFixture(t *testing.T) supervisionFixture {
 	db := testutil.NewMemoryDB(t,
 		&caremodel.CareClient{}, &caremodel.CareAssignment{}, &caremodel.CareOrgUnitProfile{}, &caremodel.CareAuthorityProfile{},
 		&pathmodel.TaskInstance{}, &caseworkmodel.AttentionCase{}, &caseworkmodel.CaseAction{}, &caseworkmodel.TodoItem{},
+		&caseworkmodel.Consultation{},
 		&supervisionmodel.DailySummaryVersion{}, &supervisionmodel.SupervisorGuidance{}, &outbox.Event{},
 		testutil.WithDataScopeCallbacks(),
 	)

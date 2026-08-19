@@ -15,3 +15,8 @@ type Intervene struct {
 	ResponsibleAssigneeID uint      `json:"responsibleAssigneeId" binding:"required"`
 	DueAt                 time.Time `json:"dueAt" binding:"required"`
 }
+
+type ReviseDailySummary struct {
+	ExpectedVersion uint   `json:"expectedVersion" binding:"required"`
+	Reason          string `json:"reason" binding:"required,max=1000"`
+}

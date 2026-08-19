@@ -10,3 +10,7 @@ type DailySummarySearch struct {
 type ReviewSearch struct {
 	commonreq.PageInfo
 }
+
+type OperationsDashboardQuery struct {
+	Days int `json:"days" form:"days"`
+}

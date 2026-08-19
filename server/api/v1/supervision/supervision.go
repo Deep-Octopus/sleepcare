@@ -19,9 +19,34 @@ type SupervisionApi struct{}
 
 var (
 	_ supervisionres.DailySummaryDetail
+	_ supervisionres.OperationsDashboard
+	_ supervisionreq.ReviseDailySummary
 	_ supervisionres.ReviewItem
 	_ caseworkres.ActionResult
 )
+
+// GetOperationsDashboard
+// @Tags Supervision
+// @Summary 查询机构级实时运营概览与最近日报覆盖情况
+// @Security ApiKeyAuth
+// @Produce application/json
+// @Param days query int false "窗口天数，1到31，默认7"
+// @Success 200 {object} commonres.Response{data=supervisionres.OperationsDashboard,msg=string}
+// @Failure 403 {object} commonres.Response
+// @Router /care/operations-dashboard [get]
+func (a *SupervisionApi) GetOperationsDashboard(c *gin.Context) {
+	var req supervisionreq.OperationsDashboardQuery
+	if err := c.ShouldBindQuery(&req); err != nil {
+		commonres.FailWithMessage("查询参数无效", c)
+		return
+	}
+	data, err := supervisionService.GetOperationsDashboard(c.Request.Context(), req)
+	if err != nil {
+		handleError(c, err, "查询运营概览失败")
+		return
+	}
+	commonres.OkWithDetailed(data, "查询成功", c)
+}
 
 // ListDailySummaries
 // @Tags Supervision
@@ -71,6 +96,41 @@ func (a *SupervisionApi) GetDailySummary(c *gin.Context) {
 		return
 	}
 	commonres.OkWithDetailed(data, "查询成功", c)
+}
+
+// ReviseDailySummary
+// @Tags Supervision
+// @Summary 根据已修正原始记录追加日报版本
+// @Security ApiKeyAuth
+// @Accept application/json
+// @Produce application/json
+// @Param id path int true "当前最新日报版本ID"
+// @Param Idempotency-Key header string true "幂等键"
+// @Param data body supervisionreq.ReviseDailySummary true "当前版本和事实性修正原因"
+// @Success 200 {object} commonres.Response{data=supervisionres.DailySummaryDetail,msg=string}
+// @Failure 403 {object} commonres.Response
+// @Router /care/daily-summaries/{id}/revisions [post]
+func (a *SupervisionApi) ReviseDailySummary(c *gin.Context) {
+	id, ok := pathID(c)
+	if !ok {
+		return
+	}
+	var req supervisionreq.ReviseDailySummary
+	if err := c.ShouldBindJSON(&req); err != nil {
+		commonres.FailWithMessage("请求参数无效", c)
+		return
+	}
+	data, err := supervisionService.ReviseDailySummary(
+		c.Request.Context(),
+		id,
+		c.GetHeader("Idempotency-Key"),
+		req,
+	)
+	if err != nil {
+		handleError(c, err, "创建日报修正版失败")
+		return
+	}
+	commonres.OkWithDetailed(data, "日报修正版已生成", c)
 }
 
 // ListReviews

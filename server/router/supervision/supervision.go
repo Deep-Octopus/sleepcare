@@ -11,6 +11,7 @@ func (r *SupervisionRouter) InitSupervisionRouter(router *gin.RouterGroup) {
 	readGroup := router.Group("care")
 	writeGroup := router.Group("care").Use(middleware.OperationRecord())
 	{
+		readGroup.GET("operations-dashboard", supervisionApi.GetOperationsDashboard)
 		readGroup.GET("daily-summaries", supervisionApi.ListDailySummaries)
 		readGroup.GET("daily-summaries/:id", supervisionApi.GetDailySummary)
 		readGroup.GET("reviews", supervisionApi.ListReviews)
@@ -19,6 +20,7 @@ func (r *SupervisionRouter) InitSupervisionRouter(router *gin.RouterGroup) {
 		readGroup.GET("satisfaction-follow-ups/:id", supervisionApi.GetSatisfactionFollowUp)
 	}
 	{
+		writeGroup.POST("daily-summaries/:id/revisions", supervisionApi.ReviseDailySummary)
 		writeGroup.POST("reviews/:id/guidance", supervisionApi.AddGuidance)
 		writeGroup.POST("reviews/:id/intervene", supervisionApi.Intervene)
 		writeGroup.POST("satisfaction-follow-ups/:id/acknowledge", supervisionApi.AcknowledgeSatisfactionFollowUp)

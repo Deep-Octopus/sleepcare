@@ -17,6 +17,21 @@ export const getDailySummary = (id) =>
     method: 'get'
   })
 
+export const getOperationsDashboard = (params) =>
+  service({
+    url: '/care/operations-dashboard',
+    method: 'get',
+    params
+  })
+
+export const reviseDailySummary = (id, data, idempotencyKey) =>
+  service({
+    url: `/care/daily-summaries/${id}/revisions`,
+    method: 'post',
+    data,
+    headers: commandHeaders(idempotencyKey)
+  })
+
 export const getSupervisionReviews = (params) =>
   service({
     url: '/care/reviews',

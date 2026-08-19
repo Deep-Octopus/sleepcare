@@ -29,6 +29,7 @@ func TestEnsureSupervisionMetadataIsIdempotentAndSupervisorOnly(t *testing.T) {
 	var apiCount int64
 	require.NoError(t, db.Model(&system.SysApi{}).
 		Where("path LIKE ?", "/care/daily-summaries%").
+		Or("path = ?", "/care/operations-dashboard").
 		Or("path LIKE ?", "/care/reviews%").
 		Or("path LIKE ?", "/care/satisfaction-%").
 		Count(&apiCount).Error)
@@ -50,7 +51,9 @@ func TestEnsureSupervisionMetadataIsIdempotentAndSupervisorOnly(t *testing.T) {
 	require.Equal(t, center.ID, reviewMenu.ParentId)
 	require.Equal(t, center.ID, satisfactionMenu.ParentId)
 
-	assertCaseWorkButton(t, db, dailyMenu.ID, "viewDetail", syntheticSupervisorRole, true)
+	for _, name := range []string{"viewDetail", "revise"} {
+		assertCaseWorkButton(t, db, dailyMenu.ID, name, syntheticSupervisorRole, true)
+	}
 	for _, name := range []string{"viewDetail", "guide", "discuss", "intervene"} {
 		assertCaseWorkButton(t, db, reviewMenu.ID, name, syntheticSupervisorRole, true)
 	}
@@ -93,6 +96,30 @@ func TestEnsureInitialSupervisionSnapshotIsIdempotent(t *testing.T) {
 	require.Len(t, snapshots, 1)
 	require.Equal(t, uint(syntheticOrgAID), snapshots[0].OrganizationID)
 	require.Equal(t, uint(1), snapshots[0].Version)
-	require.Equal(t, supervisionmodel.MetricDefinitionVersionV1, snapshots[0].MetricDefinitionVersion)
+	require.Equal(t, supervisionmodel.MetricDefinitionVersionV2, snapshots[0].MetricDefinitionVersion)
+	require.Equal(t, supervisionmodel.SummaryGenerationScheduled, snapshots[0].GenerationType)
 	require.True(t, snapshots[0].Synthetic)
+}
+
+func TestEnsureDailySummaryTimedTaskIsGatedAndIdempotent(t *testing.T) {
+	db := testutil.NewMemoryDBWithoutGlobal(t, &system.SysTimedTask{}).
+		WithContext(datascope.WithSystem(context.Background()))
+
+	require.NoError(t, ensureDailySummaryTimedTask(db, false))
+	var count int64
+	require.NoError(t, db.Model(&system.SysTimedTask{}).Count(&count).Error)
+	require.Zero(t, count)
+
+	require.NoError(t, ensureDailySummaryTimedTask(db, true))
+	require.NoError(t, ensureDailySummaryTimedTask(db, true))
+	var scheduled system.SysTimedTask
+	require.NoError(t, db.Where("name = ?", "CareDailySummary").First(&scheduled).Error)
+	require.True(t, scheduled.Enabled)
+	require.Equal(t, system.TimedTaskExecutorMethod, scheduled.ExecutorType)
+	require.Equal(t, "GenerateCareDailySummaries", scheduled.MethodName)
+	require.Equal(t, "CRON_TZ=Asia/Shanghai 10 0 * * *", scheduled.Spec)
+
+	require.NoError(t, ensureDailySummaryTimedTask(db, false))
+	require.NoError(t, db.First(&scheduled, scheduled.ID).Error)
+	require.False(t, scheduled.Enabled)
 }

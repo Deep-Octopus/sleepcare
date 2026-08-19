@@ -9,6 +9,10 @@ const (
 	CodeResourceNotFound                  = 41004
 	CodeReviewScopeDenied                 = 41701
 	CodeGuidanceResultRequired            = 41702
+	CodeSummaryRevisionRequired           = 41703
+	CodeSummaryUnchanged                  = 41704
+	CodeSummaryNotLatest                  = 41705
+	CodeSummaryGenerationDenied           = 41706
 	CodeSatisfactionScopeDenied           = 41801
 	CodeSatisfactionTransitionDenied      = 41802
 	CodeSatisfactionAlreadySubmitted      = 41803

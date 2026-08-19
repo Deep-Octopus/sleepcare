@@ -7,6 +7,7 @@ import (
 
 	"github.com/flipped-aurora/gin-vue-admin/server/global"
 	mediaService "github.com/flipped-aurora/gin-vue-admin/server/service/media"
+	supervisionService "github.com/flipped-aurora/gin-vue-admin/server/service/supervision"
 	"github.com/flipped-aurora/gin-vue-admin/server/task"
 )
 
@@ -21,5 +22,9 @@ func Timer() {
 	task.Register("CleanStaleUploads", "清理过期大文件上传会话", func(ctx context.Context, _ json.RawMessage) error {
 		svc := mediaService.MediaUploadService{}
 		return svc.CleanupStale(ctx, global.GVA_CONFIG.Media.SessionTTL)
+	})
+	task.Register("GenerateCareDailySummaries", "生成固定记录的前一日机构汇总", func(ctx context.Context, _ json.RawMessage) error {
+		svc := supervisionService.SupervisionService{}
+		return svc.GenerateScheduledSnapshots(ctx)
 	})
 }

@@ -13,8 +13,10 @@ func TestSupervisionRoutesMatchEmployeeContract(t *testing.T) {
 	(&SupervisionRouter{}).InitSupervisionRouter(group)
 
 	want := map[string]bool{
+		"GET /api/care/operations-dashboard":                     true,
 		"GET /api/care/daily-summaries":                          true,
 		"GET /api/care/daily-summaries/:id":                      true,
+		"POST /api/care/daily-summaries/:id/revisions":           true,
 		"GET /api/care/reviews":                                  true,
 		"POST /api/care/reviews/:id/guidance":                    true,
 		"POST /api/care/reviews/:id/intervene":                   true,

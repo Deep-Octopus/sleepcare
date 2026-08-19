@@ -5945,6 +5945,79 @@ const docTemplate = `{
                 }
             }
         },
+        "/care/daily-summaries/{id}/revisions": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Supervision"
+                ],
+                "summary": "根据已修正原始记录追加日报版本",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "当前最新日报版本ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "幂等键",
+                        "name": "Idempotency-Key",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "当前版本和事实性修正原因",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.ReviseDailySummary"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.DailySummaryDetail"
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/care/deliveries": {
             "get": {
                 "security": [
@@ -6225,6 +6298,59 @@ const docTemplate = `{
                                     "properties": {
                                         "data": {
                                             "$ref": "#/definitions/response.ProviderReadiness"
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/care/operations-dashboard": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Supervision"
+                ],
+                "summary": "查询机构级实时运营概览与最近日报覆盖情况",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "窗口天数，1到31，默认7",
+                        "name": "days",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.OperationsDashboard"
                                         },
                                         "msg": {
                                             "type": "string"
@@ -21306,6 +21432,22 @@ const docTemplate = `{
                 }
             }
         },
+        "request.ReviseDailySummary": {
+            "type": "object",
+            "required": [
+                "expectedVersion",
+                "reason"
+            ],
+            "properties": {
+                "expectedVersion": {
+                    "type": "integer"
+                },
+                "reason": {
+                    "type": "string",
+                    "maxLength": 1000
+                }
+            }
+        },
         "request.SaveDraft": {
             "type": "object",
             "required": [
@@ -22997,16 +23139,49 @@ const docTemplate = `{
                 "businessDate": {
                     "type": "string"
                 },
+                "consultationsClosed": {
+                    "type": "integer"
+                },
+                "consultationsOpened": {
+                    "type": "integer"
+                },
+                "correctionReason": {
+                    "type": "string"
+                },
                 "deliveryIssues": {
                     "type": "integer"
                 },
                 "dueTasks": {
                     "type": "integer"
                 },
+                "generatedAt": {
+                    "type": "string"
+                },
+                "generationType": {
+                    "type": "string"
+                },
                 "id": {
                     "type": "integer"
                 },
+                "isLatest": {
+                    "type": "boolean"
+                },
+                "metricDefinitionVersion": {
+                    "type": "string"
+                },
                 "openAttentionCases": {
+                    "type": "integer"
+                },
+                "openConsultations": {
+                    "type": "integer"
+                },
+                "openTodos": {
+                    "type": "integer"
+                },
+                "overdueTasks": {
+                    "type": "integer"
+                },
+                "previousVersionId": {
                     "type": "integer"
                 },
                 "resolvedAttentionCases": {
@@ -23017,6 +23192,9 @@ const docTemplate = `{
                 },
                 "servedClients": {
                     "type": "integer"
+                },
+                "sourceCutoffAt": {
+                    "type": "string"
                 },
                 "submittedTasks": {
                     "type": "integer"
@@ -23035,6 +23213,15 @@ const docTemplate = `{
                 "businessDate": {
                     "type": "string"
                 },
+                "consultationsClosed": {
+                    "type": "integer"
+                },
+                "consultationsOpened": {
+                    "type": "integer"
+                },
+                "correctionReason": {
+                    "type": "string"
+                },
                 "deliveryIssues": {
                     "type": "integer"
                 },
@@ -23047,10 +23234,37 @@ const docTemplate = `{
                         "$ref": "#/definitions/response.AttentionCaseSummary"
                     }
                 },
+                "focusCasesChanged": {
+                    "type": "boolean"
+                },
+                "generatedAt": {
+                    "type": "string"
+                },
+                "generationType": {
+                    "type": "string"
+                },
                 "id": {
                     "type": "integer"
                 },
+                "isLatest": {
+                    "type": "boolean"
+                },
+                "metricDefinitionVersion": {
+                    "type": "string"
+                },
                 "openAttentionCases": {
+                    "type": "integer"
+                },
+                "openConsultations": {
+                    "type": "integer"
+                },
+                "openTodos": {
+                    "type": "integer"
+                },
+                "overdueTasks": {
+                    "type": "integer"
+                },
+                "previousVersionId": {
                     "type": "integer"
                 },
                 "resolvedAttentionCases": {
@@ -23059,8 +23273,17 @@ const docTemplate = `{
                 "reviewRequired": {
                     "type": "integer"
                 },
+                "revisionChanges": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.MetricChange"
+                    }
+                },
                 "servedClients": {
                     "type": "integer"
+                },
+                "sourceCutoffAt": {
+                    "type": "string"
                 },
                 "submittedTasks": {
                     "type": "integer"
@@ -23069,6 +23292,26 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "version": {
+                    "type": "integer"
+                }
+            }
+        },
+        "response.DashboardCoverage": {
+            "type": "object",
+            "properties": {
+                "missingDates": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "requestedPastDays": {
+                    "type": "integer"
+                },
+                "revisedDates": {
+                    "type": "integer"
+                },
+                "snapshotDays": {
                     "type": "integer"
                 }
             }
@@ -23279,6 +23522,20 @@ const docTemplate = `{
                 }
             }
         },
+        "response.MetricChange": {
+            "type": "object",
+            "properties": {
+                "after": {
+                    "type": "integer"
+                },
+                "before": {
+                    "type": "integer"
+                },
+                "key": {
+                    "type": "string"
+                }
+            }
+        },
         "response.NotificationAttempt": {
             "type": "object",
             "properties": {
@@ -23356,6 +23613,41 @@ const docTemplate = `{
                 },
                 "version": {
                     "type": "integer"
+                }
+            }
+        },
+        "response.OperationsDashboard": {
+            "type": "object",
+            "properties": {
+                "asOf": {
+                    "type": "string"
+                },
+                "attributionPolicyStatus": {
+                    "type": "string"
+                },
+                "coverage": {
+                    "$ref": "#/definitions/response.DashboardCoverage"
+                },
+                "current": {
+                    "$ref": "#/definitions/response.DailySummary"
+                },
+                "formalReportingEnabled": {
+                    "type": "boolean"
+                },
+                "metricDefinitionVersion": {
+                    "type": "string"
+                },
+                "recentSnapshots": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.DailySummary"
+                    }
+                },
+                "timeZone": {
+                    "type": "string"
+                },
+                "usageScope": {
+                    "type": "string"
                 }
             }
         },
