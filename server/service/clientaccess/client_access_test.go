@@ -13,6 +13,7 @@ import (
 	caremodel "github.com/flipped-aurora/gin-vue-admin/server/model/careclient"
 	pathmodel "github.com/flipped-aurora/gin-vue-admin/server/model/carepath"
 	caseworkmodel "github.com/flipped-aurora/gin-vue-admin/server/model/casework"
+	caseworkreq "github.com/flipped-aurora/gin-vue-admin/server/model/casework/request"
 	clientmodel "github.com/flipped-aurora/gin-vue-admin/server/model/clientaccess"
 	clientreq "github.com/flipped-aurora/gin-vue-admin/server/model/clientaccess/request"
 	clientres "github.com/flipped-aurora/gin-vue-admin/server/model/clientaccess/response"
@@ -60,7 +61,8 @@ func TestRedeemIsOneTimeAndSessionKeepsTaskScope(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if identity.CareClientID != fixture.client.ID || len(identity.AllowedTaskIDs) != 1 || identity.AllowedTaskIDs[0] != fixture.task.ID {
+	if identity.CareClientID != fixture.client.ID || !identity.Synthetic ||
+		len(identity.AllowedTaskIDs) != 1 || identity.AllowedTaskIDs[0] != fixture.task.ID {
 		t.Fatalf("unexpected session identity: %+v", identity)
 	}
 
@@ -73,6 +75,49 @@ func TestRedeemIsOneTimeAndSessionKeepsTaskScope(t *testing.T) {
 	_, _, expiredErr := fixture.service.Redeem(context.Background(), expiredRaw)
 	if domainCode(expiredErr) != clientmodel.CodeGrantInvalid || expiredErr.Error() != repeatedErr.Error() {
 		t.Fatalf("expired and consumed grants must have the same external error: %v / %v", expiredErr, repeatedErr)
+	}
+}
+
+func TestLimitedSessionConsultationFlowStaysWithinCurrentClient(t *testing.T) {
+	fixture := newClientAccessFixture(t)
+	seedCtx := datascope.WithSystem(context.Background())
+	assignment := caremodel.CareAssignment{
+		CareClientID: fixture.client.ID, OrganizationID: fixture.client.OrganizationID,
+		TeamID: fixture.client.DeptId, AssigneeID: 701, RoleType: caremodel.AssignmentRoleCareSteward,
+		ValidFrom: fixture.now.Add(-time.Hour), Reason: "当前服务责任",
+		Synthetic: true, DeptId: fixture.client.DeptId,
+	}
+	if err := fixture.db.WithContext(seedCtx).Create(&assignment).Error; err != nil {
+		t.Fatal(err)
+	}
+	ctx := redeemedContext(t, fixture)
+	created, err := fixture.service.CreateConsultation(ctx, "client-consultation", caseworkreq.CreateConsultation{
+		Subject: "服务时间咨询",
+		Message: "我想确认后续联系时间。",
+		Urgency: caseworkmodel.ConsultationUrgencyRoutine,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	list, total, err := fixture.service.ListConsultations(ctx, caseworkreq.ClientConsultationSearch{})
+	if err != nil || total != 1 || len(list) != 1 || list[0].ID != created.ConsultationID {
+		t.Fatalf("unexpected limited-session consultation list: total=%d list=%+v err=%v", total, list, err)
+	}
+	detail, err := fixture.service.GetConsultation(ctx, created.ConsultationID)
+	if err != nil || detail.InitialQuestion == "" || len(detail.Interactions) != 2 {
+		t.Fatalf("unexpected limited-session consultation detail: %+v err=%v", detail, err)
+	}
+	message, err := fixture.service.AddConsultationMessage(
+		ctx,
+		created.ConsultationID,
+		"client-consultation-message",
+		caseworkreq.AddClientConsultationMessage{
+			ExpectedVersion: detail.Version,
+			Message:         "工作日下午方便联系。",
+		},
+	)
+	if err != nil || message.Version != detail.Version+1 {
+		t.Fatalf("unexpected consultation supplement result: %+v err=%v", message, err)
 	}
 }
 
@@ -313,6 +358,7 @@ func newClientAccessFixture(t *testing.T) clientAccessFixture {
 		&qmodel.QuestionnaireSubmission{}, &qmodel.QuestionnaireTaskDraft{}, &qmodel.QuestionnaireAnswerRevision{},
 		&qmodel.QuestionnaireRuleHit{}, &qmodel.QuestionnaireCommandReceipt{}, &platformoutbox.Event{},
 		&caseworkmodel.AttentionCase{}, &caseworkmodel.CaseAction{}, &caseworkmodel.TodoItem{}, &caseworkmodel.CommandReceipt{},
+		&caseworkmodel.Consultation{}, &caseworkmodel.ConsultationInteraction{},
 		testutil.WithDataScopeCallbacks(),
 	)
 	enabled := true

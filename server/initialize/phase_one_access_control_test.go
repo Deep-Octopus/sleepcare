@@ -23,6 +23,7 @@ func TestPhaseOneAccessControlReconcilesExactMatrix(t *testing.T) {
 	require.NoError(t, ensureQuestionnaireMetadata(db))
 	require.NoError(t, ensureCarePathMetadata(db))
 	require.NoError(t, ensureCaseWorkMetadata(db, true))
+	require.NoError(t, ensureConsultationMetadata(db, true))
 	require.NoError(t, ensureSupervisionMetadata(db, true))
 	require.NoError(t, ensureNotificationMetadata(db, true))
 	seedStalePhaseOneGrants(t, db)
@@ -141,7 +142,13 @@ func assertPhaseOneMenuStructure(t *testing.T, db *gorm.DB, menus map[string]sys
 			require.Equal(t, menus[spec.ParentName].ID, menu.ParentId, spec.Name)
 		}
 	}
-	for _, name := range []string{"CareClientDetail", "CareTaskDetail", "CareAttentionCaseDetail", "CareReviewDetail"} {
+	for _, name := range []string{
+		"CareClientDetail",
+		"CareTaskDetail",
+		"CareAttentionCaseDetail",
+		"CareConsultationDetail",
+		"CareReviewDetail",
+	} {
 		require.True(t, menus[name].Hidden, name)
 		require.NotEmpty(t, menus[name].Meta.ActiveName, name)
 	}

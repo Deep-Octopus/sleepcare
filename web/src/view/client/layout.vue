@@ -5,10 +5,10 @@
         <div class="flex items-center justify-between gap-4">
           <div>
             <p class="text-[11px] font-semibold tracking-[0.18em] text-[#47766b] dark:text-emerald-300">
-              安全任务页
+              安全服务页
             </p>
             <p class="mt-0.5 text-base font-semibold tracking-tight">
-              随访任务
+              康养服务
             </p>
           </div>
           <span class="rounded-full border border-[#bfd4cc] bg-[#edf5f1] px-3 py-1 text-xs text-[#35675c] dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-200">

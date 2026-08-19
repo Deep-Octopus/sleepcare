@@ -49,6 +49,7 @@ func (s *ClientAccessService) Redeem(ctx context.Context, rawGrant string) (clie
 	}
 	identity := SessionIdentity{
 		AccountID: discovered.AccountID, CareClientID: discovered.CareClientID, DeptID: discovered.DeptId,
+		Synthetic: discovered.Synthetic,
 	}
 	secureCtx := ContextWithSessionIdentity(ctx, identity)
 	now := s.now()
@@ -139,6 +140,7 @@ func (s *ClientAccessService) Authenticate(ctx context.Context, rawSession strin
 	}
 	identity := SessionIdentity{
 		SessionID: session.SessionID, AccountID: session.AccountID, CareClientID: session.CareClientID, DeptID: session.DeptId,
+		Synthetic: session.Synthetic,
 	}
 	secureCtx := ContextWithSessionIdentity(ctx, identity)
 	var account clientmodel.CareClientAccount

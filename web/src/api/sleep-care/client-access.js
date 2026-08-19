@@ -54,3 +54,32 @@ export const submitClientTask = (taskId, idempotencyKey, data) => clientRequest(
   },
   data
 })
+
+export const getClientConsultations = (params = {}) => clientRequest({
+  url: '/care/client/consultations',
+  method: 'get',
+  params
+})
+
+export const getClientConsultation = (id) => clientRequest({
+  url: `/care/client/consultations/${id}`,
+  method: 'get'
+})
+
+export const createClientConsultation = (idempotencyKey, data) => clientRequest({
+  url: '/care/client/consultations',
+  method: 'post',
+  headers: {
+    'Idempotency-Key': idempotencyKey
+  },
+  data
+})
+
+export const addClientConsultationMessage = (id, idempotencyKey, data) => clientRequest({
+  url: `/care/client/consultations/${id}/messages`,
+  method: 'post',
+  headers: {
+    'Idempotency-Key': idempotencyKey
+  },
+  data
+})

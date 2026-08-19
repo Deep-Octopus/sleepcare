@@ -15,10 +15,14 @@ func (r *ClientAccessRouter) InitClientAccessRouter(public *gin.RouterGroup) {
 	client.GET("tasks", clientAccessApi.ListTasks)
 	client.GET("tasks/:taskId", clientAccessApi.GetTask)
 	client.GET("tasks/:taskId/questionnaire", clientAccessApi.GetQuestionnaire)
+	client.GET("consultations", clientAccessApi.ListConsultations)
+	client.GET("consultations/:id", clientAccessApi.GetConsultation)
 
 	write := client.Group("")
 	write.Use(middleware.ClientSameOrigin())
 	write.POST("tasks/:taskId/interactions", clientAccessApi.RecordInteraction)
 	write.PUT("tasks/:taskId/draft", clientAccessApi.SaveDraft)
 	write.POST("tasks/:taskId/submit", clientAccessApi.SubmitTask)
+	write.POST("consultations", clientAccessApi.CreateConsultation)
+	write.POST("consultations/:id/messages", clientAccessApi.AddConsultationMessage)
 }

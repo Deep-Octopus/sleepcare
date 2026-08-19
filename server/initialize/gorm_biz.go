@@ -38,6 +38,8 @@ func bizModel() error {
 		&casework.CaseAction{},
 		&casework.TodoItem{},
 		&casework.CommandReceipt{},
+		&casework.Consultation{},
+		&casework.ConsultationInteraction{},
 		&questionnaire.QuestionnaireVersion{},
 		&questionnaire.QuestionnaireQuestion{},
 		&questionnaire.QuestionnaireOption{},

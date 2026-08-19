@@ -12,6 +12,7 @@ type SessionIdentity struct {
 	CareClientID   uint
 	DeptID         uint
 	AllowedTaskIDs []uint
+	Synthetic      bool
 }
 
 type sessionIdentityKey struct{}

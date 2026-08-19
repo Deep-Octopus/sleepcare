@@ -27,7 +27,9 @@ const (
 
 	TodoCategoryContentAttention = "CONTENT_ATTENTION"
 	TodoCategoryDeliveryIssue    = "DELIVERY_ISSUE"
+	TodoCategoryConsultation     = "CONSULTATION"
 	TodoSourceAttentionCase      = "ATTENTION_CASE"
+	TodoSourceConsultation       = "CONSULTATION"
 	TodoStatusOpen               = "OPEN"
 	TodoStatusCompleted          = "COMPLETED"
 	TodoStatusSuperseded         = "SUPERSEDED"
@@ -41,4 +43,42 @@ const (
 	EventAttentionCaseClosed       = "AttentionCaseClosed"
 	EventAttentionCaseReopened     = "AttentionCaseReopened"
 	EventSupervisorGuidanceAdded   = "SupervisorGuidanceAdded"
+
+	ConsultationSourceOnline = "ONLINE"
+
+	ConsultationUrgencyRoutine   = "ROUTINE"
+	ConsultationUrgencyExpedited = "EXPEDITED"
+
+	ConsultationStatusNew                  = "NEW"
+	ConsultationStatusWaitingAssignment    = "WAITING_ASSIGNMENT"
+	ConsultationStatusAssigned             = "ASSIGNED"
+	ConsultationStatusHandling             = "HANDLING"
+	ConsultationStatusWaitingClient        = "WAITING_CLIENT"
+	ConsultationStatusWaitingCollaboration = "WAITING_COLLABORATION"
+	ConsultationStatusResolved             = "RESOLVED"
+	ConsultationStatusClosed               = "CLOSED"
+
+	ConsultationActorClient = "CLIENT"
+	ConsultationActorStaff  = "STAFF"
+	ConsultationActorSystem = "SYSTEM"
+
+	ConsultationActionCreate        = "CREATE"
+	ConsultationActionAssign        = "ASSIGN"
+	ConsultationActionClientMessage = "CLIENT_MESSAGE"
+	ConsultationActionReply         = "REPLY"
+	ConsultationActionTransfer      = "TRANSFER"
+	ConsultationActionEscalate      = "ESCALATE"
+	ConsultationActionResolve       = "RESOLVE"
+	ConsultationActionClose         = "CLOSE"
+	ConsultationActionReopen        = "REOPEN"
+
+	EventConsultationCreated      = "ConsultationCreated"
+	EventConsultationAssigned     = "ConsultationAssigned"
+	EventConsultationMessageAdded = "ConsultationMessageAdded"
+	EventConsultationReplied      = "ConsultationReplied"
+	EventConsultationTransferred  = "ConsultationTransferred"
+	EventConsultationEscalated    = "ConsultationEscalated"
+	EventConsultationResolved     = "ConsultationResolved"
+	EventConsultationClosed       = "ConsultationClosed"
+	EventConsultationReopened     = "ConsultationReopened"
 )

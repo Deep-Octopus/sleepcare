@@ -2,7 +2,7 @@
 
 ## 职责
 
-`casework` 把已发布规则产生的 `RuleHit` 转换为员工可处理的关注事项，并负责事项状态、追加式行动记录、统一待办、乐观锁、写操作幂等、outbox 事实和员工责任范围工作台聚合。
+`casework` 把已发布规则产生的 `RuleHit` 转换为员工可处理的关注事项，并拥有康养用户主动发起的咨询聚合；模块负责两类对象的状态、追加式行动记录、统一待办、乐观锁、写操作幂等、outbox 事实和员工责任范围工作台聚合。
 
 模块不生产问卷答案或规则结论，不修改原答卷，不发送短信，不提供面向用户的 AI，也不拥有上级指导记录、日报或通知通道。`supervision` 只能通过本模块的事务 seam 追加事项行动并更新活动待办，不能绕过事项状态机。
 
@@ -14,7 +14,9 @@
 - Router：`server/router/casework/`
 - 前端工作台：`web/src/view/sleep-care/workbench/`
 - 前端事项队列：`web/src/view/sleep-care/attention-cases/`
+- 前端咨询队列：`web/src/view/sleep-care/consultations/`
 - 前端接口封装：`web/src/api/sleep-care/case-work.js`
+- 前端咨询接口封装：`web/src/api/sleep-care/consultations.js`
 - 迁移、API 元数据和受控补偿：`server/initialize/gorm_biz.go`、`server/initialize/case_work_seed.go`
 - 责任范围策略：`server/internal/accesspolicy/careclient.go`
 - 上级动作事务 seam：`server/service/casework/supervisor.go`
@@ -73,3 +75,32 @@
 ## 验证边界
 
 阶段内只执行当前改动直接相关的 casework、初始化、路由、契约、前端定向 lint 和生产构建。上级指导与日报已由 P1-08 通过事务 seam 接入，通知尝试与重试属于 P1-09；页面点触留到阶段集中验收。
+
+## P2-01 咨询子域
+
+### 聚合与事务边界
+
+- `Consultation` 保存用户问题、来源、联系顺序、状态、当前责任人、解决与关闭字段；`ConsultationInteraction` 是只追加互动事实。
+- 客户创建时先追加请求互动；有当前有效责任管家则同一事务自动分配并创建活动待办，否则保持 `WAITING_ASSIGNMENT`。
+- 回复、客户补充、分配、转交、升级、解决、关闭和重开都通过 `case_command_receipts` 幂等执行，并在同一事务追加互动与 outbox 事实。
+- 每条咨询最多一条活动待办。责任变化终结旧待办，关闭完成待办，重开保留历史并创建新待办。
+
+### 状态与责任边界
+
+- 状态固定为 `NEW -> WAITING_ASSIGNMENT -> ASSIGNED -> HANDLING / WAITING_CLIENT / WAITING_COLLABORATION -> RESOLVED -> CLOSED`。
+- 用户在 `WAITING_CLIENT` 或 `RESOLVED` 补充后回到 `HANDLING`；已关闭咨询只能由上级重开，不能继续补充。
+- 当前责任管家可升级到该用户当前有效责任医护；当前责任医护可升级到同机构有效上级。转交只接受当前有效管家或医护。
+- 关闭前必须有解决结果和关闭理由；重开会清空上一轮解决/关闭字段，但不删除互动记录。
+
+### 访问边界
+
+- 员工列表和详情先经过 DataScope，再与有效责任关系求交；上级在其部门树范围内读取。
+- 动作接口继续校验当前责任人和角色。菜单与按钮不替代后端授权。
+- 客户端由 `clientaccess` 提供身份协调，`casework` 只接受已验证的 `ClientConsultationIdentity`；查询始终绑定本人客户 ID。
+- 客户端只返回显式可见互动，不返回内部责任变化、内部原因、机构或工作人员内部标识。
+
+### 接口
+
+- 客户端：`GET|POST /care/client/consultations`、`GET /care/client/consultations/{id}`、`POST /care/client/consultations/{id}/messages`。
+- 员工端：`GET /care/consultations`、详情、责任人选项，以及 `assign`、`replies`、`transfer`、`escalate`、`resolve`、`close`、`reopen` 动作子路径。
+- 响应 SLA 尚未配置；接口和页面只表达随时接收及人工回复按服务安排，不推导承诺时间。

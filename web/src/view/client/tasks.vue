@@ -77,6 +77,39 @@
       </button>
     </div>
 
+    <section class="mt-8 rounded-2xl border border-border bg-muted p-5">
+      <div class="flex items-start justify-between gap-4">
+        <div>
+          <p class="text-xs font-semibold tracking-[0.12em] text-primary">联系服务</p>
+          <h2 class="mt-2 text-lg font-semibold">有问题需要工作人员协助？</h2>
+          <p class="mt-2 text-sm leading-6 text-muted-foreground">
+            可以随时提交在线咨询，并在本页查看服务团队的回复。
+          </p>
+        </div>
+        <span
+          class="mt-1 text-xl text-primary"
+          aria-hidden="true"
+        >
+          ↗
+        </span>
+      </div>
+      <div class="mt-4 grid grid-cols-2 gap-3">
+        <el-button
+          class="!m-0 !h-11 !rounded-xl"
+          @click="router.push({ name: 'ClientConsultations' })"
+        >
+          咨询记录
+        </el-button>
+        <el-button
+          type="primary"
+          class="!m-0 !h-11 !rounded-xl"
+          @click="router.push({ name: 'ClientConsultationNew' })"
+        >
+          发起咨询
+        </el-button>
+      </div>
+    </section>
+
     <p class="mt-8 border-t border-[#e5ece9] pt-5 text-xs leading-5 text-[#7b8e89] dark:border-slate-800 dark:text-slate-500">
       为保护信息安全，你只能查看本页列出的任务。
     </p>

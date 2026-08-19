@@ -32,6 +32,9 @@ func EnsureCaseWorkData() error {
 	if err := ensureCaseWorkMetadata(db, global.GVA_CONFIG.Care.SyntheticFixturesEnabled); err != nil {
 		return err
 	}
+	if err := ensureConsultationMetadata(db, global.GVA_CONFIG.Care.SyntheticFixturesEnabled); err != nil {
+		return err
+	}
 	if !global.GVA_CONFIG.Care.SyntheticFixturesEnabled {
 		return nil
 	}

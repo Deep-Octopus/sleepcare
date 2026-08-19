@@ -5,6 +5,8 @@ import (
 	"time"
 
 	"github.com/flipped-aurora/gin-vue-admin/server/global"
+	caseworkreq "github.com/flipped-aurora/gin-vue-admin/server/model/casework/request"
+	caseworkres "github.com/flipped-aurora/gin-vue-admin/server/model/casework/response"
 	clientreq "github.com/flipped-aurora/gin-vue-admin/server/model/clientaccess/request"
 	clientres "github.com/flipped-aurora/gin-vue-admin/server/model/clientaccess/response"
 	"gorm.io/gorm"
@@ -58,6 +60,10 @@ type Service interface {
 	RecordInteraction(context.Context, uint, string, clientreq.RecordInteraction) (clientres.InteractionResult, error)
 	SaveDraft(context.Context, uint, string, clientreq.SaveDraft) (clientres.DraftResult, error)
 	SubmitTask(context.Context, uint, string, clientreq.SubmitTask) (clientres.SubmitResult, error)
+	CreateConsultation(context.Context, string, caseworkreq.CreateConsultation) (caseworkres.ConsultationActionResult, error)
+	ListConsultations(context.Context, caseworkreq.ClientConsultationSearch) ([]caseworkres.ClientConsultationSummary, int64, error)
+	GetConsultation(context.Context, uint) (caseworkres.ClientConsultationDetail, error)
+	AddConsultationMessage(context.Context, uint, string, caseworkreq.AddClientConsultationMessage) (caseworkres.ConsultationActionResult, error)
 }
 
 var _ Service = (*ClientAccessService)(nil)

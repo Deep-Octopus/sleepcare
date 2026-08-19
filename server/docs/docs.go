@@ -3505,6 +3505,293 @@ const docTemplate = `{
                 }
             }
         },
+        "/care/client/consultations": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ClientConsultations"
+                ],
+                "summary": "获取当前受限会话内的本人咨询",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页数量，最大100",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "咨询状态",
+                        "name": "status",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/response.PageResult"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "list": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/definitions/response.ClientConsultationSummary"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ClientConsultations"
+                ],
+                "summary": "当前受限会话发起在线咨询",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "幂等键",
+                        "name": "Idempotency-Key",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "咨询主题、问题和联系优先级",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.CreateConsultation"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.ConsultationActionResult"
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/care/client/consultations/{id}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ClientConsultations"
+                ],
+                "summary": "获取当前受限会话内的本人咨询详情",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "咨询ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.ClientConsultationDetail"
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/care/client/consultations/{id}/messages": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ClientConsultations"
+                ],
+                "summary": "当前受限会话为本人咨询追加补充信息",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "咨询ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "幂等键",
+                        "name": "Idempotency-Key",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "版本和补充信息",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.AddClientConsultationMessage"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.ConsultationActionResult"
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/care/client/tasks": {
             "get": {
                 "produces": [
@@ -4576,6 +4863,720 @@ const docTemplate = `{
                                     "properties": {
                                         "data": {
                                             "$ref": "#/definitions/response.PlanPreview"
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/care/consultations": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Consultation"
+                ],
+                "summary": "分页获取授权责任范围内的主动咨询",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页数量，最大100",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "咨询状态",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "联系优先级",
+                        "name": "urgency",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "责任人ID，只能缩小授权范围",
+                        "name": "assigneeId",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/response.PageResult"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "list": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/definitions/response.ConsultationSummary"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/care/consultations/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Consultation"
+                ],
+                "summary": "获取授权责任范围内的主动咨询详情",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "咨询ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.ConsultationDetail"
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/care/consultations/{id}/assign": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Consultation"
+                ],
+                "summary": "上级为待分配咨询指定责任人员",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "咨询ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "幂等键",
+                        "name": "Idempotency-Key",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "版本、目标责任人和原因",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.AssignConsultation"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.ConsultationActionResult"
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/care/consultations/{id}/assignee-options": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Consultation"
+                ],
+                "summary": "获取当前咨询可用的责任人员",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "咨询ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/response.ConsultationAssigneeOption"
+                                            }
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/care/consultations/{id}/close": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Consultation"
+                ],
+                "summary": "在解决结果完整后关闭咨询",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "咨询ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "幂等键",
+                        "name": "Idempotency-Key",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "版本和关闭理由",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.CloseConsultation"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.ConsultationActionResult"
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/care/consultations/{id}/escalate": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Consultation"
+                ],
+                "summary": "当前责任人升级咨询并保留责任链",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "咨询ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "幂等键",
+                        "name": "Idempotency-Key",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "版本、目标人员和升级原因",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.EscalateConsultation"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.ConsultationActionResult"
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/care/consultations/{id}/reopen": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Consultation"
+                ],
+                "summary": "上级重开已关闭咨询并保留历史",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "咨询ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "幂等键",
+                        "name": "Idempotency-Key",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "版本和重开原因",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.ReopenConsultation"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.ConsultationActionResult"
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/care/consultations/{id}/replies": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Consultation"
+                ],
+                "summary": "当前责任人公开回复咨询",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "咨询ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "幂等键",
+                        "name": "Idempotency-Key",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "版本、回复和后续状态",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.ReplyConsultation"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.ConsultationActionResult"
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/care/consultations/{id}/resolve": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Consultation"
+                ],
+                "summary": "当前责任人记录咨询解决结果",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "咨询ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "幂等键",
+                        "name": "Idempotency-Key",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "版本、解决结果和后续安排",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.ResolveConsultation"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.ConsultationActionResult"
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/care/consultations/{id}/transfer": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Consultation"
+                ],
+                "summary": "当前责任人转交咨询",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "咨询ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "幂等键",
+                        "name": "Idempotency-Key",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "版本、目标责任人和原因",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.TransferConsultation"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.ConsultationActionResult"
                                         },
                                         "msg": {
                                             "type": "string"
@@ -18104,6 +19105,22 @@ const docTemplate = `{
                 }
             }
         },
+        "request.AddClientConsultationMessage": {
+            "type": "object",
+            "required": [
+                "expectedVersion",
+                "message"
+            ],
+            "properties": {
+                "expectedVersion": {
+                    "type": "integer"
+                },
+                "message": {
+                    "type": "string",
+                    "maxLength": 4000
+                }
+            }
+        },
         "request.AddMenuAuthorityInfo": {
             "type": "object",
             "properties": {
@@ -18144,6 +19161,34 @@ const docTemplate = `{
                 },
                 "mcpId": {
                     "type": "integer"
+                }
+            }
+        },
+        "request.AssignConsultation": {
+            "type": "object",
+            "required": [
+                "expectedVersion",
+                "reason",
+                "targetAssigneeId",
+                "targetRole"
+            ],
+            "properties": {
+                "expectedVersion": {
+                    "type": "integer"
+                },
+                "reason": {
+                    "type": "string",
+                    "maxLength": 2000
+                },
+                "targetAssigneeId": {
+                    "type": "integer"
+                },
+                "targetRole": {
+                    "type": "string",
+                    "enum": [
+                        "CARE_STEWARD",
+                        "CLINICIAN"
+                    ]
                 }
             }
         },
@@ -18538,6 +19583,22 @@ const docTemplate = `{
                 }
             }
         },
+        "request.CloseConsultation": {
+            "type": "object",
+            "required": [
+                "closeReason",
+                "expectedVersion"
+            ],
+            "properties": {
+                "closeReason": {
+                    "type": "string",
+                    "maxLength": 2000
+                },
+                "expectedVersion": {
+                    "type": "integer"
+                }
+            }
+        },
         "request.CreateAssignment": {
             "type": "object",
             "properties": {
@@ -18619,6 +19680,31 @@ const docTemplate = `{
                 },
                 "textVersion": {
                     "type": "string"
+                }
+            }
+        },
+        "request.CreateConsultation": {
+            "type": "object",
+            "required": [
+                "message",
+                "subject",
+                "urgency"
+            ],
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "maxLength": 4000
+                },
+                "subject": {
+                    "type": "string",
+                    "maxLength": 120
+                },
+                "urgency": {
+                    "type": "string",
+                    "enum": [
+                        "ROUTINE",
+                        "EXPEDITED"
+                    ]
                 }
             }
         },
@@ -18750,6 +19836,26 @@ const docTemplate = `{
                 "dueAt": {
                     "type": "string"
                 },
+                "expectedVersion": {
+                    "type": "integer"
+                },
+                "reason": {
+                    "type": "string",
+                    "maxLength": 2000
+                },
+                "targetAssigneeId": {
+                    "type": "integer"
+                }
+            }
+        },
+        "request.EscalateConsultation": {
+            "type": "object",
+            "required": [
+                "expectedVersion",
+                "reason",
+                "targetAssigneeId"
+            ],
+            "properties": {
                 "expectedVersion": {
                     "type": "integer"
                 },
@@ -19280,6 +20386,46 @@ const docTemplate = `{
                 }
             }
         },
+        "request.ReopenConsultation": {
+            "type": "object",
+            "required": [
+                "expectedVersion",
+                "reason"
+            ],
+            "properties": {
+                "expectedVersion": {
+                    "type": "integer"
+                },
+                "reason": {
+                    "type": "string",
+                    "maxLength": 2000
+                }
+            }
+        },
+        "request.ReplyConsultation": {
+            "type": "object",
+            "required": [
+                "expectedVersion",
+                "message",
+                "nextStatus"
+            ],
+            "properties": {
+                "expectedVersion": {
+                    "type": "integer"
+                },
+                "message": {
+                    "type": "string",
+                    "maxLength": 4000
+                },
+                "nextStatus": {
+                    "type": "string",
+                    "enum": [
+                        "HANDLING",
+                        "WAITING_CLIENT"
+                    ]
+                }
+            }
+        },
         "request.Resend": {
             "type": "object",
             "properties": {
@@ -19288,6 +20434,26 @@ const docTemplate = `{
                 },
                 "reason": {
                     "type": "string"
+                }
+            }
+        },
+        "request.ResolveConsultation": {
+            "type": "object",
+            "required": [
+                "expectedVersion",
+                "resolution"
+            ],
+            "properties": {
+                "expectedVersion": {
+                    "type": "integer"
+                },
+                "followUpPlan": {
+                    "type": "string",
+                    "maxLength": 2000
+                },
+                "resolution": {
+                    "type": "string",
+                    "maxLength": 4000
                 }
             }
         },
@@ -20040,6 +21206,34 @@ const docTemplate = `{
                 }
             }
         },
+        "request.TransferConsultation": {
+            "type": "object",
+            "required": [
+                "expectedVersion",
+                "reason",
+                "targetAssigneeId",
+                "targetRole"
+            ],
+            "properties": {
+                "expectedVersion": {
+                    "type": "integer"
+                },
+                "reason": {
+                    "type": "string",
+                    "maxLength": 2000
+                },
+                "targetAssigneeId": {
+                    "type": "integer"
+                },
+                "targetRole": {
+                    "type": "string",
+                    "enum": [
+                        "CARE_STEWARD",
+                        "CLINICIAN"
+                    ]
+                }
+            }
+        },
         "request.TriggerTimedTask": {
             "type": "object",
             "required": [
@@ -20494,6 +21688,102 @@ const docTemplate = `{
                 }
             }
         },
+        "response.ClientConsultationDetail": {
+            "type": "object",
+            "properties": {
+                "closedAt": {
+                    "type": "string"
+                },
+                "firstRespondedAt": {
+                    "type": "string"
+                },
+                "followUpPlan": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "initialQuestion": {
+                    "type": "string"
+                },
+                "interactions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.ClientConsultationInteraction"
+                    }
+                },
+                "openedAt": {
+                    "type": "string"
+                },
+                "resolution": {
+                    "type": "string"
+                },
+                "resolvedAt": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "subject": {
+                    "type": "string"
+                },
+                "urgency": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "integer"
+                }
+            }
+        },
+        "response.ClientConsultationInteraction": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "occurredAt": {
+                    "type": "string"
+                },
+                "senderType": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.ClientConsultationSummary": {
+            "type": "object",
+            "properties": {
+                "closedAt": {
+                    "type": "string"
+                },
+                "firstRespondedAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "openedAt": {
+                    "type": "string"
+                },
+                "resolvedAt": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "subject": {
+                    "type": "string"
+                },
+                "urgency": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "integer"
+                }
+            }
+        },
         "response.ClientOptions": {
             "type": "object",
             "properties": {
@@ -20537,6 +21827,202 @@ const docTemplate = `{
                 },
                 "textVersion": {
                     "type": "string"
+                }
+            }
+        },
+        "response.ConsultationActionResult": {
+            "type": "object",
+            "properties": {
+                "consultationId": {
+                    "type": "integer"
+                },
+                "interactionId": {
+                    "type": "integer"
+                },
+                "occurredAt": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "integer"
+                }
+            }
+        },
+        "response.ConsultationAssigneeOption": {
+            "type": "object",
+            "properties": {
+                "displayName": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "roleType": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.ConsultationDetail": {
+            "type": "object",
+            "properties": {
+                "assigneeId": {
+                    "type": "integer"
+                },
+                "assigneeName": {
+                    "type": "string"
+                },
+                "assigneeRole": {
+                    "type": "string"
+                },
+                "careClientId": {
+                    "type": "integer"
+                },
+                "clientDisplayCode": {
+                    "type": "string"
+                },
+                "clientDisplayName": {
+                    "type": "string"
+                },
+                "closeReason": {
+                    "type": "string"
+                },
+                "closedAt": {
+                    "type": "string"
+                },
+                "firstRespondedAt": {
+                    "type": "string"
+                },
+                "followUpPlan": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "initialQuestion": {
+                    "type": "string"
+                },
+                "interactions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.ConsultationInteraction"
+                    }
+                },
+                "openedAt": {
+                    "type": "string"
+                },
+                "resolution": {
+                    "type": "string"
+                },
+                "resolvedAt": {
+                    "type": "string"
+                },
+                "source": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "subject": {
+                    "type": "string"
+                },
+                "urgency": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "integer"
+                }
+            }
+        },
+        "response.ConsultationInteraction": {
+            "type": "object",
+            "properties": {
+                "actionType": {
+                    "type": "string"
+                },
+                "actorName": {
+                    "type": "string"
+                },
+                "actorRole": {
+                    "type": "string"
+                },
+                "actorType": {
+                    "type": "string"
+                },
+                "content": {
+                    "type": "string"
+                },
+                "fromStatus": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "occurredAt": {
+                    "type": "string"
+                },
+                "reason": {
+                    "type": "string"
+                },
+                "targetRole": {
+                    "type": "string"
+                },
+                "toStatus": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.ConsultationSummary": {
+            "type": "object",
+            "properties": {
+                "assigneeId": {
+                    "type": "integer"
+                },
+                "assigneeName": {
+                    "type": "string"
+                },
+                "assigneeRole": {
+                    "type": "string"
+                },
+                "careClientId": {
+                    "type": "integer"
+                },
+                "clientDisplayCode": {
+                    "type": "string"
+                },
+                "clientDisplayName": {
+                    "type": "string"
+                },
+                "closedAt": {
+                    "type": "string"
+                },
+                "firstRespondedAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "openedAt": {
+                    "type": "string"
+                },
+                "resolvedAt": {
+                    "type": "string"
+                },
+                "source": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "subject": {
+                    "type": "string"
+                },
+                "urgency": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "integer"
                 }
             }
         },

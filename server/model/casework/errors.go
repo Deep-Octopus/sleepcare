@@ -3,17 +3,21 @@ package casework
 import "fmt"
 
 const (
-	CodeInvalidArgument            = 41001
-	CodeIdempotencyConflict        = 41002
-	CodeVersionConflict            = 41003
-	CodeResourceNotFound           = 41004
-	CodeOperationNotAllowed        = 41005
-	CodeAccessScopeDenied          = 41104
-	CodeCareAssignmentRequired     = 41201
-	CodeCaseTransitionDenied       = 41501
-	CodeHandlingResultRequired     = 41502
-	CodeCloseReasonRequired        = 41503
-	CodeCaseResponsibilityRequired = 41504
+	CodeInvalidArgument                 = 41001
+	CodeIdempotencyConflict             = 41002
+	CodeVersionConflict                 = 41003
+	CodeResourceNotFound                = 41004
+	CodeOperationNotAllowed             = 41005
+	CodeAccessScopeDenied               = 41104
+	CodeCareAssignmentRequired          = 41201
+	CodeCaseTransitionDenied            = 41501
+	CodeHandlingResultRequired          = 41502
+	CodeCloseReasonRequired             = 41503
+	CodeCaseResponsibilityRequired      = 41504
+	CodeConsultationTransitionDenied    = 41601
+	CodeConsultationAssigneeRequired    = 41602
+	CodeConsultationResolutionRequired  = 41603
+	CodeConsultationCloseReasonRequired = 41604
 )
 
 type DomainError struct {

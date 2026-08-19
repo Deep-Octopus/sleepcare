@@ -21,6 +21,16 @@ func TestCaseWorkRoutesMatchEmployeeContract(t *testing.T) {
 		"POST /api/care/attention-cases/:id/escalate":         true,
 		"POST /api/care/attention-cases/:id/close":            true,
 		"POST /api/care/attention-cases/:id/reopen":           true,
+		"GET /api/care/consultations":                         true,
+		"GET /api/care/consultations/:id":                     true,
+		"GET /api/care/consultations/:id/assignee-options":    true,
+		"POST /api/care/consultations/:id/assign":             true,
+		"POST /api/care/consultations/:id/replies":            true,
+		"POST /api/care/consultations/:id/transfer":           true,
+		"POST /api/care/consultations/:id/escalate":           true,
+		"POST /api/care/consultations/:id/resolve":            true,
+		"POST /api/care/consultations/:id/close":              true,
+		"POST /api/care/consultations/:id/reopen":             true,
 	}
 	for _, route := range engine.Routes() {
 		delete(want, route.Method+" "+route.Path)

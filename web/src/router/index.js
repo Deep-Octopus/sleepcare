@@ -66,6 +66,24 @@ const routes = [
         name: 'ClientTaskSuccess',
         component: () => import('@/view/client/success.vue'),
         meta: { title: '提交成功', client: true }
+      },
+      {
+        path: 'consultations',
+        name: 'ClientConsultations',
+        component: () => import('@/view/client/consultations.vue'),
+        meta: { title: '联系服务', client: true }
+      },
+      {
+        path: 'consultations/new',
+        name: 'ClientConsultationNew',
+        component: () => import('@/view/client/consultation-new.vue'),
+        meta: { title: '发起咨询', client: true }
+      },
+      {
+        path: 'consultations/:id',
+        name: 'ClientConsultationDetail',
+        component: () => import('@/view/client/consultation-detail.vue'),
+        meta: { title: '咨询详情', client: true }
       }
     ]
   },
