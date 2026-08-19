@@ -132,3 +132,14 @@
 - 状态值为 `NEW`、`WAITING_ASSIGNMENT`、`ASSIGNED`、`HANDLING`、`WAITING_CLIENT`、`WAITING_COLLABORATION`、`RESOLVED`、`CLOSED`；前端只做文案映射，不自行推导状态变化。
 - `ROUTINE|EXPEDITED` 只表示联系处理顺序，不是医疗紧急程度或响应承诺。移动端必须同时显示随时接收、人工回复按服务安排和正式急救/就医渠道提示。
 - `P2-01` 不发起满意度、不接入电话/录音、真实短信或用户侧 AI；页面点触统一留到阶段二收口。
+
+## P2-02 服务评价契约
+
+- `caseWork` 在咨询关闭事务内调用 `ConsultationClosedProjector`；评价邀请按关闭事件唯一，投影失败会回滚关闭，补偿扫描重复执行不会重复创建。
+- 邀请冻结 `policyCode`、`policyVersion`、匿名方式、有效期和低分阈值；客户端只使用服务端返回的状态、版本和时间，不自行推导到期或低分规则。
+- 客户端通过 `/care/client/satisfaction-requests` 列表/详情和 `responses` 写路径访问本人评价；请求不接受用户、机构、咨询或服务责任人 ID。
+- 客户端写操作要求 `Idempotency-Key` 和 `expectedVersion`。前端持久复用未确认提交的键，成功后清理；服务端负责同请求重放、不同内容冲突、重复响应和到期拒绝。
+- 上级通过 `/care/satisfaction-responses` 与 `/care/satisfaction-follow-ups` 查看匿名评价和低分跟进；DTO 不返回用户、咨询、关闭事件或服务责任人关联。
+- 质量跟进状态为 `OPEN|IN_REVIEW|RESOLVED`。接收/解决都要求幂等键和版本；解决额外要求 `usageBoundaryConfirmed=true` 并在同一事务完成活动待办。
+- `CareSatisfaction` 菜单、三个按钮和五个员工 API 只授权上级，并叠加 DataScope、机构和质量责任校验。客户端路由继续使用受限会话和严格同源校验。
+- 当前只提供站内邀请、匿名列表和个案质量跟进，不提供外部发送、电话评价、正式排名、人员结论、真实短信或用户侧 AI；页面点触留到 P2-08。

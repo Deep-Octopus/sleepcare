@@ -30,27 +30,53 @@ func TestEnsureSupervisionMetadataIsIdempotentAndSupervisorOnly(t *testing.T) {
 	require.NoError(t, db.Model(&system.SysApi{}).
 		Where("path LIKE ?", "/care/daily-summaries%").
 		Or("path LIKE ?", "/care/reviews%").
+		Or("path LIKE ?", "/care/satisfaction-%").
 		Count(&apiCount).Error)
-	require.Equal(t, int64(5), apiCount)
+	require.Equal(t, int64(len(supervisionAPIs)), apiCount)
 	for _, api := range supervisionAPIs {
 		assertCaseWorkPolicy(t, db, syntheticSupervisorRole, api.Path, api.Method, true)
 		assertCaseWorkPolicy(t, db, syntheticClinicianRole, api.Path, api.Method, false)
 		assertCaseWorkPolicy(t, db, syntheticStewardRole, api.Path, api.Method, false)
 	}
 
-	var root, center, dailyMenu, reviewMenu system.SysBaseMenu
+	var root, center, dailyMenu, reviewMenu, satisfactionMenu system.SysBaseMenu
 	require.NoError(t, db.Where("name = ?", "SleepCare").First(&root).Error)
 	require.NoError(t, db.Where("name = ?", "CareSupervision").First(&center).Error)
 	require.NoError(t, db.Where("name = ?", "CareDailySummaries").First(&dailyMenu).Error)
 	require.NoError(t, db.Where("name = ?", "CareReviewQueue").First(&reviewMenu).Error)
+	require.NoError(t, db.Where("name = ?", "CareSatisfaction").First(&satisfactionMenu).Error)
 	require.Equal(t, root.ID, center.ParentId)
 	require.Equal(t, center.ID, dailyMenu.ParentId)
 	require.Equal(t, center.ID, reviewMenu.ParentId)
+	require.Equal(t, center.ID, satisfactionMenu.ParentId)
 
 	assertCaseWorkButton(t, db, dailyMenu.ID, "viewDetail", syntheticSupervisorRole, true)
 	for _, name := range []string{"viewDetail", "guide", "discuss", "intervene"} {
 		assertCaseWorkButton(t, db, reviewMenu.ID, name, syntheticSupervisorRole, true)
 	}
+	for _, name := range []string{"viewFollowUp", "acknowledgeFollowUp", "resolveFollowUp"} {
+		assertCaseWorkButton(t, db, satisfactionMenu.ID, name, syntheticSupervisorRole, true)
+		assertCaseWorkButton(t, db, satisfactionMenu.ID, name, syntheticClinicianRole, false)
+		assertCaseWorkButton(t, db, satisfactionMenu.ID, name, syntheticStewardRole, false)
+	}
+}
+
+func TestEnsureSatisfactionPolicyIsIdempotent(t *testing.T) {
+	db := testutil.NewMemoryDBWithoutGlobal(t, &supervisionmodel.SatisfactionPolicy{}).
+		WithContext(datascope.WithSystem(context.Background()))
+
+	require.NoError(t, ensureSatisfactionPolicy(db))
+	require.NoError(t, ensureSatisfactionPolicy(db))
+
+	var policies []supervisionmodel.SatisfactionPolicy
+	require.NoError(t, db.Order("id ASC").Find(&policies).Error)
+	require.Len(t, policies, 1)
+	require.Equal(t, "CONSULTATION-CLOSE-TEST", policies[0].Code)
+	require.Equal(t, uint(1), policies[0].Version)
+	require.Equal(t, uint(7*24), policies[0].ValidForHours)
+	require.Equal(t, uint8(2), policies[0].LowScoreThreshold)
+	require.Equal(t, supervisionmodel.SatisfactionAnonymousStaff, policies[0].AnonymityMode)
+	require.True(t, policies[0].Synthetic)
 }
 
 func TestEnsureInitialSupervisionSnapshotIsIdempotent(t *testing.T) {

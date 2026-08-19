@@ -14,9 +14,14 @@ func (r *SupervisionRouter) InitSupervisionRouter(router *gin.RouterGroup) {
 		readGroup.GET("daily-summaries", supervisionApi.ListDailySummaries)
 		readGroup.GET("daily-summaries/:id", supervisionApi.GetDailySummary)
 		readGroup.GET("reviews", supervisionApi.ListReviews)
+		readGroup.GET("satisfaction-responses", supervisionApi.ListSatisfactionResponses)
+		readGroup.GET("satisfaction-follow-ups", supervisionApi.ListSatisfactionFollowUps)
+		readGroup.GET("satisfaction-follow-ups/:id", supervisionApi.GetSatisfactionFollowUp)
 	}
 	{
 		writeGroup.POST("reviews/:id/guidance", supervisionApi.AddGuidance)
 		writeGroup.POST("reviews/:id/intervene", supervisionApi.Intervene)
+		writeGroup.POST("satisfaction-follow-ups/:id/acknowledge", supervisionApi.AcknowledgeSatisfactionFollowUp)
+		writeGroup.POST("satisfaction-follow-ups/:id/resolve", supervisionApi.ResolveSatisfactionFollowUp)
 	}
 }

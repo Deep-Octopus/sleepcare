@@ -406,6 +406,16 @@ func (s *CaseWorkService) CloseConsultation(
 			if err = appendConsultationEvent(tx, consultation, interaction, caseworkmodel.EventConsultationClosed); err != nil {
 				return caseworkres.ConsultationActionResult{}, err
 			}
+			if s.ConsultationClosedProjector != nil {
+				if err = s.ConsultationClosedProjector.ProjectConsultationClosed(
+					ctx,
+					tx,
+					consultation,
+					interaction,
+				); err != nil {
+					return caseworkres.ConsultationActionResult{}, err
+				}
+			}
 			return consultationActionResult(consultation, interaction), nil
 		})
 }

@@ -67,6 +67,7 @@ var phaseOneMenuSpecs = []phaseOneMenuSpec{
 	{Name: "CareSupervision", ParentName: "SleepCare", Path: "care-supervision", Component: "view/routerHolder.vue", Title: "督导中心", Icon: "monitor-gva", Sort: 5},
 	{Name: "CareDailySummaries", ParentName: "CareSupervision", Path: "daily-summaries", Component: "view/sleep-care/daily-summaries/index.vue", Title: "每日汇总", Icon: "version-gva", Sort: 1},
 	{Name: "CareReviewQueue", ParentName: "CareSupervision", Path: "review-queue", Component: "view/sleep-care/review-queue/index.vue", Title: "待复核事项", Icon: "error-gva", Sort: 2},
+	{Name: "CareSatisfaction", ParentName: "CareSupervision", Path: "satisfaction", Component: "view/sleep-care/satisfaction/index.vue", Title: "服务评价", Icon: "star", Sort: 3},
 	{Name: "CareClientDetail", ParentName: "SleepCare", Path: "care-clients/:id", Component: "view/sleep-care/clients/detail.vue", Title: "康养用户详情", Sort: 90, Hidden: true, ActiveName: "CareClients"},
 	{Name: "CareTaskDetail", ParentName: "CareExecution", Path: "care-tasks/:id", Component: "view/sleep-care/tasks/detail.vue", Title: "任务详情", Sort: 90, Hidden: true, ActiveName: "CareTasks"},
 	{Name: "CareAttentionCaseDetail", ParentName: "CareExecution", Path: "attention-cases/:id", Component: "view/sleep-care/attention-cases/detail.vue", Title: "关注事项详情", Sort: 91, Hidden: true, ActiveName: "CareAttentionCases"},
@@ -130,7 +131,8 @@ var phaseOneMenuAccess = map[uint][]string{
 	syntheticSupervisorRole: {
 		"SleepCare", "CareWorkbench", "CareClients", "CareExecution", "CareTasks", "CareAttentionCases", "CareDeliveries",
 		"CareContent", "CareQuestionnaires", "CarePlans", "CareSupervision", "CareDailySummaries", "CareReviewQueue",
-		"CareConsultations", "CareClientDetail", "CareTaskDetail", "CareAttentionCaseDetail", "CareConsultationDetail", "CareReviewDetail",
+		"CareConsultations", "CareSatisfaction", "CareClientDetail", "CareTaskDetail", "CareAttentionCaseDetail",
+		"CareConsultationDetail", "CareReviewDetail",
 	},
 	phaseOneContentAdminRole: {"SleepCare", "CareContent", "CareQuestionnaires", "CarePlans"},
 }
@@ -203,6 +205,9 @@ var phaseOneButtonAccess = map[uint][]phaseOneButtonGrant{
 		{MenuName: "CareReviewQueue", ButtonName: "guide"},
 		{MenuName: "CareReviewQueue", ButtonName: "discuss"},
 		{MenuName: "CareReviewQueue", ButtonName: "intervene"},
+		{MenuName: "CareSatisfaction", ButtonName: "viewFollowUp"},
+		{MenuName: "CareSatisfaction", ButtonName: "acknowledgeFollowUp"},
+		{MenuName: "CareSatisfaction", ButtonName: "resolveFollowUp"},
 	},
 	phaseOneContentAdminRole: {
 		{MenuName: "CareQuestionnaires", ButtonName: "preview"},
@@ -308,6 +313,11 @@ var phaseOneAPIAccess = map[uint][]phaseOneAPIGrant{
 		{Method: "POST", Path: "/care/consultations/:id/resolve"},
 		{Method: "POST", Path: "/care/consultations/:id/close"},
 		{Method: "POST", Path: "/care/consultations/:id/reopen"},
+		{Method: "GET", Path: "/care/satisfaction-responses"},
+		{Method: "GET", Path: "/care/satisfaction-follow-ups"},
+		{Method: "GET", Path: "/care/satisfaction-follow-ups/:id"},
+		{Method: "POST", Path: "/care/satisfaction-follow-ups/:id/acknowledge"},
+		{Method: "POST", Path: "/care/satisfaction-follow-ups/:id/resolve"},
 	},
 	phaseOneContentAdminRole: {
 		{Method: "GET", Path: "/care/questionnaire-versions"},

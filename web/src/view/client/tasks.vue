@@ -110,6 +110,25 @@
       </div>
     </section>
 
+    <section class="mt-4 rounded-2xl border border-border bg-container p-5">
+      <div class="flex items-start justify-between gap-4">
+        <div>
+          <p class="text-xs font-semibold tracking-[0.12em] text-primary">服务评价</p>
+          <h2 class="mt-2 text-lg font-semibold">分享本次服务体验</h2>
+          <p class="mt-2 text-sm leading-6 text-muted-foreground">
+            已关闭的服务会在这里生成评价邀请，可填写 1 至 5 星和补充意见。
+          </p>
+        </div>
+        <span class="mt-1 text-xl text-primary" aria-hidden="true">☆</span>
+      </div>
+      <el-button
+        class="!mt-4 !h-11 !w-full !rounded-xl"
+        @click="router.push({ name: 'ClientSatisfaction' })"
+      >
+        查看服务评价
+      </el-button>
+    </section>
+
     <p class="mt-8 border-t border-[#e5ece9] pt-5 text-xs leading-5 text-[#7b8e89] dark:border-slate-800 dark:text-slate-500">
       为保护信息安全，你只能查看本页列出的任务。
     </p>

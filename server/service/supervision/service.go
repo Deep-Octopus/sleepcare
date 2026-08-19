@@ -21,8 +21,16 @@ var summaryLocation = func() *time.Location {
 }()
 
 type SupervisionService struct {
-	DB  *gorm.DB
-	Now func() time.Time
+	DB                       *gorm.DB
+	Now                      func() time.Time
+	SyntheticFixturesEnabled *bool
+}
+
+func (s *SupervisionService) syntheticFixturesEnabled() bool {
+	if s.SyntheticFixturesEnabled != nil {
+		return *s.SyntheticFixturesEnabled
+	}
+	return global.GVA_CONFIG.Care.SyntheticFixturesEnabled
 }
 
 func (s *SupervisionService) db() *gorm.DB {

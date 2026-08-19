@@ -8,9 +8,10 @@ import (
 )
 
 type CaseWorkService struct {
-	DB                       *gorm.DB
-	Now                      func() time.Time
-	SyntheticFixturesEnabled *bool
+	DB                          *gorm.DB
+	Now                         func() time.Time
+	SyntheticFixturesEnabled    *bool
+	ConsultationClosedProjector ConsultationClosedProjector
 }
 
 func (s *CaseWorkService) db() *gorm.DB {

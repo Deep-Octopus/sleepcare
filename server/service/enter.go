@@ -13,7 +13,7 @@ import (
 	"github.com/flipped-aurora/gin-vue-admin/server/service/system"
 )
 
-var ServiceGroupApp = new(ServiceGroup)
+var ServiceGroupApp = newServiceGroup()
 
 type ServiceGroup struct {
 	CarePathServiceGroup      carepath.ServiceGroup
@@ -26,4 +26,11 @@ type ServiceGroup struct {
 	ExampleServiceGroup       example.ServiceGroup
 	MediaServiceGroup         media.ServiceGroup
 	NotificationServiceGroup  notification.ServiceGroup
+}
+
+func newServiceGroup() *ServiceGroup {
+	group := new(ServiceGroup)
+	group.CaseWorkServiceGroup.CaseWorkService.ConsultationClosedProjector =
+		&group.SupervisionServiceGroup.SupervisionService
+	return group
 }

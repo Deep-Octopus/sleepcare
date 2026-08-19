@@ -17,6 +17,8 @@ func (r *ClientAccessRouter) InitClientAccessRouter(public *gin.RouterGroup) {
 	client.GET("tasks/:taskId/questionnaire", clientAccessApi.GetQuestionnaire)
 	client.GET("consultations", clientAccessApi.ListConsultations)
 	client.GET("consultations/:id", clientAccessApi.GetConsultation)
+	client.GET("satisfaction-requests", clientAccessApi.ListSatisfactionRequests)
+	client.GET("satisfaction-requests/:id", clientAccessApi.GetSatisfactionRequest)
 
 	write := client.Group("")
 	write.Use(middleware.ClientSameOrigin())
@@ -25,4 +27,5 @@ func (r *ClientAccessRouter) InitClientAccessRouter(public *gin.RouterGroup) {
 	write.POST("tasks/:taskId/submit", clientAccessApi.SubmitTask)
 	write.POST("consultations", clientAccessApi.CreateConsultation)
 	write.POST("consultations/:id/messages", clientAccessApi.AddConsultationMessage)
+	write.POST("satisfaction-requests/:id/responses", clientAccessApi.SubmitSatisfactionResponse)
 }

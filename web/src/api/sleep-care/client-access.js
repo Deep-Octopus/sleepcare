@@ -83,3 +83,23 @@ export const addClientConsultationMessage = (id, idempotencyKey, data) => client
   },
   data
 })
+
+export const getClientSatisfactionRequests = (params = {}) => clientRequest({
+  url: '/care/client/satisfaction-requests',
+  method: 'get',
+  params
+})
+
+export const getClientSatisfactionRequest = (id) => clientRequest({
+  url: `/care/client/satisfaction-requests/${id}`,
+  method: 'get'
+})
+
+export const submitClientSatisfactionResponse = (id, idempotencyKey, data) => clientRequest({
+  url: `/care/client/satisfaction-requests/${id}/responses`,
+  method: 'post',
+  headers: {
+    'Idempotency-Key': idempotencyKey
+  },
+  data
+})

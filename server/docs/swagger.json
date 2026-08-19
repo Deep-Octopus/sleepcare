@@ -3784,6 +3784,222 @@
                 }
             }
         },
+        "/care/client/satisfaction-requests": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ClientSatisfaction"
+                ],
+                "summary": "获取当前受限会话内的本人服务评价邀请",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页数量，最大100",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "邀请状态",
+                        "name": "status",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/response.PageResult"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "list": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/definitions/response.ClientSatisfactionSummary"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/care/client/satisfaction-requests/{id}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ClientSatisfaction"
+                ],
+                "summary": "获取当前受限会话内的本人服务评价详情",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "评价邀请ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.ClientSatisfactionDetail"
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/care/client/satisfaction-requests/{id}/responses": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ClientSatisfaction"
+                ],
+                "summary": "当前受限会话提交本人服务评价",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "评价邀请ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "幂等键",
+                        "name": "Idempotency-Key",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "版本、1至5星和补充意见",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.SubmitSatisfactionResponse"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.SubmitSatisfactionResult"
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/care/client/tasks": {
             "get": {
                 "produces": [
@@ -6526,6 +6742,372 @@
                                     "properties": {
                                         "data": {
                                             "$ref": "#/definitions/github_com_flipped-aurora_gin-vue-admin_server_model_casework_response.ActionResult"
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/care/satisfaction-follow-ups": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Supervision"
+                ],
+                "summary": "查询授权机构内的低分质量跟进",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页数量，最大100",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "跟进状态",
+                        "name": "status",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/response.PageResult"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "list": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/definitions/response.SatisfactionFollowUpSummary"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/care/satisfaction-follow-ups/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Supervision"
+                ],
+                "summary": "查询授权机构内的质量跟进详情",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "质量跟进ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.SatisfactionFollowUpDetail"
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/care/satisfaction-follow-ups/{id}/acknowledge": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Supervision"
+                ],
+                "summary": "当前责任上级接收低分质量跟进",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "质量跟进ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "幂等键",
+                        "name": "Idempotency-Key",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "版本和接收说明",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.AcknowledgeSatisfactionFollowUp"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.SatisfactionFollowUpActionResult"
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/care/satisfaction-follow-ups/{id}/resolve": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Supervision"
+                ],
+                "summary": "当前责任上级解决低分质量跟进",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "质量跟进ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "幂等键",
+                        "name": "Idempotency-Key",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "版本、核查结果、改进动作和使用边界确认",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.ResolveSatisfactionFollowUp"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.SatisfactionFollowUpActionResult"
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/care/satisfaction-responses": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Supervision"
+                ],
+                "summary": "查询授权机构内的匿名服务评价响应",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页数量，最大100",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "星级，1至5",
+                        "name": "rating",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "跟进状态，NONE表示未生成跟进",
+                        "name": "followUpStatus",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/response.PageResult"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "list": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/definitions/response.SatisfactionResponseItem"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            ]
                                         },
                                         "msg": {
                                             "type": "string"
@@ -19097,6 +19679,22 @@
                 }
             }
         },
+        "request.AcknowledgeSatisfactionFollowUp": {
+            "type": "object",
+            "required": [
+                "expectedVersion",
+                "note"
+            ],
+            "properties": {
+                "expectedVersion": {
+                    "type": "integer"
+                },
+                "note": {
+                    "type": "string",
+                    "maxLength": 2000
+                }
+            }
+        },
         "request.AddClientConsultationMessage": {
             "type": "object",
             "required": [
@@ -20449,6 +21047,30 @@
                 }
             }
         },
+        "request.ResolveSatisfactionFollowUp": {
+            "type": "object",
+            "required": [
+                "expectedVersion",
+                "resolution",
+                "usageBoundaryConfirmed"
+            ],
+            "properties": {
+                "expectedVersion": {
+                    "type": "integer"
+                },
+                "improvementAction": {
+                    "type": "string",
+                    "maxLength": 2000
+                },
+                "resolution": {
+                    "type": "string",
+                    "maxLength": 4000
+                },
+                "usageBoundaryConfirmed": {
+                    "type": "boolean"
+                }
+            }
+        },
         "request.SaveDraft": {
             "type": "object",
             "required": [
@@ -20860,6 +21482,27 @@
                 },
                 "previewId": {
                     "type": "string"
+                }
+            }
+        },
+        "request.SubmitSatisfactionResponse": {
+            "type": "object",
+            "required": [
+                "expectedVersion",
+                "rating"
+            ],
+            "properties": {
+                "comment": {
+                    "type": "string",
+                    "maxLength": 2000
+                },
+                "expectedVersion": {
+                    "type": "integer"
+                },
+                "rating": {
+                    "type": "integer",
+                    "maximum": 5,
+                    "minimum": 1
                 }
             }
         },
@@ -21790,6 +22433,87 @@
                     "items": {
                         "$ref": "#/definitions/response.OrgUnitOption"
                     }
+                }
+            }
+        },
+        "response.ClientSatisfactionDetail": {
+            "type": "object",
+            "properties": {
+                "anonymityMode": {
+                    "type": "string"
+                },
+                "expiresAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "invitedAt": {
+                    "type": "string"
+                },
+                "publicCode": {
+                    "type": "string"
+                },
+                "response": {
+                    "$ref": "#/definitions/response.ClientSatisfactionResponse"
+                },
+                "sourceType": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "submittedAt": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "integer"
+                }
+            }
+        },
+        "response.ClientSatisfactionResponse": {
+            "type": "object",
+            "properties": {
+                "comment": {
+                    "type": "string"
+                },
+                "rating": {
+                    "type": "integer"
+                },
+                "submittedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.ClientSatisfactionSummary": {
+            "type": "object",
+            "properties": {
+                "anonymityMode": {
+                    "type": "string"
+                },
+                "expiresAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "invitedAt": {
+                    "type": "string"
+                },
+                "publicCode": {
+                    "type": "string"
+                },
+                "sourceType": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "submittedAt": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "integer"
                 }
             }
         },
@@ -23068,6 +23792,178 @@
                 }
             }
         },
+        "response.SatisfactionFollowUpAction": {
+            "type": "object",
+            "properties": {
+                "actionType": {
+                    "type": "string"
+                },
+                "actorName": {
+                    "type": "string"
+                },
+                "content": {
+                    "type": "string"
+                },
+                "fromStatus": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "improvementAction": {
+                    "type": "string"
+                },
+                "occurredAt": {
+                    "type": "string"
+                },
+                "toStatus": {
+                    "type": "string"
+                },
+                "usageBoundaryConfirmed": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "response.SatisfactionFollowUpActionResult": {
+            "type": "object",
+            "properties": {
+                "actionId": {
+                    "type": "integer"
+                },
+                "followUpId": {
+                    "type": "integer"
+                },
+                "occurredAt": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "integer"
+                }
+            }
+        },
+        "response.SatisfactionFollowUpDetail": {
+            "type": "object",
+            "properties": {
+                "acknowledgedAt": {
+                    "type": "string"
+                },
+                "actions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.SatisfactionFollowUpAction"
+                    }
+                },
+                "anonymityMode": {
+                    "type": "string"
+                },
+                "assigneeId": {
+                    "type": "integer"
+                },
+                "assigneeName": {
+                    "type": "string"
+                },
+                "comment": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "improvementAction": {
+                    "type": "string"
+                },
+                "openedAt": {
+                    "type": "string"
+                },
+                "publicCode": {
+                    "type": "string"
+                },
+                "rating": {
+                    "type": "integer"
+                },
+                "resolution": {
+                    "type": "string"
+                },
+                "resolvedAt": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "submittedAt": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "integer"
+                }
+            }
+        },
+        "response.SatisfactionFollowUpSummary": {
+            "type": "object",
+            "properties": {
+                "acknowledgedAt": {
+                    "type": "string"
+                },
+                "assigneeId": {
+                    "type": "integer"
+                },
+                "assigneeName": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "openedAt": {
+                    "type": "string"
+                },
+                "publicCode": {
+                    "type": "string"
+                },
+                "rating": {
+                    "type": "integer"
+                },
+                "resolvedAt": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "integer"
+                }
+            }
+        },
+        "response.SatisfactionResponseItem": {
+            "type": "object",
+            "properties": {
+                "anonymityMode": {
+                    "type": "string"
+                },
+                "comment": {
+                    "type": "string"
+                },
+                "followUpId": {
+                    "type": "integer"
+                },
+                "followUpStatus": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "publicCode": {
+                    "type": "string"
+                },
+                "rating": {
+                    "type": "integer"
+                },
+                "submittedAt": {
+                    "type": "string"
+                }
+            }
+        },
         "response.SubmitResult": {
             "type": "object",
             "properties": {
@@ -23096,6 +23992,29 @@
                     "type": "integer"
                 },
                 "taskVersion": {
+                    "type": "integer"
+                }
+            }
+        },
+        "response.SubmitSatisfactionResult": {
+            "type": "object",
+            "properties": {
+                "followUpCreated": {
+                    "type": "boolean"
+                },
+                "requestId": {
+                    "type": "integer"
+                },
+                "responseId": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "submittedAt": {
+                    "type": "string"
+                },
+                "version": {
                     "type": "integer"
                 }
             }

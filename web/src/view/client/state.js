@@ -16,6 +16,7 @@ export const newIdempotencyKey = () => {
 
 const localDraftKey = (taskId) => `gva-client-task-draft:${taskId}`
 const submitKey = (taskId) => `gva-client-task-submit-key:${taskId}`
+const satisfactionSubmitKey = (requestId) => `gva-client-satisfaction-submit-key:${requestId}`
 
 export const compactAnswers = (answers = {}) => Object.fromEntries(
   Object.entries(answers).filter(([, value]) => (
@@ -49,7 +50,11 @@ export const clearLocalTaskState = (taskId) => {
 }
 
 export const clearAllClientLocalState = () => {
-  const prefixes = ['gva-client-task-draft:', 'gva-client-task-submit-key:']
+  const prefixes = [
+    'gva-client-task-draft:',
+    'gva-client-task-submit-key:',
+    'gva-client-satisfaction-submit-key:'
+  ]
   Object.keys(localStorage).forEach((key) => {
     if (prefixes.some((prefix) => key.startsWith(prefix))) {
       localStorage.removeItem(key)
@@ -65,6 +70,21 @@ export const getOrCreateSubmitKey = (taskId) => {
   const value = newIdempotencyKey()
   localStorage.setItem(submitKey(taskId), value)
   return value
+}
+
+export const getOrCreateSatisfactionSubmitKey = (requestId) => {
+  const key = satisfactionSubmitKey(requestId)
+  const existing = localStorage.getItem(key)
+  if (existing) {
+    return existing
+  }
+  const value = newIdempotencyKey()
+  localStorage.setItem(key, value)
+  return value
+}
+
+export const clearSatisfactionSubmitKey = (requestId) => {
+  localStorage.removeItem(satisfactionSubmitKey(requestId))
 }
 
 export const formatTaskTime = (value) => {

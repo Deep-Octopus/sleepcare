@@ -84,6 +84,18 @@ const routes = [
         name: 'ClientConsultationDetail',
         component: () => import('@/view/client/consultation-detail.vue'),
         meta: { title: '咨询详情', client: true }
+      },
+      {
+        path: 'satisfaction',
+        name: 'ClientSatisfaction',
+        component: () => import('@/view/client/satisfaction.vue'),
+        meta: { title: '服务评价', client: true }
+      },
+      {
+        path: 'satisfaction/:id',
+        name: 'ClientSatisfactionDetail',
+        component: () => import('@/view/client/satisfaction-detail.vue'),
+        meta: { title: '评价详情', client: true }
       }
     ]
   },

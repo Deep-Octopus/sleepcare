@@ -9,6 +9,8 @@ import (
 	caseworkres "github.com/flipped-aurora/gin-vue-admin/server/model/casework/response"
 	clientreq "github.com/flipped-aurora/gin-vue-admin/server/model/clientaccess/request"
 	clientres "github.com/flipped-aurora/gin-vue-admin/server/model/clientaccess/response"
+	supervisionreq "github.com/flipped-aurora/gin-vue-admin/server/model/supervision/request"
+	supervisionres "github.com/flipped-aurora/gin-vue-admin/server/model/supervision/response"
 	"gorm.io/gorm"
 )
 
@@ -64,6 +66,9 @@ type Service interface {
 	ListConsultations(context.Context, caseworkreq.ClientConsultationSearch) ([]caseworkres.ClientConsultationSummary, int64, error)
 	GetConsultation(context.Context, uint) (caseworkres.ClientConsultationDetail, error)
 	AddConsultationMessage(context.Context, uint, string, caseworkreq.AddClientConsultationMessage) (caseworkres.ConsultationActionResult, error)
+	ListSatisfactionRequests(context.Context, supervisionreq.ClientSatisfactionSearch) ([]supervisionres.ClientSatisfactionSummary, int64, error)
+	GetSatisfactionRequest(context.Context, uint) (supervisionres.ClientSatisfactionDetail, error)
+	SubmitSatisfactionResponse(context.Context, uint, string, supervisionreq.SubmitSatisfactionResponse) (supervisionres.SubmitSatisfactionResult, error)
 }
 
 var _ Service = (*ClientAccessService)(nil)

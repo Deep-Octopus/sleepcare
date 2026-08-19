@@ -14,6 +14,7 @@ import (
 	caseworkmodel "github.com/flipped-aurora/gin-vue-admin/server/model/casework"
 	clientmodel "github.com/flipped-aurora/gin-vue-admin/server/model/clientaccess"
 	qmodel "github.com/flipped-aurora/gin-vue-admin/server/model/questionnaire"
+	supervisionmodel "github.com/flipped-aurora/gin-vue-admin/server/model/supervision"
 	"gorm.io/gorm"
 )
 
@@ -125,6 +126,14 @@ func normalizeQuestionnaireError(err error) error {
 
 func normalizeCaseWorkError(err error) error {
 	var domainErr *caseworkmodel.DomainError
+	if !errors.As(err, &domainErr) {
+		return err
+	}
+	return &clientmodel.DomainError{Code: domainErr.Code, Message: domainErr.Message, HTTPStatus: domainErr.HTTPStatus}
+}
+
+func normalizeSupervisionError(err error) error {
+	var domainErr *supervisionmodel.DomainError
 	if !errors.As(err, &domainErr) {
 		return err
 	}
