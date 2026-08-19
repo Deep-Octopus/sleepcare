@@ -16,6 +16,7 @@ func initBizRouter(routers ...*gin.RouterGroup) {
 	publicGroup := routers[1]
 
 	holder(publicGroup, privateGroup)
+	router.RouterGroupApp.AIAssist.AIShadowRouter.InitAIShadowRouter(privateGroup)
 	router.RouterGroupApp.CareClient.CareClientRouter.InitCareClientRouter(privateGroup)
 	router.RouterGroupApp.Questionnaire.QuestionnaireRouter.InitQuestionnaireRouter(privateGroup)
 	router.RouterGroupApp.CarePath.CarePathRouter.InitCarePathRouter(privateGroup)

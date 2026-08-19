@@ -100,6 +100,7 @@ func RegisterTables() {
 	ensureCaseWorkFeature()
 	ensureSupervisionFeature()
 	ensureNotificationFeature()
+	ensureAIAssistFeature()
 	ensurePhaseOneAccessControlFeature()
 	logger.Bg().Mod("system").Info("register table success")
 }
@@ -149,6 +150,12 @@ func ensureSupervisionFeature() {
 func ensureNotificationFeature() {
 	if err := EnsureNotificationData(); err != nil {
 		logger.Bg().Mod("notification").Err(err).Warn("notification metadata or fixed fixture seed skipped")
+	}
+}
+
+func ensureAIAssistFeature() {
+	if err := EnsureAIAssistData(); err != nil {
+		logger.Bg().Mod("aiassist").Err(err).Warn("AI assist metadata seed skipped")
 	}
 }
 

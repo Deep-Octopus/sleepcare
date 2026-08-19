@@ -299,6 +299,8 @@ care:
         export-policy-reviewed: false
         sensitive-access-audit-reviewed: false
         backup-restore-reviewed: false
+    ai-shadow:
+        mode: DISABLED
     notification-provider:
         mode: DISABLED
         provider-code: ""

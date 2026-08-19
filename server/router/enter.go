@@ -1,6 +1,7 @@
 package router
 
 import (
+	"github.com/flipped-aurora/gin-vue-admin/server/router/aiassist"
 	"github.com/flipped-aurora/gin-vue-admin/server/router/careclient"
 	"github.com/flipped-aurora/gin-vue-admin/server/router/carepath"
 	"github.com/flipped-aurora/gin-vue-admin/server/router/casework"
@@ -16,6 +17,7 @@ import (
 var RouterGroupApp = new(RouterGroup)
 
 type RouterGroup struct {
+	AIAssist      aiassist.RouterGroup
 	CarePath      carepath.RouterGroup
 	CaseWork      casework.RouterGroup
 	ClientAccess  clientaccess.RouterGroup

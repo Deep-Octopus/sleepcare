@@ -15,6 +15,7 @@ type Care struct {
 	ClientAccess             ClientAccess         `mapstructure:"client-access" json:"client-access" yaml:"client-access"`
 	NotificationProvider     NotificationProvider `mapstructure:"notification-provider" json:"notification-provider" yaml:"notification-provider"`
 	DataGovernance           DataGovernance       `mapstructure:"data-governance" json:"data-governance" yaml:"data-governance"`
+	AIShadow                 AIShadow             `mapstructure:"ai-shadow" json:"ai-shadow" yaml:"ai-shadow"`
 }
 
 // Validate rejects a malformed local fixture clock during startup. The clock
@@ -29,7 +30,10 @@ func (c Care) Validate() error {
 	if err := c.NotificationProvider.Validate(c.SyntheticFixturesEnabled); err != nil {
 		return err
 	}
-	return c.DataGovernance.Validate(c.SyntheticFixturesEnabled)
+	if err := c.DataGovernance.Validate(c.SyntheticFixturesEnabled); err != nil {
+		return err
+	}
+	return c.AIShadow.Validate()
 }
 
 // Now returns the configured fixture instant only for the gated local data
@@ -161,6 +165,27 @@ func (c DataGovernance) Validate(fixtureDataEnabled bool) error {
 		if version.reviewed && value == "" {
 			return fmt.Errorf("care.data-governance %s is required when its review gate is enabled", version.name)
 		}
+	}
+	return nil
+}
+
+// AIShadow is intentionally closed until the phase-two option and every
+// prerequisite review receive explicit approval. No active mode is accepted.
+type AIShadow struct {
+	Mode string `mapstructure:"mode" json:"mode" yaml:"mode"`
+}
+
+func (c AIShadow) NormalizedMode() string {
+	mode := strings.ToUpper(strings.TrimSpace(c.Mode))
+	if mode == "" {
+		return "DISABLED"
+	}
+	return mode
+}
+
+func (c AIShadow) Validate() error {
+	if c.NormalizedMode() != "DISABLED" {
+		return fmt.Errorf("care.ai-shadow.mode must be DISABLED until the optional capability is explicitly approved")
 	}
 	return nil
 }

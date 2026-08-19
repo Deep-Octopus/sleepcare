@@ -35,7 +35,15 @@ func TestShippedServerConfigsMatchSchema(t *testing.T) {
 			}
 			assertNotificationProviderDisabled(t, cfg.Care.NotificationProvider)
 			assertDataGovernanceDisabled(t, cfg.Care.DataGovernance)
+			assertAIShadowDisabled(t, cfg.Care.AIShadow)
 		})
+	}
+}
+
+func assertAIShadowDisabled(t *testing.T, shadow AIShadow) {
+	t.Helper()
+	if shadow.NormalizedMode() != "DISABLED" {
+		t.Fatalf("shipped AI shadow mode = %q, want DISABLED", shadow.Mode)
 	}
 }
 

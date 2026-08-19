@@ -95,3 +95,14 @@ func TestDataGovernanceConfigRejectsRealModeAndIncompleteReviewedPolicy(t *testi
 		t.Fatalf("safe contract-test governance config was rejected: %v", err)
 	}
 }
+
+func TestAIShadowConfigRejectsEveryActiveMode(t *testing.T) {
+	for _, mode := range []string{"SHADOW", "CONTRACT_TEST", "PRODUCTION"} {
+		if err := (Care{AIShadow: AIShadow{Mode: mode}}).Validate(); err == nil {
+			t.Fatalf("active AI shadow mode %q was accepted", mode)
+		}
+	}
+	if err := (Care{AIShadow: AIShadow{Mode: "DISABLED"}}).Validate(); err != nil {
+		t.Fatalf("disabled AI shadow mode was rejected: %v", err)
+	}
+}

@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"github.com/flipped-aurora/gin-vue-admin/server/api/v1/aiassist"
 	"github.com/flipped-aurora/gin-vue-admin/server/api/v1/careclient"
 	"github.com/flipped-aurora/gin-vue-admin/server/api/v1/carepath"
 	"github.com/flipped-aurora/gin-vue-admin/server/api/v1/casework"
@@ -16,6 +17,7 @@ import (
 var ApiGroupApp = new(ApiGroup)
 
 type ApiGroup struct {
+	AIAssistApiGroup      aiassist.ApiGroup
 	CarePathApiGroup      carepath.ApiGroup
 	CaseWorkApiGroup      casework.ApiGroup
 	ClientAccessApiGroup  clientaccess.ApiGroup

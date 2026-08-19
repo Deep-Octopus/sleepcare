@@ -2,6 +2,11 @@ definitions:
   common.JSONMap:
     additionalProperties: {}
     type: object
+  config.AIShadow:
+    properties:
+      mode:
+        type: string
+    type: object
   config.AliyunOSS:
     properties:
       access-key-id:
@@ -87,6 +92,8 @@ definitions:
     type: object
   config.Care:
     properties:
+      ai-shadow:
+        $ref: '#/definitions/config.AIShadow'
       client-access:
         $ref: '#/definitions/config.ClientAccess'
       data-governance:
@@ -4437,6 +4444,45 @@ definitions:
       submittedAt:
         type: string
     type: object
+  response.ShadowReadiness:
+    properties:
+      blockers:
+        items:
+          type: string
+        type: array
+      dataProcessingReviewReady:
+        type: boolean
+      directSendEnabled:
+        type: boolean
+      evaluationProtocolReady:
+        type: boolean
+      externalModelEnabled:
+        type: boolean
+      humanReviewWorkflowReady:
+        type: boolean
+      knowledgeRetrievalEnabled:
+        type: boolean
+      lineagePersistenceReady:
+        type: boolean
+      mode:
+        type: string
+      modelProviderReviewReady:
+        type: boolean
+      prohibitedScenarioPolicyReady:
+        type: boolean
+      reviewedKnowledgeReady:
+        type: boolean
+      selectionStatus:
+        type: string
+      staffShadowEnabled:
+        type: boolean
+      suggestionGenerationEnabled:
+        type: boolean
+      usageScope:
+        type: string
+      userFacingAiEnabled:
+        type: boolean
+    type: object
   response.SubmitResult:
     properties:
       attentionCaseIds:
@@ -7125,6 +7171,31 @@ paths:
       summary: 用户登录
       tags:
       - Base
+  /care/ai-shadow-readiness:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.ShadowReadiness'
+                msg:
+                  type: string
+              type: object
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: 获取工作人员 AI 影子能力关闭态与阻塞项
+      tags:
+      - AIAssist
   /care/attention-cases:
     get:
       parameters:

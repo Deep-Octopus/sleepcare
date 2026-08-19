@@ -2895,6 +2895,51 @@ const docTemplate = `{
                 }
             }
         },
+        "/care/ai-shadow-readiness": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "AIAssist"
+                ],
+                "summary": "获取工作人员 AI 影子能力关闭态与阻塞项",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.ShadowReadiness"
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/care/attention-cases": {
             "get": {
                 "security": [
@@ -18456,6 +18501,14 @@ const docTemplate = `{
             "type": "object",
             "additionalProperties": {}
         },
+        "config.AIShadow": {
+            "type": "object",
+            "properties": {
+                "mode": {
+                    "type": "string"
+                }
+            }
+        },
         "config.AliyunOSS": {
             "type": "object",
             "properties": {
@@ -18585,6 +18638,9 @@ const docTemplate = `{
         "config.Care": {
             "type": "object",
             "properties": {
+                "ai-shadow": {
+                    "$ref": "#/definitions/config.AIShadow"
+                },
                 "client-access": {
                     "$ref": "#/definitions/config.ClientAccess"
                 },
@@ -25007,6 +25063,65 @@ const docTemplate = `{
                 },
                 "submittedAt": {
                     "type": "string"
+                }
+            }
+        },
+        "response.ShadowReadiness": {
+            "type": "object",
+            "properties": {
+                "blockers": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "dataProcessingReviewReady": {
+                    "type": "boolean"
+                },
+                "directSendEnabled": {
+                    "type": "boolean"
+                },
+                "evaluationProtocolReady": {
+                    "type": "boolean"
+                },
+                "externalModelEnabled": {
+                    "type": "boolean"
+                },
+                "humanReviewWorkflowReady": {
+                    "type": "boolean"
+                },
+                "knowledgeRetrievalEnabled": {
+                    "type": "boolean"
+                },
+                "lineagePersistenceReady": {
+                    "type": "boolean"
+                },
+                "mode": {
+                    "type": "string"
+                },
+                "modelProviderReviewReady": {
+                    "type": "boolean"
+                },
+                "prohibitedScenarioPolicyReady": {
+                    "type": "boolean"
+                },
+                "reviewedKnowledgeReady": {
+                    "type": "boolean"
+                },
+                "selectionStatus": {
+                    "type": "string"
+                },
+                "staffShadowEnabled": {
+                    "type": "boolean"
+                },
+                "suggestionGenerationEnabled": {
+                    "type": "boolean"
+                },
+                "usageScope": {
+                    "type": "string"
+                },
+                "userFacingAiEnabled": {
+                    "type": "boolean"
                 }
             }
         },

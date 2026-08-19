@@ -26,6 +26,7 @@ func TestPhaseOneAccessControlReconcilesExactMatrix(t *testing.T) {
 	require.NoError(t, ensureConsultationMetadata(db, true))
 	require.NoError(t, ensureSupervisionMetadata(db, true))
 	require.NoError(t, ensureNotificationMetadata(db, true))
+	require.NoError(t, ensureAIAssistMetadata(db))
 	seedStalePhaseOneGrants(t, db)
 
 	require.NoError(t, ensurePhaseOneAccessControl(db, true))

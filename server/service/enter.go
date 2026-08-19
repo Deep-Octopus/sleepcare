@@ -1,6 +1,7 @@
 package service
 
 import (
+	"github.com/flipped-aurora/gin-vue-admin/server/service/aiassist"
 	"github.com/flipped-aurora/gin-vue-admin/server/service/careclient"
 	"github.com/flipped-aurora/gin-vue-admin/server/service/carepath"
 	"github.com/flipped-aurora/gin-vue-admin/server/service/casework"
@@ -16,6 +17,7 @@ import (
 var ServiceGroupApp = newServiceGroup()
 
 type ServiceGroup struct {
+	AIAssistServiceGroup      aiassist.ServiceGroup
 	CarePathServiceGroup      carepath.ServiceGroup
 	CaseWorkServiceGroup      casework.ServiceGroup
 	ClientAccessServiceGroup  clientaccess.ServiceGroup
