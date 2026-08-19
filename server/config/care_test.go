@@ -24,6 +24,14 @@ func TestCareNowUsesFixtureInstantOnlyWhenGateIsEnabled(t *testing.T) {
 	if got.Before(before) || got.After(after) {
 		t.Fatalf("disabled fixture gate returned non-system time %s", got)
 	}
+
+	enabledWithoutFixtureTime := Care{SyntheticFixturesEnabled: true}
+	before = time.Now().Add(-time.Second)
+	got = enabledWithoutFixtureTime.Now()
+	after = time.Now().Add(time.Second)
+	if got.Before(before) || got.After(after) {
+		t.Fatalf("empty fixture time returned non-system time %s", got)
+	}
 }
 
 func TestCareValidateRejectsMalformedFixtureInstant(t *testing.T) {

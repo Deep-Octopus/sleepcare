@@ -60,3 +60,25 @@ func TestComposeConfigKeepsSafeInitializationSemantics(t *testing.T) {
 		t.Fatalf("http/sql logs must stay file-only, got %v", cfg.Zap.FileOnlyModules)
 	}
 }
+
+func TestComposeDefaultsCareClockToSystemTime(t *testing.T) {
+	content, err := os.ReadFile("../../compose.yaml")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var compose struct {
+		Services struct {
+			Server struct {
+				Environment map[string]string `yaml:"environment"`
+			} `yaml:"server"`
+		} `yaml:"services"`
+	}
+	if err := yaml.Unmarshal(content, &compose); err != nil {
+		t.Fatal(err)
+	}
+
+	const systemClockDefault = "${GVA_CARE_FIXTURE_NOW:-}"
+	if got := compose.Services.Server.Environment["GVA_CARE_FIXTURE_NOW"]; got != systemClockDefault {
+		t.Fatalf("compose care clock override = %q, want opt-in value %q", got, systemClockDefault)
+	}
+}

@@ -74,6 +74,12 @@ func bindEnvironmentOverrides(v *viper.Viper) {
 	for _, key := range v.AllKeys() {
 		_ = v.BindEnv(key)
 	}
+	// Viper normally treats an empty environment value as unset. Compose uses
+	// an explicit empty value to clear a persisted acceptance clock and restore
+	// the system clock, so this one key must preserve empty-value semantics.
+	if value, ok := os.LookupEnv("GVA_CARE_FIXTURE_NOW"); ok {
+		v.Set("care.fixture-now", value)
+	}
 }
 
 // getConfigPath 获取配置文件路径, 优先级: 命令行 > 环境变量 > 默认值

@@ -64,7 +64,7 @@ services:
       GVA_SYSTEM_USE_REDIS: "true"
       GVA_CARE_SYNTHETIC_FIXTURES_ENABLED: "true"
       GVA_CARE_FIXTURE_PASSWORD: ${GVA_CARE_FIXTURE_PASSWORD:?run ./scripts/init-local-env.sh first}
-      GVA_CARE_FIXTURE_NOW: "2026-08-18T10:00:00+08:00"
+      GVA_CARE_FIXTURE_NOW: "${GVA_CARE_FIXTURE_NOW:-}"
       TZ: Asia/Shanghai
     depends_on:
       mysql:

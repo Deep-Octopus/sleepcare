@@ -82,3 +82,30 @@ func TestBindEnvironmentOverridesWhenPersistedConfigLacksComposeKeys(t *testing.
 		t.Fatalf("care fixture time override = %q", got.Care.FixtureNow)
 	}
 }
+
+func TestBindEnvironmentOverridesAllowsClearingPersistedFixtureNow(t *testing.T) {
+	t.Setenv("GVA_CARE_FIXTURE_NOW", "")
+
+	v := viper.New()
+	v.SetConfigType("yaml")
+	if err := v.ReadConfig(strings.NewReader(`
+care:
+  fixture-now: "2026-08-18T10:00:00+08:00"
+`)); err != nil {
+		t.Fatalf("read config: %v", err)
+	}
+
+	bindEnvironmentOverrides(v)
+
+	var got struct {
+		Care struct {
+			FixtureNow string `mapstructure:"fixture-now"`
+		} `mapstructure:"care"`
+	}
+	if err := v.Unmarshal(&got); err != nil {
+		t.Fatalf("unmarshal config: %v", err)
+	}
+	if got.Care.FixtureNow != "" {
+		t.Fatalf("care fixture time = %q, want explicit system-clock override", got.Care.FixtureNow)
+	}
+}
