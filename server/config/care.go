@@ -14,6 +14,7 @@ type Care struct {
 	FixtureNow               string               `mapstructure:"fixture-now" json:"fixture-now" yaml:"fixture-now"`
 	ClientAccess             ClientAccess         `mapstructure:"client-access" json:"client-access" yaml:"client-access"`
 	NotificationProvider     NotificationProvider `mapstructure:"notification-provider" json:"notification-provider" yaml:"notification-provider"`
+	DataGovernance           DataGovernance       `mapstructure:"data-governance" json:"data-governance" yaml:"data-governance"`
 }
 
 // Validate rejects a malformed local fixture clock during startup. The clock
@@ -25,7 +26,10 @@ func (c Care) Validate() error {
 			return fmt.Errorf("care.fixture-now must use RFC3339: %w", err)
 		}
 	}
-	return c.NotificationProvider.Validate(c.SyntheticFixturesEnabled)
+	if err := c.NotificationProvider.Validate(c.SyntheticFixturesEnabled); err != nil {
+		return err
+	}
+	return c.DataGovernance.Validate(c.SyntheticFixturesEnabled)
 }
 
 // Now returns the configured fixture instant only for the gated local data
@@ -93,6 +97,70 @@ func (c NotificationProvider) Validate(fixtureDataEnabled bool) error {
 	currency := strings.TrimSpace(c.CostCurrency)
 	if currency != "" && (len(currency) != 3 || currency != strings.ToUpper(currency)) {
 		return fmt.Errorf("care.notification-provider cost currency must be a three-letter uppercase code")
+	}
+	return nil
+}
+
+type DataGovernance struct {
+	Mode                           string `mapstructure:"mode" json:"mode" yaml:"mode"`
+	ServiceNoticeVersion           string `mapstructure:"service-notice-version" json:"service-notice-version" yaml:"service-notice-version"`
+	PrivacyNoticeVersion           string `mapstructure:"privacy-notice-version" json:"privacy-notice-version" yaml:"privacy-notice-version"`
+	NotificationConsentVersion     string `mapstructure:"notification-consent-version" json:"notification-consent-version" yaml:"notification-consent-version"`
+	AIProcessingConsentVersion     string `mapstructure:"ai-processing-consent-version" json:"ai-processing-consent-version" yaml:"ai-processing-consent-version"`
+	IdentityVerificationReviewed   bool   `mapstructure:"identity-verification-reviewed" json:"identity-verification-reviewed" yaml:"identity-verification-reviewed"`
+	ServiceNoticeReviewed          bool   `mapstructure:"service-notice-reviewed" json:"service-notice-reviewed" yaml:"service-notice-reviewed"`
+	PrivacyNoticeReviewed          bool   `mapstructure:"privacy-notice-reviewed" json:"privacy-notice-reviewed" yaml:"privacy-notice-reviewed"`
+	NotificationConsentReviewed    bool   `mapstructure:"notification-consent-reviewed" json:"notification-consent-reviewed" yaml:"notification-consent-reviewed"`
+	AIProcessingConsentReviewed    bool   `mapstructure:"ai-processing-consent-reviewed" json:"ai-processing-consent-reviewed" yaml:"ai-processing-consent-reviewed"`
+	ConsentEvidenceReviewed        bool   `mapstructure:"consent-evidence-reviewed" json:"consent-evidence-reviewed" yaml:"consent-evidence-reviewed"`
+	WithdrawalPolicyReviewed       bool   `mapstructure:"withdrawal-policy-reviewed" json:"withdrawal-policy-reviewed" yaml:"withdrawal-policy-reviewed"`
+	MinimumNecessaryFieldsReviewed bool   `mapstructure:"minimum-necessary-fields-reviewed" json:"minimum-necessary-fields-reviewed" yaml:"minimum-necessary-fields-reviewed"`
+	RetentionPolicyReviewed        bool   `mapstructure:"retention-policy-reviewed" json:"retention-policy-reviewed" yaml:"retention-policy-reviewed"`
+	CorrectionPolicyReviewed       bool   `mapstructure:"correction-policy-reviewed" json:"correction-policy-reviewed" yaml:"correction-policy-reviewed"`
+	ErasurePolicyReviewed          bool   `mapstructure:"erasure-policy-reviewed" json:"erasure-policy-reviewed" yaml:"erasure-policy-reviewed"`
+	ExportPolicyReviewed           bool   `mapstructure:"export-policy-reviewed" json:"export-policy-reviewed" yaml:"export-policy-reviewed"`
+	SensitiveAccessAuditReviewed   bool   `mapstructure:"sensitive-access-audit-reviewed" json:"sensitive-access-audit-reviewed" yaml:"sensitive-access-audit-reviewed"`
+	BackupRestoreReviewed          bool   `mapstructure:"backup-restore-reviewed" json:"backup-restore-reviewed" yaml:"backup-restore-reviewed"`
+}
+
+func (c DataGovernance) NormalizedMode() string {
+	mode := strings.ToUpper(strings.TrimSpace(c.Mode))
+	if mode == "" {
+		return "DISABLED"
+	}
+	return mode
+}
+
+func (c DataGovernance) ContractTestEnabled(fixtureDataEnabled bool) bool {
+	return fixtureDataEnabled && c.NormalizedMode() == "CONTRACT_TEST"
+}
+
+func (c DataGovernance) Validate(fixtureDataEnabled bool) error {
+	mode := c.NormalizedMode()
+	if mode != "DISABLED" && mode != "CONTRACT_TEST" {
+		return fmt.Errorf("care.data-governance.mode must be DISABLED or CONTRACT_TEST")
+	}
+	if mode == "CONTRACT_TEST" && !fixtureDataEnabled {
+		return fmt.Errorf("care.data-governance CONTRACT_TEST requires the local fixture gate")
+	}
+	versions := []struct {
+		name     string
+		value    string
+		reviewed bool
+	}{
+		{"service-notice-version", c.ServiceNoticeVersion, c.ServiceNoticeReviewed},
+		{"privacy-notice-version", c.PrivacyNoticeVersion, c.PrivacyNoticeReviewed},
+		{"notification-consent-version", c.NotificationConsentVersion, c.NotificationConsentReviewed},
+		{"ai-processing-consent-version", c.AIProcessingConsentVersion, c.AIProcessingConsentReviewed},
+	}
+	for _, version := range versions {
+		value := strings.TrimSpace(version.value)
+		if len([]rune(value)) > 80 {
+			return fmt.Errorf("care.data-governance %s cannot exceed 80 characters", version.name)
+		}
+		if version.reviewed && value == "" {
+			return fmt.Errorf("care.data-governance %s is required when its review gate is enabled", version.name)
+		}
 	}
 	return nil
 }

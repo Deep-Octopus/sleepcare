@@ -65,3 +65,33 @@ func TestNotificationProviderConfigRejectsProductionModeAndUnsafeBoundaries(t *t
 		t.Fatalf("contract-test provider config was rejected: %v", err)
 	}
 }
+
+func TestDataGovernanceConfigRejectsRealModeAndIncompleteReviewedPolicy(t *testing.T) {
+	if err := (Care{DataGovernance: DataGovernance{Mode: "PRODUCTION"}}).Validate(); err == nil {
+		t.Fatal("real-data governance mode was accepted")
+	}
+	if err := (Care{DataGovernance: DataGovernance{Mode: "CONTRACT_TEST"}}).Validate(); err == nil {
+		t.Fatal("contract-test governance without the fixture gate was accepted")
+	}
+	if err := (Care{
+		SyntheticFixturesEnabled: true,
+		DataGovernance: DataGovernance{
+			Mode:                  "CONTRACT_TEST",
+			ServiceNoticeReviewed: true,
+		},
+	}).Validate(); err == nil {
+		t.Fatal("reviewed service notice without a version was accepted")
+	}
+	if err := (Care{
+		SyntheticFixturesEnabled: true,
+		DataGovernance: DataGovernance{
+			Mode:                  "CONTRACT_TEST",
+			ServiceNoticeVersion:  "SERVICE-NOTICE-TEST-V1",
+			ServiceNoticeReviewed: true,
+			PrivacyNoticeVersion:  "PRIVACY-NOTICE-TEST-V1",
+			PrivacyNoticeReviewed: true,
+		},
+	}).Validate(); err != nil {
+		t.Fatalf("safe contract-test governance config was rejected: %v", err)
+	}
+}

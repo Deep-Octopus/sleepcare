@@ -13,6 +13,16 @@ export const getCareClient = (id) =>
 export const getCareClientOptions = () =>
   service({ url: '/care/client-options', method: 'get' })
 
+export const getDataGovernanceReadiness = () =>
+  service({ url: '/care/data-governance-readiness', method: 'get' })
+
+export const getDataLifecycleRequests = (id, params) =>
+  service({
+    url: `/care/clients/${id}/data-lifecycle-requests`,
+    method: 'get',
+    params
+  })
+
 export const createCareClient = (data) =>
   service({
     url: '/care/clients',
@@ -43,4 +53,14 @@ export const createCareConsent = (id, data) =>
     method: 'post',
     data,
     headers: idempotencyHeaders()
+  })
+
+export const createDataLifecycleRequest = (id, data, idempotencyKey) =>
+  service({
+    url: `/care/clients/${id}/data-lifecycle-requests`,
+    method: 'post',
+    data,
+    headers: {
+      'Idempotency-Key': idempotencyKey
+    }
   })

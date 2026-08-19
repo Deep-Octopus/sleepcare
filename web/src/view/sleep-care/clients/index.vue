@@ -102,6 +102,14 @@
           <el-table-column prop="reason" label="备注" min-width="180" />
         </el-table>
 
+        <DataGovernancePanel
+          v-if="btnAuth.recordLifecycleRequest"
+          :client-id="detail.id"
+          :client-version="detail.version"
+          :can-record="Boolean(btnAuth.recordLifecycleRequest)"
+          @recorded="handleLifecycleRecorded"
+        />
+
         <div class="mb-3 mt-7 flex items-end justify-between gap-4">
           <div>
             <h3 class="text-lg font-semibold">服务计划时间线</h3>
@@ -377,6 +385,7 @@
   import { ElMessage, ElMessageBox } from 'element-plus'
   import { useBtnAuth } from '@/utils/btnAuth'
   import { readablePlanTitle, readableTaskTitle } from '@/utils/sleep-care-display'
+  import DataGovernancePanel from './components/DataGovernancePanel.vue'
   import {
     createCareAssignment,
     createCareClient,
@@ -551,6 +560,12 @@
   const saveConsent = async () => {
     const res = await createCareConsent(actionClient.value.id, { expectedVersion: actionClient.value.version, consentType: 'SYNTHETIC_TEST_PARTICIPATION', action: consentForm.action, textVersion: consentForm.textVersion, occurredAt: consentForm.occurredAt.toISOString(), source: 'STAFF_RECORDED', reason: consentForm.reason })
     if (res.code === 0) { ElMessage.success(res.msg); consentVisible.value = false; await loadTable() }
+  }
+  const handleLifecycleRecorded = async () => {
+    if (!detail.value) return
+    const clientId = detail.value.id
+    await loadDetail(clientId)
+    await loadTable()
   }
   const resetPlanPreview = () => {
     planPreview.value = null

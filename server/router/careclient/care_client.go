@@ -15,10 +15,13 @@ func (r *CareClientRouter) InitCareClientRouter(router *gin.RouterGroup) {
 		writeGroup.PUT("clients/:id", careClientApi.UpdateCareClient)
 		writeGroup.POST("clients/:id/assignments", careClientApi.CreateCareAssignment)
 		writeGroup.POST("clients/:id/consent-records", careClientApi.CreateCareConsent)
+		writeGroup.POST("clients/:id/data-lifecycle-requests", careClientApi.CreateDataLifecycleRequest)
 	}
 	{
 		readGroup.GET("clients", careClientApi.ListCareClients)
 		readGroup.GET("clients/:id", careClientApi.GetCareClient)
+		readGroup.GET("clients/:id/data-lifecycle-requests", careClientApi.ListDataLifecycleRequests)
 		readGroup.GET("client-options", careClientApi.GetCareClientOptions)
+		readGroup.GET("data-governance-readiness", careClientApi.GetDataGovernanceReadiness)
 	}
 }

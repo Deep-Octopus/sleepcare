@@ -34,6 +34,7 @@ func TestShippedServerConfigsMatchSchema(t *testing.T) {
 				t.Fatalf("care config is invalid: %v", err)
 			}
 			assertNotificationProviderDisabled(t, cfg.Care.NotificationProvider)
+			assertDataGovernanceDisabled(t, cfg.Care.DataGovernance)
 		})
 	}
 }
@@ -56,6 +57,24 @@ func assertNotificationProviderDisabled(t *testing.T, provider NotificationProvi
 	if provider.MaxAttemptsPerRequest != 0 || provider.RateLimitWindowSeconds != 0 || provider.RateLimitCount != 0 ||
 		provider.CostCurrency != "" || provider.EstimatedCostMinor != 0 || provider.DailyCostLimitMinor != 0 {
 		t.Fatal("shipped notification provider limits must stay unset")
+	}
+}
+
+func assertDataGovernanceDisabled(t *testing.T, governance DataGovernance) {
+	t.Helper()
+	if governance.NormalizedMode() != "DISABLED" {
+		t.Fatalf("shipped data governance mode = %q, want DISABLED", governance.Mode)
+	}
+	if governance.ServiceNoticeVersion != "" || governance.PrivacyNoticeVersion != "" ||
+		governance.NotificationConsentVersion != "" || governance.AIProcessingConsentVersion != "" {
+		t.Fatal("shipped authorization policy versions must stay empty")
+	}
+	if governance.IdentityVerificationReviewed || governance.ServiceNoticeReviewed || governance.PrivacyNoticeReviewed ||
+		governance.NotificationConsentReviewed || governance.AIProcessingConsentReviewed || governance.ConsentEvidenceReviewed ||
+		governance.WithdrawalPolicyReviewed || governance.MinimumNecessaryFieldsReviewed || governance.RetentionPolicyReviewed ||
+		governance.CorrectionPolicyReviewed || governance.ErasurePolicyReviewed || governance.ExportPolicyReviewed ||
+		governance.SensitiveAccessAuditReviewed || governance.BackupRestoreReviewed {
+		t.Fatal("shipped data governance review gates must stay closed")
 	}
 }
 

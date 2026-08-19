@@ -4896,6 +4896,164 @@ const docTemplate = `{
                 }
             }
         },
+        "/care/clients/{id}/data-lifecycle-requests": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "CareClient"
+                ],
+                "summary": "分页获取固定测试用户的数据生命周期请求记录",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "康养用户ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页数量，最大100",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "请求类型",
+                        "name": "requestType",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/response.PageResult"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "list": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/definitions/response.DataLifecycleRequestSummary"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "CareClient"
+                ],
+                "summary": "追加固定测试用户的数据生命周期请求记录",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "康养用户ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "幂等键",
+                        "name": "Idempotency-Key",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "待政策请求事实",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.CreateDataLifecycleRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/github_com_flipped-aurora_gin-vue-admin_server_model_careclient_response.ActionResult"
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/care/clients/{id}/plan-instances": {
             "get": {
                 "security": [
@@ -6000,6 +6158,51 @@ const docTemplate = `{
                                     "properties": {
                                         "data": {
                                             "$ref": "#/definitions/response.DailySummaryDetail"
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/care/data-governance-readiness": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "CareClient"
+                ],
+                "summary": "获取数据治理门禁与待确认项",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.DataGovernanceReadiness"
                                         },
                                         "msg": {
                                             "type": "string"
@@ -18385,6 +18588,9 @@ const docTemplate = `{
                 "client-access": {
                     "$ref": "#/definitions/config.ClientAccess"
                 },
+                "data-governance": {
+                    "$ref": "#/definitions/config.DataGovernance"
+                },
                 "fixture-now": {
                     "type": "string"
                 },
@@ -18439,6 +18645,68 @@ const docTemplate = `{
                 },
                 "secret-access-key": {
                     "type": "string"
+                }
+            }
+        },
+        "config.DataGovernance": {
+            "type": "object",
+            "properties": {
+                "ai-processing-consent-reviewed": {
+                    "type": "boolean"
+                },
+                "ai-processing-consent-version": {
+                    "type": "string"
+                },
+                "backup-restore-reviewed": {
+                    "type": "boolean"
+                },
+                "consent-evidence-reviewed": {
+                    "type": "boolean"
+                },
+                "correction-policy-reviewed": {
+                    "type": "boolean"
+                },
+                "erasure-policy-reviewed": {
+                    "type": "boolean"
+                },
+                "export-policy-reviewed": {
+                    "type": "boolean"
+                },
+                "identity-verification-reviewed": {
+                    "type": "boolean"
+                },
+                "minimum-necessary-fields-reviewed": {
+                    "type": "boolean"
+                },
+                "mode": {
+                    "type": "string"
+                },
+                "notification-consent-reviewed": {
+                    "type": "boolean"
+                },
+                "notification-consent-version": {
+                    "type": "string"
+                },
+                "privacy-notice-reviewed": {
+                    "type": "boolean"
+                },
+                "privacy-notice-version": {
+                    "type": "string"
+                },
+                "retention-policy-reviewed": {
+                    "type": "boolean"
+                },
+                "sensitive-access-audit-reviewed": {
+                    "type": "boolean"
+                },
+                "service-notice-reviewed": {
+                    "type": "boolean"
+                },
+                "service-notice-version": {
+                    "type": "string"
+                },
+                "withdrawal-policy-reviewed": {
+                    "type": "boolean"
                 }
             }
         },
@@ -20636,6 +20904,34 @@ const docTemplate = `{
                         "ROUTINE",
                         "EXPEDITED"
                     ]
+                }
+            }
+        },
+        "request.CreateDataLifecycleRequest": {
+            "type": "object",
+            "required": [
+                "expectedVersion",
+                "reason",
+                "requestType",
+                "requestedAt",
+                "source"
+            ],
+            "properties": {
+                "expectedVersion": {
+                    "type": "integer"
+                },
+                "reason": {
+                    "type": "string",
+                    "maxLength": 1000
+                },
+                "requestType": {
+                    "type": "string"
+                },
+                "requestedAt": {
+                    "type": "string"
+                },
+                "source": {
+                    "type": "string"
                 }
             }
         },
@@ -22894,6 +23190,23 @@ const docTemplate = `{
                 }
             }
         },
+        "response.ConsentPolicyRequirement": {
+            "type": "object",
+            "properties": {
+                "consentType": {
+                    "type": "string"
+                },
+                "contentReviewed": {
+                    "type": "boolean"
+                },
+                "policyVersion": {
+                    "type": "string"
+                },
+                "recordingEnabled": {
+                    "type": "boolean"
+                }
+            }
+        },
         "response.ConsentRecordSummary": {
             "type": "object",
             "properties": {
@@ -23316,6 +23629,85 @@ const docTemplate = `{
                 }
             }
         },
+        "response.DataGovernanceReadiness": {
+            "type": "object",
+            "properties": {
+                "blockingItems": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "consentRequirements": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.ConsentPolicyRequirement"
+                    }
+                },
+                "formalConsentEnabled": {
+                    "type": "boolean"
+                },
+                "lifecycleExecutionEnabled": {
+                    "type": "boolean"
+                },
+                "mode": {
+                    "type": "string"
+                },
+                "realDataEnabled": {
+                    "type": "boolean"
+                },
+                "requestRecordingEnabled": {
+                    "type": "boolean"
+                },
+                "reviewGates": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.GovernanceReviewGate"
+                    }
+                },
+                "usageScope": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.DataLifecycleRequestSummary": {
+            "type": "object",
+            "properties": {
+                "careClientId": {
+                    "type": "integer"
+                },
+                "executionAllowed": {
+                    "type": "boolean"
+                },
+                "governanceMode": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "identityVerificationStatus": {
+                    "type": "string"
+                },
+                "reason": {
+                    "type": "string"
+                },
+                "recordedAt": {
+                    "type": "string"
+                },
+                "requestType": {
+                    "type": "string"
+                },
+                "requestedAt": {
+                    "type": "string"
+                },
+                "source": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
         "response.DeliveryEvent": {
             "type": "object",
             "properties": {
@@ -23397,6 +23789,17 @@ const docTemplate = `{
             "properties": {
                 "file": {
                     "$ref": "#/definitions/media.FileUploadAndDownload"
+                }
+            }
+        },
+        "response.GovernanceReviewGate": {
+            "type": "object",
+            "properties": {
+                "key": {
+                    "type": "string"
+                },
+                "reviewed": {
+                    "type": "boolean"
                 }
             }
         },

@@ -34,7 +34,7 @@ func newCareServiceTest(t *testing.T) (*CareClientService, *gorm.DB) {
 	t.Helper()
 	db := testutil.NewMemoryDB(t,
 		&caremodel.CareClient{}, &caremodel.CareAssignment{}, &caremodel.ConsentRecord{},
-		&caremodel.CareOrgUnitProfile{}, &caremodel.CareAuthorityProfile{}, &caremodel.CareClientCommandReceipt{},
+		&caremodel.CareOrgUnitProfile{}, &caremodel.CareAuthorityProfile{}, &caremodel.CareClientCommandReceipt{}, &caremodel.DataLifecycleRequest{},
 		&system.SysUser{}, &system.SysAuthority{}, &system.SysDepartment{}, &system.SysUserAuthority{}, &system.SysUserDepartment{},
 		testutil.WithDataScopeCallbacks(),
 	)

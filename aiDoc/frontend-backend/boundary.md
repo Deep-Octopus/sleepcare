@@ -165,3 +165,15 @@
 - 修正版只能追加，不能覆盖或直接编辑指标。相同键与相同请求返回原版本；该版本后来不再最新时，重放结果也必须返回 `isLatest=false`。相同键与不同请求、旧版本和跨机构请求均拒绝。
 - `CareDailySummary` 方法任务在固定测试门禁开启时，于 `Asia/Shanghai` 每日 00:10 幂等生成前一日机构快照；没有初始生成 HTTP 接口，门禁关闭时任务停用。
 - 当前只冻结机构级归属。团队转交、人员归属、正式 KPI、跨机构分析和导出仍待批准，不进入当前接口或数据模型；P2-04 不启用真实短信、医疗内容或用户侧 AI，也不安排页面点触。
+
+## P2-05 数据治理门禁与生命周期请求契约
+
+- `GET /care/data-governance-readiness` 只允许上级角色读取，返回 `mode`、`usageScope`、四个能力开关、四类正式同意准备项、治理评审项和稳定阻塞码；不返回正式正文、身份材料、保存期限或密钥。
+- 四类同意准备项为 `SERVICE_NOTICE|PRIVACY_NOTICE|NOTIFICATION_CONSENT|AI_PROCESSING_CONSENT`。前端只展示服务端给出的版本与评审状态，不自行生成正文或推导正式可用性。
+- 当前始终返回 `realDataEnabled=false`、`formalConsentEnabled=false` 和 `lifecycleExecutionEnabled=false`。只有 `CONTRACT_TEST` 与固定测试数据门禁同时开启时，`requestRecordingEnabled` 才能为 `true`。
+- `GET /care/clients/{id}/data-lifecycle-requests` 按统一分页返回授权机构内固定测试用户的追加式台账，可按请求类型过滤。
+- `POST /care/clients/{id}/data-lifecycle-requests` 要求 `Idempotency-Key`、`expectedVersion`、`ACCESS_COPY|CORRECTION|RESTRICTION|ERASURE`、请求时间、`STAFF_RECORDED` 和事实说明。
+- 新记录固定为 `PENDING_POLICY`、`identityVerificationStatus=NOT_CONFIGURED`、`executionAllowed=false`。当前没有更新、状态转换、导出、删除、匿名化或批处理接口。
+- 三个接口、`recordLifecycleRequest` 按钮及隐藏详情按钮只授权上级角色，并继续叠加业务身份、DataScope、机构范围和固定测试记录校验；页面隐藏不能替代后端拒绝。
+- 前端在一次记录对话中稳定复用同一幂等键，成功后刷新用户版本和台账；不得把请求记录显示成已经完成的数据处置。
+- P2-05 不启用真实用户、正式同意、身份核验、真实短信、医疗内容或用户侧 AI，页面点触留到 P2-08。

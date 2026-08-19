@@ -89,6 +89,8 @@ definitions:
     properties:
       client-access:
         $ref: '#/definitions/config.ClientAccess'
+      data-governance:
+        $ref: '#/definitions/config.DataGovernance'
       fixture-now:
         type: string
       notification-provider:
@@ -125,6 +127,47 @@ definitions:
         type: string
       secret-access-key:
         type: string
+    type: object
+  config.DataGovernance:
+    properties:
+      ai-processing-consent-reviewed:
+        type: boolean
+      ai-processing-consent-version:
+        type: string
+      backup-restore-reviewed:
+        type: boolean
+      consent-evidence-reviewed:
+        type: boolean
+      correction-policy-reviewed:
+        type: boolean
+      erasure-policy-reviewed:
+        type: boolean
+      export-policy-reviewed:
+        type: boolean
+      identity-verification-reviewed:
+        type: boolean
+      minimum-necessary-fields-reviewed:
+        type: boolean
+      mode:
+        type: string
+      notification-consent-reviewed:
+        type: boolean
+      notification-consent-version:
+        type: string
+      privacy-notice-reviewed:
+        type: boolean
+      privacy-notice-version:
+        type: string
+      retention-policy-reviewed:
+        type: boolean
+      sensitive-access-audit-reviewed:
+        type: boolean
+      service-notice-reviewed:
+        type: boolean
+      service-notice-version:
+        type: string
+      withdrawal-policy-reviewed:
+        type: boolean
     type: object
   config.DiskList:
     properties:
@@ -1654,6 +1697,26 @@ definitions:
     - subject
     - urgency
     type: object
+  request.CreateDataLifecycleRequest:
+    properties:
+      expectedVersion:
+        type: integer
+      reason:
+        maxLength: 1000
+        type: string
+      requestType:
+        type: string
+      requestedAt:
+        type: string
+      source:
+        type: string
+    required:
+    - expectedVersion
+    - reason
+    - requestType
+    - requestedAt
+    - source
+    type: object
   request.CreateSysCliRequest:
     properties:
       command:
@@ -3178,6 +3241,17 @@ definitions:
       version:
         type: integer
     type: object
+  response.ConsentPolicyRequirement:
+    properties:
+      consentType:
+        type: string
+      contentReviewed:
+        type: boolean
+      policyVersion:
+        type: string
+      recordingEnabled:
+        type: boolean
+    type: object
   response.ConsentRecordSummary:
     properties:
       action:
@@ -3456,6 +3530,58 @@ definitions:
       snapshotDays:
         type: integer
     type: object
+  response.DataGovernanceReadiness:
+    properties:
+      blockingItems:
+        items:
+          type: string
+        type: array
+      consentRequirements:
+        items:
+          $ref: '#/definitions/response.ConsentPolicyRequirement'
+        type: array
+      formalConsentEnabled:
+        type: boolean
+      lifecycleExecutionEnabled:
+        type: boolean
+      mode:
+        type: string
+      realDataEnabled:
+        type: boolean
+      requestRecordingEnabled:
+        type: boolean
+      reviewGates:
+        items:
+          $ref: '#/definitions/response.GovernanceReviewGate'
+        type: array
+      usageScope:
+        type: string
+    type: object
+  response.DataLifecycleRequestSummary:
+    properties:
+      careClientId:
+        type: integer
+      executionAllowed:
+        type: boolean
+      governanceMode:
+        type: string
+      id:
+        type: integer
+      identityVerificationStatus:
+        type: string
+      reason:
+        type: string
+      recordedAt:
+        type: string
+      requestType:
+        type: string
+      requestedAt:
+        type: string
+      source:
+        type: string
+      status:
+        type: string
+    type: object
   response.DeliveryEvent:
     properties:
       eventType:
@@ -3510,6 +3636,13 @@ definitions:
     properties:
       file:
         $ref: '#/definitions/media.FileUploadAndDownload'
+    type: object
+  response.GovernanceReviewGate:
+    properties:
+      key:
+        type: string
+      reviewed:
+        type: boolean
     type: object
   response.InteractionResult:
     properties:
@@ -8193,6 +8326,99 @@ paths:
       summary: 追加固定测试授权或撤回记录
       tags:
       - CareClient
+  /care/clients/{id}/data-lifecycle-requests:
+    get:
+      parameters:
+      - description: 康养用户ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页数量，最大100
+        in: query
+        name: pageSize
+        type: integer
+      - description: 请求类型
+        in: query
+        name: requestType
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.PageResult'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/response.DataLifecycleRequestSummary'
+                        type: array
+                    type: object
+                msg:
+                  type: string
+              type: object
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: 分页获取固定测试用户的数据生命周期请求记录
+      tags:
+      - CareClient
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 康养用户ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 幂等键
+        in: header
+        name: Idempotency-Key
+        required: true
+        type: string
+      - description: 待政策请求事实
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateDataLifecycleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_flipped-aurora_gin-vue-admin_server_model_careclient_response.ActionResult'
+                msg:
+                  type: string
+              type: object
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: 追加固定测试用户的数据生命周期请求记录
+      tags:
+      - CareClient
   /care/clients/{id}/plan-instances:
     get:
       parameters:
@@ -8858,6 +9084,31 @@ paths:
       summary: 根据已修正原始记录追加日报版本
       tags:
       - Supervision
+  /care/data-governance-readiness:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.DataGovernanceReadiness'
+                msg:
+                  type: string
+              type: object
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: 获取数据治理门禁与待确认项
+      tags:
+      - CareClient
   /care/deliveries:
     get:
       parameters:

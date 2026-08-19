@@ -30,6 +30,7 @@ func bizModel() error {
 		&careclient.CareOrgUnitProfile{},
 		&careclient.CareAuthorityProfile{},
 		&careclient.CareClientCommandReceipt{},
+		&careclient.DataLifecycleRequest{},
 		&clientaccess.CareClientAccount{},
 		&clientaccess.ClientAccessGrant{},
 		&clientaccess.ClientSession{},

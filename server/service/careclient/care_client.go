@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/flipped-aurora/gin-vue-admin/server/config"
 	"github.com/flipped-aurora/gin-vue-admin/server/global"
 	"github.com/flipped-aurora/gin-vue-admin/server/internal/accesspolicy"
 	caremodel "github.com/flipped-aurora/gin-vue-admin/server/model/careclient"
@@ -22,8 +23,10 @@ import (
 )
 
 type CareClientService struct {
-	DB  *gorm.DB
-	Now func() time.Time
+	DB                       *gorm.DB
+	Now                      func() time.Time
+	DataGovernance           *config.DataGovernance
+	SyntheticFixturesEnabled *bool
 }
 
 func (s *CareClientService) db() *gorm.DB {
@@ -38,6 +41,20 @@ func (s *CareClientService) now() time.Time {
 		return s.Now()
 	}
 	return global.GVA_CONFIG.Care.Now()
+}
+
+func (s *CareClientService) dataGovernanceConfig() config.DataGovernance {
+	if s.DataGovernance != nil {
+		return *s.DataGovernance
+	}
+	return global.GVA_CONFIG.Care.DataGovernance
+}
+
+func (s *CareClientService) syntheticFixturesEnabled() bool {
+	if s.SyntheticFixturesEnabled != nil {
+		return *s.SyntheticFixturesEnabled
+	}
+	return global.GVA_CONFIG.Care.SyntheticFixturesEnabled
 }
 
 func (s *CareClientService) List(ctx context.Context, req carereq.CareClientSearch) ([]careres.CareClientSummary, int64, error) {
@@ -67,11 +84,9 @@ func (s *CareClientService) List(ctx context.Context, req carereq.CareClientSear
 	if req.PageSize <= 0 {
 		req.PageSize = 10
 	}
-	if req.PageSize > 100 {
-		req.PageSize = 100
-	}
+	limit, offset := req.LimitOffset()
 	var clients []caremodel.CareClient
-	err = query.Order("care_clients.id ASC").Offset((req.Page - 1) * req.PageSize).Limit(req.PageSize).Find(&clients).Error
+	err = query.Order("care_clients.id ASC").Offset(offset).Limit(limit).Find(&clients).Error
 	if err != nil {
 		return nil, 0, err
 	}

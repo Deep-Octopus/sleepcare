@@ -53,3 +53,16 @@ type CreateConsentRecord struct {
 	Source          string    `json:"source"`
 	Reason          string    `json:"reason"`
 }
+
+type DataLifecycleRequestSearch struct {
+	commonRequest.PageInfo
+	RequestType string `json:"requestType" form:"requestType"`
+}
+
+type CreateDataLifecycleRequest struct {
+	ExpectedVersion uint      `json:"expectedVersion" binding:"required"`
+	RequestType     string    `json:"requestType" binding:"required"`
+	RequestedAt     time.Time `json:"requestedAt" binding:"required"`
+	Source          string    `json:"source" binding:"required"`
+	Reason          string    `json:"reason" binding:"required,max=1000"`
+}

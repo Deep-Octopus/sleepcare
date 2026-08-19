@@ -286,6 +286,26 @@ care:
         cookie-path: /api/care/client
         cookie-secure: true
         allowed-origins: []
+    data-governance:
+        mode: DISABLED
+        service-notice-version: ""
+        privacy-notice-version: ""
+        notification-consent-version: ""
+        ai-processing-consent-version: ""
+        identity-verification-reviewed: false
+        service-notice-reviewed: false
+        privacy-notice-reviewed: false
+        notification-consent-reviewed: false
+        ai-processing-consent-reviewed: false
+        consent-evidence-reviewed: false
+        withdrawal-policy-reviewed: false
+        minimum-necessary-fields-reviewed: false
+        retention-policy-reviewed: false
+        correction-policy-reviewed: false
+        erasure-policy-reviewed: false
+        export-policy-reviewed: false
+        sensitive-access-audit-reviewed: false
+        backup-restore-reviewed: false
     notification-provider:
         mode: DISABLED
         provider-code: ""

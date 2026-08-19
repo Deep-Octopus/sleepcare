@@ -37,10 +37,13 @@ var careClientAPIs = []system.SysApi{
 	{ApiGroup: "康养用户", Method: "GET", Path: "/care/clients", Description: "获取康养用户列表"},
 	{ApiGroup: "康养用户", Method: "GET", Path: "/care/clients/:id", Description: "获取康养用户详情"},
 	{ApiGroup: "康养用户", Method: "GET", Path: "/care/client-options", Description: "获取康养用户维护选项"},
+	{ApiGroup: "康养用户", Method: "GET", Path: "/care/data-governance-readiness", Description: "获取数据治理准备状态"},
+	{ApiGroup: "康养用户", Method: "GET", Path: "/care/clients/:id/data-lifecycle-requests", Description: "获取数据生命周期请求记录"},
 	{ApiGroup: "康养用户", Method: "POST", Path: "/care/clients", Description: "新建康养用户"},
 	{ApiGroup: "康养用户", Method: "PUT", Path: "/care/clients/:id", Description: "更新康养用户"},
 	{ApiGroup: "康养用户", Method: "POST", Path: "/care/clients/:id/assignments", Description: "记录康养用户责任关系"},
 	{ApiGroup: "康养用户", Method: "POST", Path: "/care/clients/:id/consent-records", Description: "记录参与状态"},
+	{ApiGroup: "康养用户", Method: "POST", Path: "/care/clients/:id/data-lifecycle-requests", Description: "记录数据生命周期请求"},
 }
 
 // EnsureCareClientData keeps metadata available for already initialized GVA
@@ -87,6 +90,7 @@ func ensureCareClientMetadata(db *gorm.DB) error {
 			{Name: "maintainClient", Desc: "维护公开资料", SysBaseMenuID: leaf.ID},
 			{Name: "assignCare", Desc: "记录责任关系", SysBaseMenuID: leaf.ID},
 			{Name: "recordConsent", Desc: "记录参与状态", SysBaseMenuID: leaf.ID},
+			{Name: "recordLifecycleRequest", Desc: "记录生命周期请求", SysBaseMenuID: leaf.ID},
 		}
 		for i := range buttons {
 			var stored system.SysBaseMenuBtn
@@ -297,7 +301,7 @@ func grantCareAccess(tx *gorm.DB, root, leaf system.SysBaseMenu, buttons []syste
 			allowedRoles = roles
 		case "startPlan", "pausePlan", "resumePlan":
 			allowedRoles = []uint{syntheticStewardRole, syntheticClinicianRole}
-		case "createClient", "maintainClient", "assignCare", "recordConsent":
+		case "createClient", "maintainClient", "assignCare", "recordConsent", "recordLifecycleRequest":
 			allowedRoles = []uint{syntheticSupervisorRole}
 		default:
 			continue

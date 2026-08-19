@@ -78,3 +78,41 @@ type ClientOptions struct {
 	OrgUnits  []OrgUnitOption  `json:"orgUnits"`
 	Assignees []AssigneeOption `json:"assignees"`
 }
+
+type ConsentPolicyRequirement struct {
+	ConsentType      string `json:"consentType"`
+	PolicyVersion    string `json:"policyVersion"`
+	ContentReviewed  bool   `json:"contentReviewed"`
+	RecordingEnabled bool   `json:"recordingEnabled"`
+}
+
+type GovernanceReviewGate struct {
+	Key      string `json:"key"`
+	Reviewed bool   `json:"reviewed"`
+}
+
+type DataGovernanceReadiness struct {
+	Mode                      string                     `json:"mode"`
+	UsageScope                string                     `json:"usageScope"`
+	RealDataEnabled           bool                       `json:"realDataEnabled"`
+	FormalConsentEnabled      bool                       `json:"formalConsentEnabled"`
+	LifecycleExecutionEnabled bool                       `json:"lifecycleExecutionEnabled"`
+	RequestRecordingEnabled   bool                       `json:"requestRecordingEnabled"`
+	ConsentRequirements       []ConsentPolicyRequirement `json:"consentRequirements"`
+	ReviewGates               []GovernanceReviewGate     `json:"reviewGates"`
+	BlockingItems             []string                   `json:"blockingItems"`
+}
+
+type DataLifecycleRequestSummary struct {
+	ID                         uint      `json:"id"`
+	CareClientID               uint      `json:"careClientId"`
+	RequestType                string    `json:"requestType"`
+	Status                     string    `json:"status"`
+	RequestedAt                time.Time `json:"requestedAt"`
+	Source                     string    `json:"source"`
+	Reason                     string    `json:"reason"`
+	IdentityVerificationStatus string    `json:"identityVerificationStatus"`
+	GovernanceMode             string    `json:"governanceMode"`
+	ExecutionAllowed           bool      `json:"executionAllowed"`
+	RecordedAt                 time.Time `json:"recordedAt"`
+}

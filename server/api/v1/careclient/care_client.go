@@ -191,6 +191,102 @@ func (a *CareClientApi) CreateCareConsent(c *gin.Context) {
 	commonres.OkWithDetailed(data, "授权事实已记录", c)
 }
 
+// GetDataGovernanceReadiness
+// @Tags CareClient
+// @Summary 获取数据治理门禁与待确认项
+// @Security ApiKeyAuth
+// @Produce application/json
+// @Success 200 {object} commonres.Response{data=careres.DataGovernanceReadiness,msg=string}
+// @Failure 403 {object} commonres.Response
+// @Router /care/data-governance-readiness [get]
+func (a *CareClientApi) GetDataGovernanceReadiness(c *gin.Context) {
+	data, err := careClientService.GetDataGovernanceReadiness(c.Request.Context())
+	if err != nil {
+		handleError(c, err, "查询数据治理准备状态失败")
+		return
+	}
+	commonres.OkWithDetailed(data, "查询成功", c)
+}
+
+// ListDataLifecycleRequests
+// @Tags CareClient
+// @Summary 分页获取固定测试用户的数据生命周期请求记录
+// @Security ApiKeyAuth
+// @Produce application/json
+// @Param id path int true "康养用户ID"
+// @Param page query int false "页码"
+// @Param pageSize query int false "每页数量，最大100"
+// @Param requestType query string false "请求类型"
+// @Success 200 {object} commonres.Response{data=commonres.PageResult{list=[]careres.DataLifecycleRequestSummary},msg=string}
+// @Failure 403 {object} commonres.Response
+// @Router /care/clients/{id}/data-lifecycle-requests [get]
+func (a *CareClientApi) ListDataLifecycleRequests(c *gin.Context) {
+	id, ok := pathID(c)
+	if !ok {
+		return
+	}
+	var req carereq.DataLifecycleRequestSearch
+	if err := c.ShouldBindQuery(&req); err != nil {
+		commonres.FailWithMessage("查询参数无效", c)
+		return
+	}
+	list, total, err := careClientService.ListDataLifecycleRequests(c.Request.Context(), id, req)
+	if err != nil {
+		handleError(c, err, "查询数据生命周期请求失败")
+		return
+	}
+	if req.Page <= 0 {
+		req.Page = 1
+	}
+	if req.PageSize <= 0 {
+		req.PageSize = 10
+	}
+	if req.PageSize > 100 {
+		req.PageSize = 100
+	}
+	commonres.OkWithDetailed(commonres.PageResult{
+		List:     list,
+		Total:    total,
+		Page:     req.Page,
+		PageSize: req.PageSize,
+	}, "查询成功", c)
+}
+
+// CreateDataLifecycleRequest
+// @Tags CareClient
+// @Summary 追加固定测试用户的数据生命周期请求记录
+// @Security ApiKeyAuth
+// @Accept application/json
+// @Produce application/json
+// @Param id path int true "康养用户ID"
+// @Param Idempotency-Key header string true "幂等键"
+// @Param data body carereq.CreateDataLifecycleRequest true "待政策请求事实"
+// @Success 200 {object} commonres.Response{data=careres.ActionResult,msg=string}
+// @Failure 403 {object} commonres.Response
+// @Router /care/clients/{id}/data-lifecycle-requests [post]
+func (a *CareClientApi) CreateDataLifecycleRequest(c *gin.Context) {
+	id, ok := pathID(c)
+	if !ok {
+		return
+	}
+	var req carereq.CreateDataLifecycleRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		commonres.FailWithMessage("请求参数无效", c)
+		return
+	}
+	data, err := careClientService.CreateDataLifecycleRequest(
+		c.Request.Context(),
+		id,
+		c.GetHeader("Idempotency-Key"),
+		req,
+	)
+	if err != nil {
+		handleError(c, err, "记录数据生命周期请求失败")
+		return
+	}
+	commonres.OkWithDetailed(data, "请求事实已记录，尚不可执行", c)
+}
+
 // GetCareClientOptions
 // @Tags CareClient
 // @Summary 获取康养用户维护选项
