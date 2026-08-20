@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none" role="img" aria-labelledby="title description">
+  <title id="title">睡眠康养随访标志</title>
+  <desc id="description">月相环抱一条连续的三节点服务路径</desc>
+  <rect x="2" y="2" width="60" height="60" rx="18" fill="#174F47"/>
+  <circle cx="29" cy="31" r="20" fill="#F5F1E8"/>
+  <circle cx="36" cy="25" r="18.5" fill="#174F47"/>
+  <polygon points="16,38.5 30.5,36 47.5,31.5 48.5,35 31.5,40.5 17,43" fill="#82B8A9"/>
+  <circle cx="17" cy="40" r="3.5" fill="#174F47"/>
+  <circle cx="17" cy="40" r="1.6" fill="#F5F1E8"/>
+  <circle cx="31" cy="38" r="2.75" fill="#F5F1E8"/>
+  <circle cx="47" cy="34.5" r="3.5" fill="#D6A55B"/>
+</svg>

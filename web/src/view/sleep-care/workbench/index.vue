@@ -1,8 +1,12 @@
 <template>
   <main class="space-y-4 text-base-text">
     <section class="rounded-xl border border-border bg-container p-5 shadow-card">
-      <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+      <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
         <div class="max-w-3xl">
+          <SleepCareBrand
+            size="sm"
+            class="mb-5"
+          />
           <div class="mb-3 flex items-center gap-2 text-sm font-medium text-primary">
             <svg-icon icon="lucide:radio-tower" />
             <span>今日待办</span>
@@ -12,23 +16,31 @@
             汇总今天需要完成的任务、尚未处理完的事项和待复核工作，只显示当前账号负责的内容。
           </p>
         </div>
-        <div class="flex flex-wrap items-center gap-3">
-          <span
-            class="text-xs text-muted-foreground"
-            aria-live="polite"
-          >
-            {{ refreshedAt ? `更新于 ${refreshedAt}` : '尚未完成首次刷新' }}
-          </span>
-          <el-button
-            :loading="loading"
-            @click="loadWorkbench"
-          >
-            <svg-icon
-              class="mr-1"
-              icon="lucide:refresh-cw"
-            />
-            刷新
-          </el-button>
+        <div class="w-full lg:max-w-md">
+          <div class="rounded-xl border border-border bg-muted px-4 py-3">
+            <p class="mb-2 text-xs font-medium text-muted-foreground">
+              持续服务路径
+            </p>
+            <SleepCareFeaturePath />
+          </div>
+          <div class="mt-4 flex flex-wrap items-center justify-end gap-3">
+            <span
+              class="text-xs text-muted-foreground"
+              aria-live="polite"
+            >
+              {{ refreshedAt ? `更新于 ${refreshedAt}` : '尚未完成首次刷新' }}
+            </span>
+            <el-button
+              :loading="loading"
+              @click="loadWorkbench"
+            >
+              <svg-icon
+                class="mr-1"
+                icon="lucide:refresh-cw"
+              />
+              刷新
+            </el-button>
+          </div>
         </div>
       </div>
     </section>
@@ -120,6 +132,8 @@
   import { getCareWorkbench } from '@/api/sleep-care/case-work'
   import { formatDate } from '@/utils/format'
   import { useBtnAuth } from '@/utils/btnAuth'
+  import SleepCareBrand from '@/components/sleep-care-brand/index.vue'
+  import SleepCareFeaturePath from '@/components/sleep-care-brand/feature-path.vue'
 
   defineOptions({ name: 'CareWorkbench' })
 
