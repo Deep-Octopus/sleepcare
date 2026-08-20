@@ -1,7 +1,7 @@
 <template>
   <div
     id="userLayout"
-    class="relative min-h-full w-full overflow-y-auto bg-white dark:bg-slate-900 md:h-screen"
+    class="relative h-full w-full bg-white dark:bg-slate-900 md:h-screen"
   >
     <!-- 右侧蓝色斜切 banner（仅桌面端显示） -->
     <div
@@ -16,28 +16,10 @@
 
     <!-- 左侧登录区 -->
     <div
-      class="relative z-10 flex min-h-full w-full items-center justify-center py-8 md:h-full md:w-1/2 md:py-0"
+      class="relative z-10 flex h-full w-full items-center justify-center md:w-1/2"
     >
       <div class="w-4/5 md:w-96">
-        <EntryBrand class="mb-5" />
-        <section
-          class="mb-7 rounded-2xl border border-border bg-container p-4 shadow-card"
-          aria-label="睡眠康养随访项目特色"
-        >
-          <SleepCareBrand size="sm" />
-          <SleepCareFeaturePath class="mt-4" />
-          <div class="mt-4 hidden flex-wrap gap-2 md:flex">
-            <span class="rounded-full bg-muted px-2.5 py-1 text-[11px] text-muted-foreground">
-              任务步骤清楚
-            </span>
-            <span class="rounded-full bg-muted px-2.5 py-1 text-[11px] text-muted-foreground">
-              责任协作有序
-            </span>
-            <span class="rounded-full bg-muted px-2.5 py-1 text-[11px] text-muted-foreground">
-              处理过程可追溯
-            </span>
-          </div>
-        </section>
+        <EntryBrand class="mb-9" />
         <el-form
           ref="loginForm"
           :model="loginFormData"
@@ -138,8 +120,6 @@
   import { useRouter } from 'vue-router'
   import { useUserStore } from '@/pinia/modules/user'
   import EntryBrand from '@/components/entryBrand/index.vue'
-  import SleepCareBrand from '@/components/sleep-care-brand/index.vue'
-  import SleepCareFeaturePath from '@/components/sleep-care-brand/feature-path.vue'
   import { isDev } from '@/utils/env.js'
 
   defineOptions({
