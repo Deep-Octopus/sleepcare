@@ -9,6 +9,10 @@ export const readablePlanTitle = (value) => readableOr(value, '五次服务跟�
 
 export const readablePlanPurpose = (value) => readableOr(value, '用于安排五次服务任务并记录完成进度。')
 
+export const planLifecycleStatusPresentation = (plan) => plan?.lifecycleStatus === 'PUBLISHED'
+  ? { label: '可使用', tagType: 'success' }
+  : { label: '已停用', tagType: 'info' }
+
 export const readableTaskTitle = (value, dayCode) => readableOr(
   value,
   dayCode === 'D1' ? '服务流程确认' : '服务进度记录'

@@ -67,8 +67,8 @@
         </el-table-column>
         <el-table-column label="状态" min-width="120">
           <template #default="scope">
-            <el-tag :type="scope.row.status === 'PUBLISHED' ? 'success' : 'info'">
-              {{ scope.row.status === 'PUBLISHED' ? '可使用' : '已停用' }}
+            <el-tag :type="planLifecycleStatusPresentation(scope.row).tagType">
+              {{ planLifecycleStatusPresentation(scope.row).label }}
             </el-tag>
           </template>
         </el-table-column>
@@ -227,6 +227,7 @@
   import { onMounted, reactive, ref } from 'vue'
   import { useBtnAuth } from '@/utils/btnAuth'
   import {
+    planLifecycleStatusPresentation,
     readablePlanPurpose,
     readablePlanTitle,
     readableReviewNote,

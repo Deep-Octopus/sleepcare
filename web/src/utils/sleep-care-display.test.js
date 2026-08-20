@@ -1,12 +1,24 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import {
+  planLifecycleStatusPresentation,
   readableAttentionReason,
   readableOptionLabel,
   readablePlanTitle,
   readableQuestionTitle,
   readableTaskTitle
 } from './sleep-care-display.js'
+
+test('计划状态使用接口 lifecycleStatus 字段展示', () => {
+  assert.deepEqual(
+    planLifecycleStatusPresentation({ lifecycleStatus: 'PUBLISHED' }),
+    { label: '可使用', tagType: 'success' }
+  )
+  assert.deepEqual(
+    planLifecycleStatusPresentation({ lifecycleStatus: 'DISABLED', status: 'PUBLISHED' }),
+    { label: '已停用', tagType: 'info' }
+  )
+})
 
 test('内部数据标识不会显示给页面用户', () => {
   assert.equal(readablePlanTitle('测试 OSA 流程验证计划（非医疗内容）'), '五次服务跟进计划')

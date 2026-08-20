@@ -27,3 +27,5 @@
 - [睡眠康养：失眠 CBT-I 与睡眠日记](active/sleep-care-insomnia-cbti.md) — `active` — 阶段三建设独立路径，首期只预留多路径模型。
 
 ## Done
+
+- [睡眠康养：计划状态显示修复](done/sleep-care-plan-status-display.md) — `done` — 已发布计划按接口生命周期字段正确显示为可使用，并有回归测试保护。
