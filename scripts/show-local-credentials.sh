@@ -23,6 +23,9 @@ printf 'Synthetic steward A: syn_steward_a\n'
 printf 'Synthetic steward B: syn_steward_b\n'
 printf 'Synthetic clinician: syn_clinician_a\n'
 printf 'Synthetic password: %s\n' "$GVA_CARE_FIXTURE_PASSWORD"
+printf 'Care client login: http://127.0.0.1:%s/#/client/login\n' "${WEB_HOST_PORT:-8080}"
+printf 'Care client username: linanran\n'
+printf 'Care client password: %s\n' "$GVA_CARE_FIXTURE_PASSWORD"
 printf 'MySQL endpoint:  127.0.0.1:%s\n' "${MYSQL_HOST_PORT:-13306}"
 printf 'MySQL database:  %s\n' "$MYSQL_DATABASE"
 printf 'MySQL username:  %s\n' "$MYSQL_USER"
