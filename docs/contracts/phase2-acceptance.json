@@ -1,0 +1,238 @@
+{
+  "schemaVersion": "P2-08-v1",
+  "task": "P2-08",
+  "environment": "LOCAL_TEST",
+  "dataScope": "FIXED_TEST_ONLY",
+  "engineeringDecision": "PASSED_WITH_KNOWN_REPOSITORY_DEBT",
+  "realTrialEnabled": false,
+  "promotionAllowed": false,
+  "capabilities": {
+    "realDataEnabled": false,
+    "formalNotificationEnabled": false,
+    "staffAIShadowEnabled": false,
+    "userFacingAIEnabled": false,
+    "externalCallsEnabled": false
+  },
+  "operations": {
+    "deploymentExecuted": false,
+    "trafficSwitchExecuted": false,
+    "databaseRestoreExecuted": false,
+    "volumeResetExecuted": false,
+    "gitHistoryRewriteExecuted": false,
+    "externalCallsExecuted": false
+  },
+  "checks": [
+    {
+      "id": "P2-CHECK-01",
+      "scope": "PHASE_TWO_AUTOMATION",
+      "status": "PASSED",
+      "evidence": "targeted Phase 2 Go packages"
+    },
+    {
+      "id": "P2-CHECK-02",
+      "scope": "REPOSITORY_VERIFY",
+      "status": "PASSED",
+      "evidence": "make verify"
+    },
+    {
+      "id": "P2-CHECK-03",
+      "scope": "FULL_BACKEND_SCAN",
+      "status": "KNOWN_REPOSITORY_DEBT",
+      "evidence": "go test ./... recorded four carried package failures outside Phase 2"
+    },
+    {
+      "id": "P2-CHECK-04",
+      "scope": "COMPOSE_HEALTH_AND_MIGRATION_IDEMPOTENCY",
+      "status": "PASSED",
+      "evidence": "two consecutive make up runs preserved records and all four services stayed healthy"
+    },
+    {
+      "id": "P2-CHECK-05",
+      "scope": "RUNTIME_CLOSED_CAPABILITIES",
+      "status": "PASSED",
+      "evidence": "health and unauthorized probes confirmed protected routes and restricted capabilities stayed disabled"
+    },
+    {
+      "id": "P2-CHECK-06",
+      "scope": "CORE_BROWSER_FLOWS",
+      "status": "PASSED",
+      "evidence": "supervisor default route, consultation and satisfaction pages, daily summary detail, and an unauthorized system route"
+    }
+  ],
+  "uatCases": [
+    {
+      "id": "P2-UAT-01",
+      "scope": "ROLE_AND_ORGANIZATION_BOUNDARY",
+      "status": "PASSED",
+      "evidence": [
+        "AUTOMATED_ROLE_MATRIX",
+        "AUTOMATED_DATA_SCOPE_NEGATIVE",
+        "LOCAL_BROWSER_SUPERVISOR_AND_UNAUTHORIZED_ROUTE"
+      ]
+    },
+    {
+      "id": "P2-UAT-02",
+      "scope": "CONSULTATION_LIFECYCLE",
+      "status": "PASSED",
+      "evidence": [
+        "CONSULTATION_SERVICE_TESTS",
+        "RESTRICTED_SESSION_TESTS"
+      ]
+    },
+    {
+      "id": "P2-UAT-03",
+      "scope": "SATISFACTION_AND_FOLLOW_UP",
+      "status": "PASSED",
+      "evidence": [
+        "SATISFACTION_ANONYMITY_TESTS",
+        "FOLLOW_UP_STATE_TESTS"
+      ]
+    },
+    {
+      "id": "P2-UAT-04",
+      "scope": "NOTIFICATION_CONTRACT_BOUNDARY",
+      "status": "PASSED",
+      "evidence": [
+        "PROVIDER_SIGNATURE_TESTS",
+        "RATE_COST_RETRY_TESTS"
+      ]
+    },
+    {
+      "id": "P2-UAT-05",
+      "scope": "DASHBOARD_SUMMARY_AND_REVISION",
+      "status": "PASSED",
+      "evidence": [
+        "DAILY_SUMMARY_V2_TESTS",
+        "REVISION_IDEMPOTENCY_TESTS"
+      ]
+    },
+    {
+      "id": "P2-UAT-06",
+      "scope": "DATA_GOVERNANCE_CLOSED_STATE",
+      "status": "PASSED",
+      "evidence": [
+        "DATA_GOVERNANCE_FAIL_CLOSED_TESTS",
+        "SUPERVISOR_PERMISSION_TESTS"
+      ]
+    },
+    {
+      "id": "P2-UAT-07",
+      "scope": "AI_SHADOW_CLOSED_STATE",
+      "status": "PASSED",
+      "evidence": [
+        "AI_CONFIG_FAIL_CLOSED_TESTS",
+        "READINESS_ROUTE_TESTS"
+      ]
+    },
+    {
+      "id": "P2-UAT-08",
+      "scope": "PAUSE_RESUME_REOPEN_RECOVERY",
+      "status": "PASSED",
+      "evidence": [
+        "PLAN_PAUSE_RESUME_TESTS",
+        "CASE_AND_CONSULTATION_REOPEN_TESTS"
+      ]
+    },
+    {
+      "id": "P2-UAT-09",
+      "scope": "IDEMPOTENCY_AND_RETRY",
+      "status": "PASSED",
+      "evidence": [
+        "COMMAND_REPLAY_TESTS",
+        "COMPOSE_INITIALIZATION_IDEMPOTENCY"
+      ]
+    },
+    {
+      "id": "P2-UAT-10",
+      "scope": "NO_EXTERNAL_SIDE_EFFECTS",
+      "status": "PASSED",
+      "evidence": [
+        "DISABLED_PROVIDER_TESTS",
+        "DISABLED_AI_AND_GOVERNANCE_TESTS"
+      ]
+    }
+  ],
+  "knownDebts": [
+    {
+      "id": "REPO-TEST-01",
+      "scope": "OUTSIDE_PHASE_TWO",
+      "area": "MCP_CLIENT_LOCAL_SERVICE",
+      "status": "OPEN"
+    },
+    {
+      "id": "REPO-TEST-02",
+      "scope": "OUTSIDE_PHASE_TWO",
+      "area": "AI_PLUGIN_TEXT_ASSERTIONS",
+      "status": "OPEN"
+    },
+    {
+      "id": "REPO-TEST-03",
+      "scope": "OUTSIDE_PHASE_TWO",
+      "area": "AUTO_PLUGIN_COMPAT_ROUTE_ASSERTION",
+      "status": "OPEN"
+    },
+    {
+      "id": "REPO-TEST-04",
+      "scope": "OUTSIDE_PHASE_TWO",
+      "area": "AUTOCODE_FIXTURE_DATABASE_SETUP",
+      "status": "OPEN"
+    }
+  ],
+  "gates": [
+    {
+      "code": "REAL_TRIAL_SCOPE_APPROVED",
+      "status": "BLOCKED",
+      "owner": "UNASSIGNED"
+    },
+    {
+      "code": "FORMAL_CONTENT_APPROVED",
+      "status": "BLOCKED",
+      "owner": "UNASSIGNED"
+    },
+    {
+      "code": "REAL_IDENTITY_AND_CONSENT_APPROVED",
+      "status": "BLOCKED",
+      "owner": "UNASSIGNED"
+    },
+    {
+      "code": "FORMAL_NOTIFICATION_APPROVED",
+      "status": "BLOCKED",
+      "owner": "UNASSIGNED"
+    },
+    {
+      "code": "SERVICE_SLA_APPROVED",
+      "status": "BLOCKED",
+      "owner": "UNASSIGNED"
+    },
+    {
+      "code": "CAPACITY_TARGETS_APPROVED",
+      "status": "BLOCKED",
+      "owner": "UNASSIGNED"
+    },
+    {
+      "code": "MONITORING_AND_INCIDENT_OWNERS_ASSIGNED",
+      "status": "BLOCKED",
+      "owner": "UNASSIGNED"
+    },
+    {
+      "code": "BACKUP_RPO_RTO_APPROVED",
+      "status": "BLOCKED",
+      "owner": "UNASSIGNED"
+    },
+    {
+      "code": "RESTORE_REHEARSAL_COMPLETED",
+      "status": "BLOCKED",
+      "owner": "UNASSIGNED"
+    },
+    {
+      "code": "SECURITY_REVIEW_COMPLETED",
+      "status": "BLOCKED",
+      "owner": "UNASSIGNED"
+    },
+    {
+      "code": "AI_SHADOW_SELECTED",
+      "status": "NOT_SELECTED",
+      "owner": "UNASSIGNED"
+    }
+  ]
+}

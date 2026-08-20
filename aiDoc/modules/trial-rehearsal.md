@@ -10,6 +10,10 @@ P2-07 用版本化契约管理阶段二 UAT、角色培训、灰度门禁、暂�
 - 说明与操作手册：`docs/阶段二P2-07UAT培训灰度与回滚演练.md`
 - 契约测试：`server/config/phase_two_rehearsal_contract_test.go`
 - 执行入口：`make phase2-rehearsal-check`
+- 集中验收结果：`docs/contracts/phase2-acceptance.json`
+- 集中验收说明：`docs/阶段二P2-08验收与试用复盘.md`
+- 集中验收测试：`server/config/phase_two_acceptance_contract_test.go`
+- 集中验收入口：`make phase2-acceptance-check`
 - 依赖 P2-01～P2-06 已冻结的功能边界，不依赖数据库、HTTP、前端、Docker API 或外部服务。
 
 ## 契约边界
@@ -53,3 +57,9 @@ HOLD -> DRY_RUN -> DRY_RUN_PAUSED -> DRY_RUN_ROLLED_BACK -> HOLD
 3. UAT 执行与浏览器证据只在 P2-08 集中验收时产生。
 4. 任何回滚计划默认保留业务数据；删除、恢复或重置必须另行获得明确授权。
 5. 契约不得包含真实身份、联系方式、凭据、医疗内容或外部服务调用参数。
+
+## P2-08 集中验收边界
+
+P2-08 复用十条 UAT 用例执行阶段级自动化、Swagger、前端生产构建、Compose/迁移幂等、运行态保护和必要浏览器检查。机器结果把工程结论与真实试用结论分开：浏览器证据缺失时必须保持 `BLOCKED_PENDING_BROWSER_AUTH`；浏览器通过后只能形成 `PASSED_WITH_KNOWN_REPOSITORY_DEBT`，不能自动解除真实试用或 promotion 门禁。
+
+集中验收不新增数据库、HTTP、权限或业务状态，也不执行部署、切流、恢复、卷重置、历史改写或外部调用。全仓扫描中的非阶段二失败按独立技术债记录，不通过修改无关模块来制造全绿结论。

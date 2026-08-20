@@ -110,6 +110,59 @@ func TestScenarioBNotificationFixturesAreIdempotentAndPreserveTasks(t *testing.T
 	if fmt.Sprint(taskIDs) != "[24101 24102 24103 24104 24105]" {
 		t.Fatalf("scenario B task IDs changed: %v", taskIDs)
 	}
+
+	evolvedAt := carePathFixedTime().Add(2 * time.Hour)
+	if err := db.Model(&pathmodel.PlanInstance{}).Where("id = ?", scenarioBPlanID).
+		Updates(map[string]any{"status": pathmodel.EnrollmentPaused, "paused_at": evolvedAt, "version": 2}).Error; err != nil {
+		t.Fatal(err)
+	}
+	if err := db.Model(&pathmodel.Enrollment{}).Where("id = ?", scenarioBEnrollmentID).
+		Updates(map[string]any{"status": pathmodel.EnrollmentPaused, "version": 2}).Error; err != nil {
+		t.Fatal(err)
+	}
+	if err := db.Model(&pathmodel.TaskInstance{}).Where("id = ?", scenarioBTaskD1ID).
+		Updates(map[string]any{
+			"execution_status": pathmodel.ExecutionSubmitted,
+			"review_status":    pathmodel.ReviewPending,
+			"submitted_at":     evolvedAt,
+			"version":          5,
+		}).Error; err != nil {
+		t.Fatal(err)
+	}
+	if err := ensureScenarioBPlan(db); err != nil {
+		t.Fatalf("retained runtime progress must survive initialization: %v", err)
+	}
+	var evolvedPlan pathmodel.PlanInstance
+	if err := db.First(&evolvedPlan, scenarioBPlanID).Error; err != nil {
+		t.Fatal(err)
+	}
+	if evolvedPlan.Status != pathmodel.EnrollmentPaused || evolvedPlan.Version != 2 ||
+		evolvedPlan.PausedAt == nil || !evolvedPlan.PausedAt.Equal(evolvedAt) {
+		t.Fatalf("runtime plan progress was overwritten: %+v", evolvedPlan)
+	}
+	var evolvedTask pathmodel.TaskInstance
+	if err := db.First(&evolvedTask, scenarioBTaskD1ID).Error; err != nil {
+		t.Fatal(err)
+	}
+	if evolvedTask.ExecutionStatus != pathmodel.ExecutionSubmitted || evolvedTask.ReviewStatus != pathmodel.ReviewPending ||
+		evolvedTask.Version != 5 || evolvedTask.SubmittedAt == nil || !evolvedTask.SubmittedAt.Equal(evolvedAt) {
+		t.Fatalf("runtime progress was overwritten: %+v", evolvedTask)
+	}
+	var evolvedEnrollment pathmodel.Enrollment
+	if err := db.First(&evolvedEnrollment, scenarioBEnrollmentID).Error; err != nil {
+		t.Fatal(err)
+	}
+	if evolvedEnrollment.Status != pathmodel.EnrollmentPaused || evolvedEnrollment.Version != 2 {
+		t.Fatalf("runtime enrollment progress was overwritten: %+v", evolvedEnrollment)
+	}
+
+	if err := db.Model(&pathmodel.TaskInstance{}).Where("id = ?", scenarioBTaskD1ID).
+		Update("day_code", "CHANGED").Error; err != nil {
+		t.Fatal(err)
+	}
+	if err := ensureScenarioBPlan(db); err == nil {
+		t.Fatal("immutable task drift must still fail initialization")
+	}
 }
 
 func seedNotificationPrerequisites(t *testing.T, db *gorm.DB) {

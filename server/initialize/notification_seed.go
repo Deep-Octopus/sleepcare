@@ -268,8 +268,19 @@ func ensureScenarioBPlan(db *gorm.DB) error {
 
 func verifyScenarioBPlan(tx *gorm.DB, plan pathmodel.PlanInstance) error {
 	if plan.CareClientID != 20002 || plan.EnrollmentID != scenarioBEnrollmentID ||
-		plan.Status != pathmodel.EnrollmentActive || !plan.Synthetic || plan.DeletedAt.Valid {
+		plan.PlanTemplateVersionID != syntheticPlanTemplateID || plan.PreviewID != scenarioBPreviewID ||
+		!plan.AnchorAt.Equal(carePathFixedTime()) || plan.PauseStrategy != pathmodel.PauseStrategyKeepWindows ||
+		!isRetainedScenarioPlanStatus(plan.Status) || !plan.Synthetic || plan.DeptId != syntheticTeamAID ||
+		plan.CreatedBy != syntheticStewardA2ID || plan.DeletedAt.Valid {
 		return fmt.Errorf("scenario B fixed plan differs")
+	}
+	var definitions []pathmodel.PlanTaskDefinition
+	if err := tx.Where("plan_template_version_id = ?", syntheticPlanTemplateID).
+		Order("sort ASC").Find(&definitions).Error; err != nil {
+		return err
+	}
+	if len(definitions) != 5 {
+		return fmt.Errorf("scenario B requires exactly five task definitions")
 	}
 	var tasks []pathmodel.TaskInstance
 	if err := tx.Unscoped().Where("plan_instance_id = ?", plan.ID).Order("sort ASC").Find(&tasks).Error; err != nil {
@@ -279,15 +290,60 @@ func verifyScenarioBPlan(tx *gorm.DB, plan pathmodel.PlanInstance) error {
 		return fmt.Errorf("scenario B fixed plan must retain five tasks")
 	}
 	for i, task := range tasks {
-		expectedStatus := pathmodel.ExecutionScheduled
-		if i == 0 {
-			expectedStatus = pathmodel.ExecutionOpen
+		definition := definitions[i]
+		expectedOpenAt := plan.AnchorAt.Add(time.Duration(definition.OpenOffsetSeconds) * time.Second)
+		expectedDueAt := plan.AnchorAt.Add(time.Duration(definition.DueOffsetSeconds) * time.Second)
+		var expectedExpiresAt *time.Time
+		if definition.ExpiresOffsetSeconds != nil {
+			value := plan.AnchorAt.Add(time.Duration(*definition.ExpiresOffsetSeconds) * time.Second)
+			expectedExpiresAt = &value
 		}
-		if task.ID != uint(scenarioBTaskD1ID+i) || task.ExecutionStatus != expectedStatus || task.DeletedAt.Valid {
+		if task.ID != uint(scenarioBTaskD1ID+i) || task.PlanInstanceID != plan.ID ||
+			task.CareClientID != plan.CareClientID || task.TaskDefinitionID != definition.ID ||
+			task.DayCode != definition.DayCode || task.Title != definition.Title || task.Sort != definition.Sort ||
+			task.ExecutionRole != definition.ExecutionRole || !isRetainedTaskStatus(task.ExecutionStatus) ||
+			!isRetainedReviewStatus(task.ReviewStatus) || task.ReviewRole != definition.ReviewRole ||
+			!task.OpenAt.Equal(expectedOpenAt) || !task.DueAt.Equal(expectedDueAt) ||
+			!sameTimePointer(task.ExpiresAt, expectedExpiresAt) ||
+			!sameUintPointer(task.QuestionnaireVersionID, definition.QuestionnaireVersionID) ||
+			!jsonDocumentEqual(task.BoundRuleVersionIDsJSON, definition.BoundRuleVersionIDsJSON) ||
+			task.LateSubmissionPolicy != pathmodel.LateSubmissionDeny ||
+			task.NotificationPolicy != pathmodel.NotificationPolicyDisabled || !task.Synthetic ||
+			task.DeptId != syntheticTeamAID || task.CreatedBy != syntheticStewardA2ID || task.DeletedAt.Valid {
 			return fmt.Errorf("scenario B task D%d differs", i+1)
 		}
 	}
 	return nil
+}
+
+func isRetainedScenarioPlanStatus(status string) bool {
+	switch status {
+	case pathmodel.EnrollmentActive, pathmodel.EnrollmentPaused,
+		pathmodel.EnrollmentCompleted, pathmodel.EnrollmentTerminated:
+		return true
+	default:
+		return false
+	}
+}
+
+func isRetainedTaskStatus(status string) bool {
+	switch status {
+	case pathmodel.ExecutionScheduled, pathmodel.ExecutionOpen, pathmodel.ExecutionInProgress,
+		pathmodel.ExecutionSubmitted, pathmodel.ExecutionCancelled:
+		return true
+	default:
+		return false
+	}
+}
+
+func isRetainedReviewStatus(status string) bool {
+	switch status {
+	case pathmodel.ReviewNotReady, pathmodel.ReviewNotRequired, pathmodel.ReviewPending,
+		pathmodel.ReviewReviewing, pathmodel.ReviewReviewed, pathmodel.ReviewReturned:
+		return true
+	default:
+		return false
+	}
 }
 
 func ensureNotificationFixtures(ctx context.Context, db *gorm.DB) error {
