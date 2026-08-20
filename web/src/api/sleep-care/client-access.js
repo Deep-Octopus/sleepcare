@@ -12,6 +12,23 @@ export const redeemClientAccess = (grant) => clientRequest({
   data: { grant }
 })
 
+export const loginClient = (data) => clientRequest({
+  url: '/care/client-auth/login',
+  method: 'post',
+  clientAuthFailureHandled: true,
+  data
+})
+
+export const getClientProfile = () => clientRequest({
+  url: '/care/client/me',
+  method: 'get'
+})
+
+export const logoutClient = () => clientRequest({
+  url: '/care/client/logout',
+  method: 'post'
+})
+
 export const getClientTasks = (params = {}) => clientRequest({
   url: '/care/client/tasks',
   method: 'get',

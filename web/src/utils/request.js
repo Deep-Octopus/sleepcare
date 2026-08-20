@@ -4,23 +4,17 @@ import { ElLoading, ElMessage } from 'element-plus'
 import { emitter } from '@/utils/bus'
 import { isPasswordChangeRequiredError } from '@/utils/requestError'
 import router from '@/router/index'
+import {
+  CLIENT_AUTH_MODE_GRANT,
+  clearClientAuthMode,
+  clearClientDraftState,
+  readClientAuthMode
+} from '@/utils/client-session'
 
 const DEFAULT_REQUEST_TIMEOUT = 1000 * 60 * 10
 const DEFAULT_LOADING_FORCE_CLOSE_DELAY = 30000
 
 const service = axios.create()
-
-const clearClientLocalState = () => {
-  if (typeof window === 'undefined') {
-    return
-  }
-  const prefixes = ['gva-client-task-draft:', 'gva-client-task-submit-key:']
-  Object.keys(localStorage).forEach((key) => {
-    if (prefixes.some((prefix) => key.startsWith(prefix))) {
-      localStorage.removeItem(key)
-    }
-  })
-}
 
 let activeAxios = 0
 let persistentLoadingCount = 0
@@ -255,8 +249,20 @@ service.interceptors.response.use(
 
     if (error.response.status === 401) {
       if (error.config?.authContext === 'client') {
-        clearClientLocalState()
-        router.push({ name: 'ClientAccess', query: { state: 'session' }, replace: true })
+        if (error.config?.clientAuthFailureHandled) {
+          return Promise.reject(error)
+        }
+        const authMode = readClientAuthMode()
+        clearClientDraftState()
+        clearClientAuthMode()
+        const routeName = authMode === CLIENT_AUTH_MODE_GRANT
+          ? 'ClientAccess'
+          : 'ClientLogin'
+        router.push({
+          name: routeName,
+          query: { state: 'session' },
+          replace: true
+        })
         return Promise.reject(error)
       }
       emitter.emit('show-error', {

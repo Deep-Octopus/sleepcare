@@ -10,6 +10,7 @@
 - [睡眠康养：固定数据自然化展示](active/sleep-care-fixture-presentation.md) — `active` — 记录编码与名称采用自然业务值，环境边界由页面提示和内部字段独立表达。
 - [睡眠康养：阶段一通俗化与流程简化](active/sleep-care-plain-language-flow.md) — `active` — 收敛非技术文案、自动转交和账号切换后的角色首页导航。
 - [睡眠康养：项目品牌标志与特色元素](active/sleep-care-brand-identity.md) — `active` — 建立月相与连续责任路径标志，移动端使用紧凑页头，桌面端不设置独立品牌说明区。
+- [睡眠康养：康养用户账号登录与手机端门户](active/sleep-care-client-login-portal.md) — `active` — 建立独立账号密码身份、本人会话和手机端服务首页，用户侧 AI 继续关闭。
 - [睡眠康养：阶段一 OSA 展示闭环](active/sleep-care-phase1-demo.md) — `active` — 用固定夹具走通康养用户提交、关注事项、医护处置和上级督导。
 - [睡眠康养：用户公共资料与授权](active/sleep-care-client-consent.md) — `active` — 建立唯一公共资料、服务授权和责任关系历史。
 - [睡眠康养：组织角色与数据权限](active/sleep-care-access-control.md) — `active` — 组合菜单、API、按钮、DataScope、机构和责任关系权限。

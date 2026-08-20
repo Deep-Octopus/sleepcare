@@ -11,6 +11,8 @@ const (
 	CodeGrantExpired           = 41102
 	CodeSessionInvalid         = 41103
 	CodeAccessScopeDenied      = 41104
+	CodeCredentialsInvalid     = 41105
+	CodeCredentialLocked       = 41106
 	CodeCareAssignmentRequired = 41201
 	CodeTaskNotOpen            = 41302
 	CodeTaskExpired            = 41303

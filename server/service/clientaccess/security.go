@@ -49,7 +49,7 @@ func (s *ClientAccessService) Redeem(ctx context.Context, rawGrant string) (clie
 	}
 	identity := SessionIdentity{
 		AccountID: discovered.AccountID, CareClientID: discovered.CareClientID, DeptID: discovered.DeptId,
-		Synthetic: discovered.Synthetic,
+		AuthType: clientmodel.SessionAuthGrant, Synthetic: discovered.Synthetic,
 	}
 	secureCtx := ContextWithSessionIdentity(ctx, identity)
 	now := s.now()
@@ -103,10 +103,11 @@ func (s *ClientAccessService) Redeem(ctx context.Context, rawGrant string) (clie
 		if result.RowsAffected != 1 {
 			return invalidGrant()
 		}
+		grantID := grant.ID
 		session := clientmodel.ClientSession{
-			SessionID: uuid.NewString(), AccountID: account.ID, GrantID: grant.ID, CareClientID: grant.CareClientID,
+			SessionID: uuid.NewString(), AccountID: account.ID, GrantID: &grantID, CareClientID: grant.CareClientID,
 			TokenDigest: DigestToken(rawSession), AllowedTaskIDsJSON: grant.AllowedTaskIDsJSON,
-			Status: clientmodel.SessionStatusActive, ExpiresAt: expiresAt, Synthetic: true, DeptId: grant.DeptId,
+			AuthType: clientmodel.SessionAuthGrant, Status: clientmodel.SessionStatusActive, ExpiresAt: expiresAt, Synthetic: true, DeptId: grant.DeptId,
 			CreatedBy: grant.CareClientID,
 		}
 		if err = tx.Create(&session).Error; err != nil {
@@ -140,7 +141,7 @@ func (s *ClientAccessService) Authenticate(ctx context.Context, rawSession strin
 	}
 	identity := SessionIdentity{
 		SessionID: session.SessionID, AccountID: session.AccountID, CareClientID: session.CareClientID, DeptID: session.DeptId,
-		Synthetic: session.Synthetic,
+		AuthType: session.AuthType, ExpiresAt: session.ExpiresAt, Synthetic: session.Synthetic,
 	}
 	secureCtx := ContextWithSessionIdentity(ctx, identity)
 	var account clientmodel.CareClientAccount
@@ -152,6 +153,25 @@ func (s *ClientAccessService) Authenticate(ctx context.Context, rawSession strin
 		return SessionIdentity{}, invalidSession()
 	}
 	if account.Status != clientmodel.AccountStatusActive || !account.Synthetic || client.Status != caremodel.ClientStatusActive || !client.Synthetic || account.DeptId != session.DeptId || client.DeptId != session.DeptId {
+		return SessionIdentity{}, invalidSession()
+	}
+	if identity.AuthType == "" {
+		identity.AuthType = clientmodel.SessionAuthGrant
+	}
+	if identity.AuthType == clientmodel.SessionAuthAccount {
+		if session.GrantID != nil {
+			return SessionIdentity{}, invalidSession()
+		}
+		var credential clientmodel.CareClientCredential
+		if err = s.db().WithContext(secureCtx).Where("account_id = ?", session.AccountID).First(&credential).Error; err != nil {
+			return SessionIdentity{}, invalidSession()
+		}
+		if credential.Status != clientmodel.CredentialStatusActive || !credential.Synthetic || credential.DeptId != session.DeptId {
+			return SessionIdentity{}, invalidSession()
+		}
+		return identity, nil
+	}
+	if identity.AuthType != clientmodel.SessionAuthGrant || session.GrantID == nil {
 		return SessionIdentity{}, invalidSession()
 	}
 	allowed, err := decodeTaskIDs(session.AllowedTaskIDsJSON)

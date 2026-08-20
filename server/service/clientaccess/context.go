@@ -2,6 +2,7 @@ package clientaccess
 
 import (
 	"context"
+	"time"
 
 	"github.com/flipped-aurora/gin-vue-admin/server/utils/datascope"
 )
@@ -12,6 +13,8 @@ type SessionIdentity struct {
 	CareClientID   uint
 	DeptID         uint
 	AllowedTaskIDs []uint
+	AuthType       string
+	ExpiresAt      time.Time
 	Synthetic      bool
 }
 

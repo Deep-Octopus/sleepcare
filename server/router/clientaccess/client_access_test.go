@@ -13,7 +13,10 @@ func TestClientAccessRoutesMatchLimitedSessionContract(t *testing.T) {
 	(&ClientAccessRouter{}).InitClientAccessRouter(group)
 
 	want := map[string]bool{
+		"POST /api/care/client-auth/login":                          true,
 		"POST /api/care/client-access/redeem":                       true,
+		"GET /api/care/client/me":                                   true,
+		"POST /api/care/client/logout":                              true,
 		"GET /api/care/client/tasks":                                true,
 		"GET /api/care/client/tasks/:taskId":                        true,
 		"GET /api/care/client/tasks/:taskId/questionnaire":          true,

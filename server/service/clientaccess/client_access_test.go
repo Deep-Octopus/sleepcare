@@ -18,19 +18,21 @@ import (
 	clientreq "github.com/flipped-aurora/gin-vue-admin/server/model/clientaccess/request"
 	clientres "github.com/flipped-aurora/gin-vue-admin/server/model/clientaccess/response"
 	qmodel "github.com/flipped-aurora/gin-vue-admin/server/model/questionnaire"
+	"github.com/flipped-aurora/gin-vue-admin/server/utils"
 	"github.com/flipped-aurora/gin-vue-admin/server/utils/datascope"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
 
 type clientAccessFixture struct {
-	db       *gorm.DB
-	service  *ClientAccessService
-	now      time.Time
-	client   caremodel.CareClient
-	account  clientmodel.CareClientAccount
-	task     pathmodel.TaskInstance
-	rawGrant string
+	db         *gorm.DB
+	service    *ClientAccessService
+	now        time.Time
+	client     caremodel.CareClient
+	account    clientmodel.CareClientAccount
+	credential clientmodel.CareClientCredential
+	task       pathmodel.TaskInstance
+	rawGrant   string
 }
 
 func TestRedeemIsOneTimeAndSessionKeepsTaskScope(t *testing.T) {
@@ -61,7 +63,7 @@ func TestRedeemIsOneTimeAndSessionKeepsTaskScope(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if identity.CareClientID != fixture.client.ID || !identity.Synthetic ||
+	if identity.CareClientID != fixture.client.ID || identity.AuthType != clientmodel.SessionAuthGrant || !identity.Synthetic ||
 		len(identity.AllowedTaskIDs) != 1 || identity.AllowedTaskIDs[0] != fixture.task.ID {
 		t.Fatalf("unexpected session identity: %+v", identity)
 	}
@@ -75,6 +77,135 @@ func TestRedeemIsOneTimeAndSessionKeepsTaskScope(t *testing.T) {
 	_, _, expiredErr := fixture.service.Redeem(context.Background(), expiredRaw)
 	if domainCode(expiredErr) != clientmodel.CodeGrantInvalid || expiredErr.Error() != repeatedErr.Error() {
 		t.Fatalf("expired and consumed grants must have the same external error: %v / %v", expiredErr, repeatedErr)
+	}
+}
+
+func TestAccountLoginCreatesOwnClientSessionAndLogoutRevokesIt(t *testing.T) {
+	fixture := newClientAccessFixture(t)
+	secondTask := fixture.task
+	secondTask.ID = 0
+	secondTask.DayCode = "D2"
+	secondTask.Sort = 2
+	secondTask.TaskDefinitionID = 2
+	secondTask.QuestionnaireVersionID = nil
+	if err := fixture.db.WithContext(datascope.WithSystem(context.Background())).Create(&secondTask).Error; err != nil {
+		t.Fatal(err)
+	}
+
+	result, rawSession, err := fixture.service.Login(context.Background(), clientreq.Login{
+		Username: "  CLIENT_A  ",
+		Password: "client-password",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if result.Profile.DisplayName != fixture.client.DisplayName || result.Profile.DisplayCode != fixture.client.DisplayCode || rawSession == "" {
+		t.Fatalf("unexpected login result: %+v", result)
+	}
+	var session clientmodel.ClientSession
+	if err = fixture.db.Where("token_digest = ?", DigestToken(rawSession)).First(&session).Error; err != nil {
+		t.Fatal(err)
+	}
+	if session.GrantID != nil || session.AuthType != clientmodel.SessionAuthAccount || session.TokenDigest == rawSession {
+		t.Fatalf("unexpected account session: %+v", session)
+	}
+	identity, err := fixture.service.Authenticate(context.Background(), rawSession)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if identity.AuthType != clientmodel.SessionAuthAccount || len(identity.AllowedTaskIDs) != 0 || !identity.ExpiresAt.Equal(result.ExpiresAt) {
+		t.Fatalf("unexpected account identity: %+v", identity)
+	}
+	ctx := ContextWithSessionIdentity(context.Background(), identity)
+	list, total, err := fixture.service.ListTasks(ctx, clientreq.TaskSearch{})
+	if err != nil || total != 2 || len(list) != 2 {
+		t.Fatalf("account session should list all own tasks: total=%d list=%+v err=%v", total, list, err)
+	}
+	if _, err = fixture.service.GetTask(ctx, secondTask.ID); err != nil {
+		t.Fatalf("account session should open an own task outside grant scope: %v", err)
+	}
+	otherTask := secondTask
+	otherTask.ID = 0
+	otherTask.CareClientID = fixture.client.ID + 100
+	otherTask.TaskDefinitionID = 3
+	otherTask.DayCode = "OTHER"
+	if err = fixture.db.WithContext(datascope.WithSystem(context.Background())).Create(&otherTask).Error; err != nil {
+		t.Fatal(err)
+	}
+	if _, err = fixture.service.GetTask(ctx, otherTask.ID); domainCode(err) != clientmodel.CodeAccessScopeDenied {
+		t.Fatalf("account session must not access another client's task, got %v", err)
+	}
+	profile, err := fixture.service.GetProfile(ctx)
+	if err != nil || profile.DisplayName != fixture.client.DisplayName {
+		t.Fatalf("unexpected session profile: %+v err=%v", profile, err)
+	}
+	if err = fixture.db.WithContext(datascope.WithSystem(context.Background())).Model(&clientmodel.CareClientCredential{}).
+		Where("id = ?", fixture.credential.ID).
+		Update("status", clientmodel.CredentialStatusDisabled).Error; err != nil {
+		t.Fatal(err)
+	}
+	if _, err = fixture.service.Authenticate(context.Background(), rawSession); domainCode(err) != clientmodel.CodeSessionInvalid {
+		t.Fatalf("disabled credential should invalidate its account session, got %v", err)
+	}
+	if err = fixture.db.WithContext(datascope.WithSystem(context.Background())).Model(&clientmodel.CareClientCredential{}).
+		Where("id = ?", fixture.credential.ID).
+		Update("status", clientmodel.CredentialStatusActive).Error; err != nil {
+		t.Fatal(err)
+	}
+	logout, err := fixture.service.Logout(ctx)
+	if err != nil || !logout.SignedOut {
+		t.Fatalf("logout failed: %+v err=%v", logout, err)
+	}
+	if _, err = fixture.service.Authenticate(context.Background(), rawSession); domainCode(err) != clientmodel.CodeSessionInvalid {
+		t.Fatalf("revoked session should be invalid, got %v", err)
+	}
+}
+
+func TestAccountLoginCountsFailuresAndTemporarilyLocksCredential(t *testing.T) {
+	fixture := newClientAccessFixture(t)
+	_, _, missingErr := fixture.service.Login(context.Background(), clientreq.Login{
+		Username: "missing_account",
+		Password: "wrong-password",
+	})
+	if domainCode(missingErr) != clientmodel.CodeCredentialsInvalid {
+		t.Fatalf("missing username should use the generic credential error, got %v", missingErr)
+	}
+	for attempt := 1; attempt <= maxCredentialFailures; attempt++ {
+		_, _, err := fixture.service.Login(context.Background(), clientreq.Login{
+			Username: fixture.credential.Username,
+			Password: "wrong-password",
+		})
+		wantCode := clientmodel.CodeCredentialsInvalid
+		if attempt == maxCredentialFailures {
+			wantCode = clientmodel.CodeCredentialLocked
+		}
+		if domainCode(err) != wantCode {
+			t.Fatalf("attempt %d code=%d want=%d err=%v", attempt, domainCode(err), wantCode, err)
+		}
+	}
+	var stored clientmodel.CareClientCredential
+	if err := fixture.db.First(&stored, fixture.credential.ID).Error; err != nil {
+		t.Fatal(err)
+	}
+	if stored.FailedLoginCount != maxCredentialFailures || stored.LockedUntil == nil {
+		t.Fatalf("credential lock state not persisted: %+v", stored)
+	}
+	_, _, err := fixture.service.Login(context.Background(), clientreq.Login{
+		Username: fixture.credential.Username,
+		Password: "client-password",
+	})
+	if domainCode(err) != clientmodel.CodeCredentialLocked {
+		t.Fatalf("correct password must not bypass active lock, got %v", err)
+	}
+	past := fixture.now.Add(-time.Minute)
+	if err = fixture.db.Model(&stored).Update("locked_until", past).Error; err != nil {
+		t.Fatal(err)
+	}
+	if _, _, err = fixture.service.Login(context.Background(), clientreq.Login{
+		Username: fixture.credential.Username,
+		Password: "client-password",
+	}); err != nil {
+		t.Fatalf("expired lock should allow a valid login: %v", err)
 	}
 }
 
@@ -352,7 +483,7 @@ func newClientAccessFixture(t *testing.T) clientAccessFixture {
 	t.Helper()
 	db := testutil.NewMemoryDB(t,
 		&caremodel.CareClient{}, &caremodel.CareAssignment{},
-		&clientmodel.CareClientAccount{}, &clientmodel.ClientAccessGrant{}, &clientmodel.ClientSession{}, &clientmodel.ClientTaskCommandReceipt{},
+		&clientmodel.CareClientAccount{}, &clientmodel.CareClientCredential{}, &clientmodel.ClientAccessGrant{}, &clientmodel.ClientSession{}, &clientmodel.ClientTaskCommandReceipt{},
 		&pathmodel.PlanInstance{}, &pathmodel.TaskInstance{}, &pathmodel.CarePathEvent{},
 		&qmodel.QuestionnaireVersion{}, &qmodel.QuestionnaireQuestion{}, &qmodel.QuestionnaireOption{}, &qmodel.QuestionnaireRuleVersion{},
 		&qmodel.QuestionnaireSubmission{}, &qmodel.QuestionnaireTaskDraft{}, &qmodel.QuestionnaireAnswerRevision{},
@@ -377,6 +508,14 @@ func newClientAccessFixture(t *testing.T) clientAccessFixture {
 	if err := db.WithContext(seedCtx).Create(&account).Error; err != nil {
 		t.Fatal(err)
 	}
+	credential := clientmodel.CareClientCredential{
+		AccountID: account.ID, Username: "client_a", PasswordHash: utils.BcryptHash("client-password"),
+		Status: clientmodel.CredentialStatusActive, PasswordUpdatedAt: now,
+		Version: 1, Synthetic: true, DeptId: client.DeptId,
+	}
+	if err := db.WithContext(seedCtx).Create(&credential).Error; err != nil {
+		t.Fatal(err)
+	}
 	questionnaireID := seedQuestionnaire(t, db.WithContext(seedCtx), now)
 	plan := pathmodel.PlanInstance{
 		EnrollmentID: 1, CareClientID: client.ID, PlanTemplateVersionID: 1, PreviewID: 1,
@@ -399,7 +538,10 @@ func newClientAccessFixture(t *testing.T) clientAccessFixture {
 		t.Fatal(err)
 	}
 	rawGrant := strings.Repeat("g", 43)
-	fixture := clientAccessFixture{db: db, service: service, now: now, client: client, account: account, task: task, rawGrant: rawGrant}
+	fixture := clientAccessFixture{
+		db: db, service: service, now: now, client: client, account: account,
+		credential: credential, task: task, rawGrant: rawGrant,
+	}
 	createGrant(t, fixture, rawGrant, now.Add(time.Hour))
 	return fixture
 }

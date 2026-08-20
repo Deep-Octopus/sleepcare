@@ -1028,6 +1028,18 @@ definitions:
       version:
         type: integer
     type: object
+  github_com_flipped-aurora_gin-vue-admin_server_model_clientaccess_request.Login:
+    properties:
+      password:
+        maxLength: 128
+        type: string
+      username:
+        maxLength: 64
+        type: string
+    required:
+    - password
+    - username
+    type: object
   github_com_flipped-aurora_gin-vue-admin_server_model_clientaccess_response.QuestionnaireOption:
     properties:
       code:
@@ -1169,6 +1181,21 @@ definitions:
       reviewedAt:
         type: string
       reviewedBy:
+        type: string
+    type: object
+  github_com_flipped-aurora_gin-vue-admin_server_model_system_request.Login:
+    properties:
+      captcha:
+        description: 验证码
+        type: string
+      captchaId:
+        description: 验证码ID
+        type: string
+      password:
+        description: 密码
+        type: string
+      username:
+        description: 用户名
         type: string
     type: object
   media.AttachmentCategory:
@@ -2056,21 +2083,6 @@ definitions:
         type: integer
       prefix:
         description: 对象 key 前缀过滤
-        type: string
-    type: object
-  request.Login:
-    properties:
-      captcha:
-        description: 验证码
-        type: string
-      captchaId:
-        description: 验证码ID
-        type: string
-      password:
-        description: 密码
-        type: string
-      username:
-        description: 用户名
         type: string
     type: object
   request.PageInfo:
@@ -3195,6 +3207,13 @@ definitions:
           $ref: '#/definitions/response.OrgUnitOption'
         type: array
     type: object
+  response.ClientProfile:
+    properties:
+      displayCode:
+        type: string
+      displayName:
+        type: string
+    type: object
   response.ClientSatisfactionDetail:
     properties:
       anonymityMode:
@@ -3729,6 +3748,18 @@ definitions:
         type: string
       user:
         $ref: '#/definitions/system.SysUser'
+    type: object
+  response.LoginResult:
+    properties:
+      expiresAt:
+        type: string
+      profile:
+        $ref: '#/definitions/response.ClientProfile'
+    type: object
+  response.LogoutResult:
+    properties:
+      signedOut:
+        type: boolean
     type: object
   response.MetricChange:
     properties:
@@ -4442,6 +4473,15 @@ definitions:
       rating:
         type: integer
       submittedAt:
+        type: string
+    type: object
+  response.SessionProfile:
+    properties:
+      displayCode:
+        type: string
+      displayName:
+        type: string
+      expiresAt:
         type: string
     type: object
   response.ShadowReadiness:
@@ -7153,7 +7193,7 @@ paths:
         name: data
         required: true
         schema:
-          $ref: '#/definitions/request.Login'
+          $ref: '#/definitions/github_com_flipped-aurora_gin-vue-admin_server_model_system_request.Login'
       produces:
       - application/json
       responses:
@@ -7532,6 +7572,50 @@ paths:
       summary: 兑换一次性访问链接并建立受限客户端会话
       tags:
       - ClientAccess
+  /care/client-auth/login:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 账号和密码
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_flipped-aurora_gin-vue-admin_server_model_clientaccess_request.Login'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.LoginResult'
+                msg:
+                  type: string
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "429":
+          description: Too Many Requests
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 使用康养用户账号密码建立客户端会话
+      tags:
+      - ClientAccess
   /care/client-options:
     get:
       produces:
@@ -7731,6 +7815,60 @@ paths:
       summary: 当前受限会话为本人咨询追加补充信息
       tags:
       - ClientConsultations
+  /care/client/logout:
+    post:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.LogoutResult'
+                msg:
+                  type: string
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 退出当前康养用户会话
+      tags:
+      - ClientAccess
+  /care/client/me:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.SessionProfile'
+                msg:
+                  type: string
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 获取当前康养用户会话资料
+      tags:
+      - ClientAccess
   /care/client/satisfaction-requests:
     get:
       parameters:

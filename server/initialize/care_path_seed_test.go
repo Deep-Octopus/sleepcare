@@ -12,6 +12,7 @@ import (
 	clientmodel "github.com/flipped-aurora/gin-vue-admin/server/model/clientaccess"
 	qmodel "github.com/flipped-aurora/gin-vue-admin/server/model/questionnaire"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/system"
+	"github.com/flipped-aurora/gin-vue-admin/server/utils"
 	"github.com/flipped-aurora/gin-vue-admin/server/utils/datascope"
 )
 
@@ -21,7 +22,7 @@ func TestEnsureCarePathSyntheticFixturesIsStrictIdempotentAndRoleLimited(t *test
 		&system.SysUser{}, &system.SysUserAuthority{}, &system.SysUserDepartment{}, &system.SysAuthorityMenu{}, &system.SysAuthorityBtn{},
 		&adapter.CasbinRule{},
 		&caremodel.CareClient{}, &caremodel.CareAssignment{}, &caremodel.ConsentRecord{}, &caremodel.CareOrgUnitProfile{}, &caremodel.CareAuthorityProfile{}, &caremodel.CareClientCommandReceipt{},
-		&clientmodel.CareClientAccount{}, &clientmodel.ClientAccessGrant{}, &clientmodel.ClientSession{}, &clientmodel.ClientTaskCommandReceipt{},
+		&clientmodel.CareClientAccount{}, &clientmodel.CareClientCredential{}, &clientmodel.ClientAccessGrant{}, &clientmodel.ClientSession{}, &clientmodel.ClientTaskCommandReceipt{},
 		&qmodel.QuestionnaireVersion{}, &qmodel.QuestionnaireQuestion{}, &qmodel.QuestionnaireOption{}, &qmodel.QuestionnaireRuleVersion{},
 		&qmodel.QuestionnaireSubmission{}, &qmodel.QuestionnaireAnswerRevision{}, &qmodel.QuestionnaireRuleHit{}, &qmodel.QuestionnaireCommandReceipt{},
 		&pathmodel.PathDefinitionVersion{}, &pathmodel.PlanTemplateVersion{}, &pathmodel.PlanTaskDefinition{}, &pathmodel.PlanTaskDependency{},
@@ -48,7 +49,7 @@ func TestEnsureCarePathSyntheticFixturesIsStrictIdempotentAndRoleLimited(t *test
 		if err := ensureCarePathSyntheticFixtures(db); err != nil {
 			t.Fatal(err)
 		}
-		if err := ensureClientAccessFixture(db); err != nil {
+		if err := ensureClientAccessFixture(db, "local-synthetic-password"); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -69,8 +70,25 @@ func TestEnsureCarePathSyntheticFixturesIsStrictIdempotentAndRoleLimited(t *test
 	assertSeedCount(t, db, &pathmodel.TaskInstance{}, "questionnaire_version_id IS NULL", []any{}, 4)
 	assertSeedCount(t, db, &pathmodel.TaskInstance{}, "notification_policy = ?", pathmodel.NotificationPolicyDisabled, 5)
 	assertSeedCount(t, db, &clientmodel.CareClientAccount{}, "care_client_id = ?", 20001, 1)
+	assertSeedCount(t, db, &clientmodel.CareClientCredential{}, "account_id = ?", clientAccessFixtureAccountID, 1)
 	assertSeedCount(t, db, &clientmodel.ClientAccessGrant{}, "1 = 1", nil, 0)
 	assertSeedCount(t, db, &clientmodel.ClientSession{}, "1 = 1", nil, 0)
+	var credential clientmodel.CareClientCredential
+	if err := db.Where("account_id = ?", clientAccessFixtureAccountID).First(&credential).Error; err != nil {
+		t.Fatal(err)
+	}
+	if credential.Username != clientAccessFixtureUsername || !utils.BcryptCheck("local-synthetic-password", credential.PasswordHash) {
+		t.Fatal("client credential seed does not match its fixed account")
+	}
+	if err := ensureClientAccessFixture(db, "rotated-client-password"); err != nil {
+		t.Fatal(err)
+	}
+	if err := db.Where("account_id = ?", clientAccessFixtureAccountID).First(&credential).Error; err != nil {
+		t.Fatal(err)
+	}
+	if !utils.BcryptCheck("rotated-client-password", credential.PasswordHash) || utils.BcryptCheck("local-synthetic-password", credential.PasswordHash) {
+		t.Fatal("client credential password did not rotate safely")
+	}
 
 	for _, menuName := range []string{"CarePlans", "CareTasks"} {
 		var menu system.SysBaseMenu

@@ -1,14 +1,5 @@
 <template>
   <section class="px-5 pb-[max(2rem,env(safe-area-inset-bottom))] pt-6">
-    <button
-      type="button"
-      class="mb-5 inline-flex min-h-10 items-center gap-2 rounded-lg px-1 text-sm text-primary focus-visible:outline-2 focus-visible:outline-primary"
-      @click="router.push({ name: 'ClientTasks' })"
-    >
-      <span aria-hidden="true">←</span>
-      返回我的任务
-    </button>
-
     <div class="flex items-end justify-between gap-4">
       <div>
         <p class="text-sm text-muted-foreground">服务完成后的反馈</p>

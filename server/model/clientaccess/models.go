@@ -23,6 +23,28 @@ type CareClientAccount struct {
 
 func (CareClientAccount) TableName() string { return "care_client_accounts" }
 
+// CareClientCredential stores account-login material separately from the
+// client profile and principal. PasswordHash must never be serialized.
+type CareClientCredential struct {
+	global.GVA_MODEL
+	AccountID         uint       `json:"accountId" gorm:"uniqueIndex;not null"`
+	Username          string     `json:"username" gorm:"type:varchar(64);uniqueIndex;not null"`
+	PasswordHash      string     `json:"-" gorm:"type:varchar(100);not null"`
+	Status            string     `json:"status" gorm:"type:varchar(24);index;not null"`
+	FailedLoginCount  uint       `json:"failedLoginCount" gorm:"not null;default:0"`
+	LockedUntil       *time.Time `json:"lockedUntil" gorm:"index"`
+	LastLoginAt       *time.Time `json:"lastLoginAt"`
+	PasswordUpdatedAt time.Time  `json:"passwordUpdatedAt" gorm:"not null"`
+	Version           uint       `json:"version" gorm:"not null;default:1"`
+	Synthetic         bool       `json:"synthetic" gorm:"index;not null;default:false"`
+	DeptId            uint       `json:"deptId" gorm:"column:dept_id;index;not null"`
+	CreatedBy         uint       `json:"createdBy" gorm:"column:created_by;index"`
+	UpdatedBy         uint       `json:"updatedBy" gorm:"column:updated_by"`
+	DeletedBy         uint       `json:"-" gorm:"column:deleted_by"`
+}
+
+func (CareClientCredential) TableName() string { return "care_client_credentials" }
+
 // ClientAccessGrant stores only a digest of the one-time bearer value. The
 // task scope is frozen at issue time and copied into the resulting session.
 type ClientAccessGrant struct {
@@ -48,10 +70,11 @@ type ClientSession struct {
 	global.GVA_MODEL
 	SessionID          string         `json:"sessionId" gorm:"type:char(36);uniqueIndex;not null"`
 	AccountID          uint           `json:"accountId" gorm:"index;not null"`
-	GrantID            uint           `json:"grantId" gorm:"uniqueIndex;not null"`
+	GrantID            *uint          `json:"grantId,omitempty" gorm:"uniqueIndex"`
 	CareClientID       uint           `json:"careClientId" gorm:"index;not null"`
 	TokenDigest        string         `json:"-" gorm:"type:char(64);uniqueIndex;not null"`
 	AllowedTaskIDsJSON datatypes.JSON `json:"allowedTaskIds" gorm:"type:json;not null" swaggertype:"array,integer"`
+	AuthType           string         `json:"authType" gorm:"type:varchar(24);index;not null;default:TASK_GRANT"`
 	Status             string         `json:"status" gorm:"type:varchar(24);index;not null"`
 	ExpiresAt          time.Time      `json:"expiresAt" gorm:"index;not null"`
 	RevokedAt          *time.Time     `json:"revokedAt"`

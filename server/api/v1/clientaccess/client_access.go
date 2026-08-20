@@ -20,6 +20,35 @@ type ClientAccessApi struct{}
 
 var _ = clientres.RedeemResult{}
 
+// Login
+// @Tags ClientAccess
+// @Summary 使用康养用户账号密码建立客户端会话
+// @Accept application/json
+// @Produce application/json
+// @Param data body clientreq.Login true "账号和密码"
+// @Success 200 {object} commonres.Response{data=clientres.LoginResult,msg=string}
+// @Failure 400 {object} commonres.Response
+// @Failure 401 {object} commonres.Response
+// @Failure 429 {object} commonres.Response
+// @Failure 500 {object} commonres.Response
+// @Router /care/client-auth/login [post]
+func (a *ClientAccessApi) Login(c *gin.Context) {
+	var req clientreq.Login
+	if err := c.ShouldBindJSON(&req); err != nil {
+		clearClientSessionCookie(c)
+		badClientRequest(c, "请输入账号和密码")
+		return
+	}
+	data, sessionToken, err := clientAccessService.Login(c.Request.Context(), req)
+	if err != nil {
+		clearClientSessionCookie(c)
+		handleClientAccessError(c, err, "登录失败")
+		return
+	}
+	setClientSessionCookie(c, sessionToken, data.ExpiresAt)
+	commonres.OkWithDetailed(data, "登录成功", c)
+}
+
 // Redeem
 // @Tags ClientAccess
 // @Summary 兑换一次性访问链接并建立受限客户端会话
@@ -41,20 +70,74 @@ func (a *ClientAccessApi) Redeem(c *gin.Context) {
 		handleClientAccessError(c, err, "兑换访问链接失败")
 		return
 	}
-	path := strings.TrimSpace(global.GVA_CONFIG.Care.ClientAccess.CookiePath)
-	if path == "" {
-		path = global.GVA_CONFIG.System.RouterPrefix + "/care/client"
+	setClientSessionCookie(c, sessionToken, data.ExpiresAt)
+	commonres.OkWithDetailed(data, "访问已建立", c)
+}
+
+// GetProfile
+// @Tags ClientAccess
+// @Summary 获取当前康养用户会话资料
+// @Produce application/json
+// @Success 200 {object} commonres.Response{data=clientres.SessionProfile,msg=string}
+// @Failure 401 {object} commonres.Response
+// @Failure 500 {object} commonres.Response
+// @Router /care/client/me [get]
+func (a *ClientAccessApi) GetProfile(c *gin.Context) {
+	data, err := clientAccessService.GetProfile(c.Request.Context())
+	if err != nil {
+		handleClientAccessError(c, err, "读取个人信息失败")
+		return
 	}
-	name := strings.TrimSpace(global.GVA_CONFIG.Care.ClientAccess.CookieName)
-	if name == "" {
-		name = "gva_client_session"
+	commonres.OkWithDetailed(data, "查询成功", c)
+}
+
+// Logout
+// @Tags ClientAccess
+// @Summary 退出当前康养用户会话
+// @Produce application/json
+// @Success 200 {object} commonres.Response{data=clientres.LogoutResult,msg=string}
+// @Failure 401 {object} commonres.Response
+// @Failure 500 {object} commonres.Response
+// @Router /care/client/logout [post]
+func (a *ClientAccessApi) Logout(c *gin.Context) {
+	data, err := clientAccessService.Logout(c.Request.Context())
+	if err != nil {
+		handleClientAccessError(c, err, "退出登录失败")
+		return
 	}
-	maxAge, cookieExpiresAt := clientSessionCookieWindow(global.GVA_CONFIG.Care.Now(), data.ExpiresAt, time.Now())
+	clearClientSessionCookie(c)
+	commonres.OkWithDetailed(data, "已退出登录", c)
+}
+
+func setClientSessionCookie(c *gin.Context, token string, expiresAt time.Time) {
+	maxAge, cookieExpiresAt := clientSessionCookieWindow(global.GVA_CONFIG.Care.Now(), expiresAt, time.Now())
 	http.SetCookie(c.Writer, &http.Cookie{
-		Name: name, Value: sessionToken, Path: path, MaxAge: maxAge, Expires: cookieExpiresAt,
+		Name: clientSessionCookieName(), Value: token, Path: clientSessionCookiePath(), MaxAge: maxAge, Expires: cookieExpiresAt,
 		HttpOnly: true, Secure: global.GVA_CONFIG.Care.ClientAccess.CookieSecure, SameSite: http.SameSiteLaxMode,
 	})
-	commonres.OkWithDetailed(data, "访问已建立", c)
+}
+
+func clearClientSessionCookie(c *gin.Context) {
+	http.SetCookie(c.Writer, &http.Cookie{
+		Name: clientSessionCookieName(), Value: "", Path: clientSessionCookiePath(), MaxAge: -1,
+		HttpOnly: true, Secure: global.GVA_CONFIG.Care.ClientAccess.CookieSecure, SameSite: http.SameSiteLaxMode,
+	})
+}
+
+func clientSessionCookieName() string {
+	name := strings.TrimSpace(global.GVA_CONFIG.Care.ClientAccess.CookieName)
+	if name == "" {
+		return "gva_client_session"
+	}
+	return name
+}
+
+func clientSessionCookiePath() string {
+	path := strings.TrimSpace(global.GVA_CONFIG.Care.ClientAccess.CookiePath)
+	if path == "" {
+		return global.GVA_CONFIG.System.RouterPrefix + "/care/client"
+	}
+	return path
 }
 
 func clientSessionCookieWindow(businessNow, sessionExpiresAt, wallNow time.Time) (int, time.Time) {

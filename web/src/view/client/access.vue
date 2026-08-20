@@ -1,16 +1,16 @@
 <template>
   <section class="flex min-h-[calc(100vh-4.5rem)] flex-col justify-between px-5 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-14">
     <div>
-      <div class="mb-8 flex h-16 w-16 items-center justify-center rounded-[1.35rem] bg-[#dcece6] text-2xl font-semibold text-[#1f6c5a] dark:bg-emerald-950 dark:text-emerald-200">
-        ✓
+      <div class="mb-8 flex h-16 w-16 items-center justify-center rounded-[1.35rem] bg-muted text-2xl text-primary">
+        <svg-icon icon="lucide:shield-check" />
       </div>
-      <p class="text-sm font-medium text-[#47766b] dark:text-emerald-300">
+      <p class="text-sm font-medium text-primary">
         一次访问 · 仅限指定任务
       </p>
       <h1 class="mt-3 text-[2rem] font-semibold leading-tight tracking-[-0.035em]">
         {{ heading }}
       </h1>
-      <p class="mt-4 max-w-sm text-base leading-7 text-[#5e746e] dark:text-slate-300">
+      <p class="mt-4 max-w-sm text-base leading-7 text-muted-foreground">
         {{ description }}
       </p>
     </div>
@@ -18,20 +18,29 @@
     <div class="mt-12">
       <div
         v-if="state === 'checking'"
-        class="flex items-center gap-3 rounded-2xl border border-[#dce8e3] bg-[#f7faf8] p-4 dark:border-slate-800 dark:bg-slate-900"
+        class="flex items-center gap-3 rounded-2xl border border-border bg-muted p-4"
       >
-        <span class="h-2.5 w-2.5 animate-pulse rounded-full bg-[#2c806c] motion-reduce:animate-none" />
-        <span class="text-sm text-[#49645d] dark:text-slate-300">正在确认访问权限</span>
+        <span class="h-2.5 w-2.5 animate-pulse rounded-full bg-primary motion-reduce:animate-none" />
+        <span class="text-sm text-muted-foreground">正在确认访问权限</span>
       </div>
-      <el-button
-        v-else-if="state === 'invalid'"
-        class="!h-12 !w-full !rounded-xl"
-        size="large"
-        @click="reload"
-      >
-        重新检查
-      </el-button>
-      <p class="mt-4 text-center text-xs leading-5 text-[#7b8e89] dark:text-slate-500">
+      <div v-else-if="state === 'invalid'" class="space-y-3">
+        <el-button
+          class="!m-0 !h-12 !w-full !rounded-xl"
+          size="large"
+          @click="reload"
+        >
+          重新检查
+        </el-button>
+        <el-button
+          type="primary"
+          class="!m-0 !h-12 !w-full !rounded-xl"
+          size="large"
+          @click="router.replace({ name: 'ClientLogin' })"
+        >
+          使用账号登录
+        </el-button>
+      </div>
+      <p class="mt-4 text-center text-xs leading-5 text-muted-foreground">
         为保护隐私，本页不会显示多余的个人信息
       </p>
     </div>
@@ -43,6 +52,10 @@
   import { useRoute, useRouter } from 'vue-router'
   import { redeemClientAccess } from '@/api/sleep-care/client-access'
   import { clearAllClientLocalState, unwrapClientResponse } from './state'
+  import {
+    CLIENT_AUTH_MODE_GRANT,
+    writeClientAuthMode
+  } from '@/utils/client-session'
 
   defineOptions({
     name: 'ClientAccess'
@@ -73,7 +86,8 @@
     clearAllClientLocalState()
     try {
       unwrapClientResponse(await redeemClientAccess(grant))
-      await router.replace({ name: 'ClientTasks' })
+      writeClientAuthMode(CLIENT_AUTH_MODE_GRANT)
+      await router.replace({ name: 'ClientHome' })
     } catch {
       state.value = 'invalid'
     }

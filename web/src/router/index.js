@@ -30,18 +30,31 @@ const routes = [
     meta: {
       client: true
     },
+    redirect: '/client/login',
     children: [
+      {
+        path: 'login',
+        name: 'ClientLogin',
+        component: () => import('@/view/client/login.vue'),
+        meta: { title: '康养用户登录', client: true, clientChrome: false }
+      },
       {
         path: 'access',
         name: 'ClientAccess',
         component: () => import('@/view/client/access.vue'),
-        meta: { title: '访问任务', client: true }
+        meta: { title: '访问任务', client: true, clientChrome: false }
+      },
+      {
+        path: 'home',
+        name: 'ClientHome',
+        component: () => import('@/view/client/home.vue'),
+        meta: { title: '我的康养服务', client: true, clientNav: 'home' }
       },
       {
         path: 'tasks',
         name: 'ClientTasks',
         component: () => import('@/view/client/tasks.vue'),
-        meta: { title: '我的任务', client: true }
+        meta: { title: '我的随访', client: true, clientNav: 'tasks' }
       },
       {
         path: 'tasks/:taskId',
@@ -71,7 +84,7 @@ const routes = [
         path: 'consultations',
         name: 'ClientConsultations',
         component: () => import('@/view/client/consultations.vue'),
-        meta: { title: '联系服务', client: true }
+        meta: { title: '联系服务', client: true, clientNav: 'consultations' }
       },
       {
         path: 'consultations/new',
@@ -89,7 +102,7 @@ const routes = [
         path: 'satisfaction',
         name: 'ClientSatisfaction',
         component: () => import('@/view/client/satisfaction.vue'),
-        meta: { title: '服务评价', client: true }
+        meta: { title: '服务评价', client: true, clientNav: 'satisfaction' }
       },
       {
         path: 'satisfaction/:id',

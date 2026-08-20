@@ -62,7 +62,17 @@
 - `POST .../interactions` 按 `OPENED -> CONSENTED -> STARTED` 记录独立事实；每次写操作都要求 `Idempotency-Key`、任务乐观锁版本和精确同源 `Origin`。
 - `PUT .../draft` 的 `answers` 是以问题编码为键的 JSON 对象，初始 `expectedVersion=0`；断网时前端保留本地进度，恢复联网后用新幂等键同步。
 - `POST .../submit` 仅允许 `source=CLIENT_SELF`，在同一事务内创建答卷、规则命中及其关注事项并把任务转为 `SUBMITTED`；成功文案固定为“已提交，等待处理”。没有命中时 `attentionCaseIds` 为空，有命中时返回去重事项 ID；该字段不表示事项已处理。
-- 客户端 API 通过 `authContext: 'client'` 复用请求工具，不发送员工头；客户端 401 只回到访问失效页，不清理或重定向员工登录状态。
+- 客户端 API 通过 `authContext: 'client'` 复用请求工具，不发送员工头；客户端 401 按会话入口回到账号登录页或访问失效页，不清理或重定向员工登录状态。
+
+## 康养用户账号登录与手机端门户增量契约
+
+- `POST /care/client-auth/login` 只接收 `username` 和 `password`，要求精确同源 `Origin`；成功设置与 grant 相同名称、路径和安全属性的 HttpOnly Cookie，响应只返回显示名称、显示编码和到期时间。
+- `CareClientCredential` 与 `CareClientAccount`、`CareClient` 分离；账号规范化为小写，密码只保存 bcrypt 哈希。连续五次失败锁定十五分钟，账号不存在与密码错误返回同一提示。
+- `ClientSession.authType` 只允许 `TASK_GRANT|ACCOUNT`。grant 会话必须有 `grantId` 和非空任务白名单；账号会话的 `grantId` 为空，可读取当前用户的全部客户端任务，但仍按用户、执行角色和部门范围失败关闭。
+- `GET /care/client/me` 返回当前会话的最小公开资料；`POST /care/client/logout` 要求有效会话与精确同源请求，并同时撤销服务端会话、清理 Cookie。
+- `/client/login`、`/client/home` 与首页/随访/咨询/评价四项底部导航属于独立手机端路由，不进入员工动态菜单。登录与一次性链接兑换成功都自动进入手机端首页。
+- 前端只在会话存储中记录非敏感入口类型，用于 401 时选择返回页面；切换身份或退出时清理未提交的本地草稿与幂等键，不保存密码或会话令牌。
+- 本增量不提供注册、短信验证码、找回密码、真实短信、用户侧 AI 或自动回复；后续 AI 咨询必须另行冻结同意、审核和发送边界。
 
 ## P1-06 提交触发关注事项契约
 

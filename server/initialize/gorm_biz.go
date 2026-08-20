@@ -32,6 +32,7 @@ func bizModel() error {
 		&careclient.CareClientCommandReceipt{},
 		&careclient.DataLifecycleRequest{},
 		&clientaccess.CareClientAccount{},
+		&clientaccess.CareClientCredential{},
 		&clientaccess.ClientAccessGrant{},
 		&clientaccess.ClientSession{},
 		&clientaccess.ClientTaskCommandReceipt{},

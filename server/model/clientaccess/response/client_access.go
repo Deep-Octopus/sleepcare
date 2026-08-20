@@ -7,6 +7,25 @@ type RedeemResult struct {
 	AllowedTaskCount int       `json:"allowedTaskCount"`
 }
 
+type ClientProfile struct {
+	DisplayName string `json:"displayName"`
+	DisplayCode string `json:"displayCode"`
+}
+
+type LoginResult struct {
+	ExpiresAt time.Time     `json:"expiresAt"`
+	Profile   ClientProfile `json:"profile"`
+}
+
+type SessionProfile struct {
+	ClientProfile
+	ExpiresAt time.Time `json:"expiresAt"`
+}
+
+type LogoutResult struct {
+	SignedOut bool `json:"signedOut"`
+}
+
 type TaskSummary struct {
 	ID               uint       `json:"id"`
 	DayCode          string     `json:"dayCode"`

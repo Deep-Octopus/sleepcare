@@ -2,20 +2,12 @@
   <section class="px-5 pb-[max(2rem,env(safe-area-inset-bottom))] pt-6">
     <div class="flex items-start justify-between gap-4">
       <div>
-        <button
-          type="button"
-          class="mb-5 inline-flex min-h-10 items-center gap-2 rounded-lg px-1 text-sm text-primary focus-visible:outline-2 focus-visible:outline-primary"
-          @click="router.push({ name: 'ClientTasks' })"
-        >
-          <span aria-hidden="true">←</span>
-          返回我的任务
-        </button>
         <p class="text-sm text-muted-foreground">服务沟通记录</p>
         <h1 class="mt-1 text-[1.8rem] font-semibold tracking-[-0.035em]">联系服务</h1>
       </div>
       <el-button
         type="primary"
-        class="!mt-12 !h-10 !rounded-xl"
+        class="!h-10 !rounded-xl"
         @click="router.push({ name: 'ClientConsultationNew' })"
       >
         发起咨询

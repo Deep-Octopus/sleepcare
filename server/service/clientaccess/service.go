@@ -54,8 +54,11 @@ func (s *ClientAccessService) syntheticFixturesEnabled() bool {
 }
 
 type Service interface {
+	Login(context.Context, clientreq.Login) (clientres.LoginResult, string, error)
 	Redeem(context.Context, string) (clientres.RedeemResult, string, error)
 	Authenticate(context.Context, string) (SessionIdentity, error)
+	GetProfile(context.Context) (clientres.SessionProfile, error)
+	Logout(context.Context) (clientres.LogoutResult, error)
 	ListTasks(context.Context, clientreq.TaskSearch) ([]clientres.TaskSummary, int64, error)
 	GetTask(context.Context, uint) (clientres.TaskDetail, error)
 	GetQuestionnaire(context.Context, uint) (clientres.Questionnaire, error)

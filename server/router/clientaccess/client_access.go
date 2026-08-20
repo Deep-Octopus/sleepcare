@@ -9,9 +9,13 @@ type ClientAccessRouter struct{}
 
 func (r *ClientAccessRouter) InitClientAccessRouter(public *gin.RouterGroup) {
 	public.POST("care/client-access/redeem", clientAccessApi.Redeem)
+	clientAuth := public.Group("care/client-auth")
+	clientAuth.Use(middleware.ClientSameOrigin())
+	clientAuth.POST("login", clientAccessApi.Login)
 
 	client := public.Group("care/client")
 	client.Use(middleware.ClientSessionAuth())
+	client.GET("me", clientAccessApi.GetProfile)
 	client.GET("tasks", clientAccessApi.ListTasks)
 	client.GET("tasks/:taskId", clientAccessApi.GetTask)
 	client.GET("tasks/:taskId/questionnaire", clientAccessApi.GetQuestionnaire)
@@ -22,6 +26,7 @@ func (r *ClientAccessRouter) InitClientAccessRouter(public *gin.RouterGroup) {
 
 	write := client.Group("")
 	write.Use(middleware.ClientSameOrigin())
+	write.POST("logout", clientAccessApi.Logout)
 	write.POST("tasks/:taskId/interactions", clientAccessApi.RecordInteraction)
 	write.PUT("tasks/:taskId/draft", clientAccessApi.SaveDraft)
 	write.POST("tasks/:taskId/submit", clientAccessApi.SubmitTask)

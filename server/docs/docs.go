@@ -2866,7 +2866,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/request.Login"
+                            "$ref": "#/definitions/github_com_flipped-aurora_gin-vue-admin_server_model_system_request.Login"
                         }
                     }
                 ],
@@ -3505,6 +3505,78 @@ const docTemplate = `{
                 }
             }
         },
+        "/care/client-auth/login": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ClientAccess"
+                ],
+                "summary": "使用康养用户账号密码建立客户端会话",
+                "parameters": [
+                    {
+                        "description": "账号和密码",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_flipped-aurora_gin-vue-admin_server_model_clientaccess_request.Login"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.LoginResult"
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "429": {
+                        "description": "Too Many Requests",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/care/client-options": {
             "get": {
                 "security": [
@@ -3830,6 +3902,98 @@ const docTemplate = `{
                     },
                     "403": {
                         "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/care/client/logout": {
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ClientAccess"
+                ],
+                "summary": "退出当前康养用户会话",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.LogoutResult"
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/care/client/me": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ClientAccess"
+                ],
+                "summary": "获取当前康养用户会话资料",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.SessionProfile"
+                                        },
+                                        "msg": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/response.Response"
                         }
@@ -19992,6 +20156,23 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_flipped-aurora_gin-vue-admin_server_model_clientaccess_request.Login": {
+            "type": "object",
+            "required": [
+                "password",
+                "username"
+            ],
+            "properties": {
+                "password": {
+                    "type": "string",
+                    "maxLength": 128
+                },
+                "username": {
+                    "type": "string",
+                    "maxLength": 64
+                }
+            }
+        },
         "github_com_flipped-aurora_gin-vue-admin_server_model_clientaccess_response.QuestionnaireOption": {
             "type": "object",
             "properties": {
@@ -20206,6 +20387,27 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "reviewedBy": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_flipped-aurora_gin-vue-admin_server_model_system_request.Login": {
+            "type": "object",
+            "properties": {
+                "captcha": {
+                    "description": "验证码",
+                    "type": "string"
+                },
+                "captchaId": {
+                    "description": "验证码ID",
+                    "type": "string"
+                },
+                "password": {
+                    "description": "密码",
+                    "type": "string"
+                },
+                "username": {
+                    "description": "用户名",
                     "type": "string"
                 }
             }
@@ -21475,27 +21677,6 @@ const docTemplate = `{
                 },
                 "prefix": {
                     "description": "对象 key 前缀过滤",
-                    "type": "string"
-                }
-            }
-        },
-        "request.Login": {
-            "type": "object",
-            "properties": {
-                "captcha": {
-                    "description": "验证码",
-                    "type": "string"
-                },
-                "captchaId": {
-                    "description": "验证码ID",
-                    "type": "string"
-                },
-                "password": {
-                    "description": "密码",
-                    "type": "string"
-                },
-                "username": {
-                    "description": "用户名",
                     "type": "string"
                 }
             }
@@ -23165,6 +23346,17 @@ const docTemplate = `{
                 }
             }
         },
+        "response.ClientProfile": {
+            "type": "object",
+            "properties": {
+                "displayCode": {
+                    "type": "string"
+                },
+                "displayName": {
+                    "type": "string"
+                }
+            }
+        },
         "response.ClientSatisfactionDetail": {
             "type": "object",
             "properties": {
@@ -23978,6 +24170,25 @@ const docTemplate = `{
                 },
                 "user": {
                     "$ref": "#/definitions/system.SysUser"
+                }
+            }
+        },
+        "response.LoginResult": {
+            "type": "object",
+            "properties": {
+                "expiresAt": {
+                    "type": "string"
+                },
+                "profile": {
+                    "$ref": "#/definitions/response.ClientProfile"
+                }
+            }
+        },
+        "response.LogoutResult": {
+            "type": "object",
+            "properties": {
+                "signedOut": {
+                    "type": "boolean"
                 }
             }
         },
@@ -25062,6 +25273,20 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "submittedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.SessionProfile": {
+            "type": "object",
+            "properties": {
+                "displayCode": {
+                    "type": "string"
+                },
+                "displayName": {
+                    "type": "string"
+                },
+                "expiresAt": {
                     "type": "string"
                 }
             }

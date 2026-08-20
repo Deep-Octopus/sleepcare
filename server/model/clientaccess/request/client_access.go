@@ -10,6 +10,11 @@ type Redeem struct {
 	Grant string `json:"grant" binding:"required"`
 }
 
+type Login struct {
+	Username string `json:"username" binding:"required,max=64"`
+	Password string `json:"password" binding:"required,max=128"`
+}
+
 type TaskSearch struct {
 	commonreq.PageInfo
 }

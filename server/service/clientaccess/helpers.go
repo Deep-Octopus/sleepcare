@@ -27,6 +27,9 @@ func identityFromContext(ctx context.Context) (SessionIdentity, error) {
 }
 
 func allowedTask(identity SessionIdentity, taskID uint) bool {
+	if identity.AuthType == clientmodel.SessionAuthAccount {
+		return taskID > 0
+	}
 	for _, allowed := range identity.AllowedTaskIDs {
 		if allowed == taskID {
 			return true

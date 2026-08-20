@@ -33,13 +33,25 @@ func (s *ClientAccessService) ListTasks(ctx context.Context, req clientreq.TaskS
 	if err != nil {
 		return nil, 0, err
 	}
-	for _, taskID := range identity.AllowedTaskIDs {
+	taskIDs := identity.AllowedTaskIDs
+	if identity.AuthType == clientmodel.SessionAuthAccount {
+		taskIDs = []uint{}
+		if err = s.db().WithContext(ctx).Model(&pathmodel.TaskInstance{}).
+			Where("care_client_id = ? AND execution_role = ? AND synthetic = ?", identity.CareClientID, pathmodel.ExecutionRoleCareClient, true).
+			Order("id ASC").Pluck("id", &taskIDs).Error; err != nil {
+			return nil, 0, err
+		}
+	}
+	for _, taskID := range taskIDs {
 		if err = s.openDueTask(ctx, taskID); err != nil {
 			return nil, 0, err
 		}
 	}
 	query := s.db().WithContext(ctx).Model(&pathmodel.TaskInstance{}).
-		Where("care_client_id = ? AND id IN ? AND execution_role = ? AND synthetic = ?", identity.CareClientID, identity.AllowedTaskIDs, pathmodel.ExecutionRoleCareClient, true)
+		Where("care_client_id = ? AND execution_role = ? AND synthetic = ?", identity.CareClientID, pathmodel.ExecutionRoleCareClient, true)
+	if identity.AuthType != clientmodel.SessionAuthAccount {
+		query = query.Where("id IN ?", taskIDs)
+	}
 	var total int64
 	if err = query.Count(&total).Error; err != nil {
 		return nil, 0, err

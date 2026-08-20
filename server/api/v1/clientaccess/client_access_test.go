@@ -28,6 +28,25 @@ func TestRedeemRejectsMalformedJSONWithHTTP400(t *testing.T) {
 	}
 }
 
+func TestLoginRejectsMalformedJSONAndClearsClientCookie(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	router := gin.New()
+	router.POST("/login", new(ClientAccessApi).Login)
+	request := httptest.NewRequest(http.MethodPost, "/login", strings.NewReader(`{"username":`))
+	request.Header.Set("Content-Type", "application/json")
+	response := httptest.NewRecorder()
+
+	router.ServeHTTP(response, request)
+
+	if response.Code != http.StatusBadRequest || !strings.Contains(response.Body.String(), `"code":41001`) {
+		t.Fatalf("status=%d body=%s", response.Code, response.Body.String())
+	}
+	cookies := response.Result().Cookies()
+	if len(cookies) != 1 || cookies[0].MaxAge != -1 || !cookies[0].HttpOnly {
+		t.Fatalf("malformed login should clear the client cookie: %+v", cookies)
+	}
+}
+
 func TestClientSessionCookieWindowUsesBusinessClockDuration(t *testing.T) {
 	businessNow := time.Date(2026, time.August, 18, 10, 0, 0, 0, time.FixedZone("CST", 8*60*60))
 	wallNow := time.Date(2026, time.August, 19, 10, 0, 0, 0, time.Local)

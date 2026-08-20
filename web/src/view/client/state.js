@@ -1,3 +1,5 @@
+import { clearClientDraftState } from '@/utils/client-session'
+
 export const unwrapClientResponse = (response) => {
   if (response?.code === 0) {
     return response.data
@@ -50,16 +52,7 @@ export const clearLocalTaskState = (taskId) => {
 }
 
 export const clearAllClientLocalState = () => {
-  const prefixes = [
-    'gva-client-task-draft:',
-    'gva-client-task-submit-key:',
-    'gva-client-satisfaction-submit-key:'
-  ]
-  Object.keys(localStorage).forEach((key) => {
-    if (prefixes.some((prefix) => key.startsWith(prefix))) {
-      localStorage.removeItem(key)
-    }
-  })
+  clearClientDraftState()
 }
 
 export const getOrCreateSubmitKey = (taskId) => {
