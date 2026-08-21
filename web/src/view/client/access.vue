@@ -1,31 +1,36 @@
 <template>
-  <section class="flex min-h-[calc(100vh-4.5rem)] flex-col justify-between px-5 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-14">
+  <section class="flex min-h-[100dvh] flex-col justify-between px-6 pb-[max(4.5rem,env(safe-area-inset-bottom))] pt-[max(2rem,env(safe-area-inset-top))]">
     <div>
-      <div class="mb-8 flex h-16 w-16 items-center justify-center rounded-[1.35rem] bg-muted text-2xl text-primary">
-        <svg-icon icon="lucide:shield-check" />
+      <SleepCareBrand
+        size="md"
+        :show-tagline="false"
+      />
+
+      <div class="mt-12 border-t border-border pt-10">
+        <div class="flex items-center gap-2 text-sm font-medium text-primary">
+          <svg-icon icon="lucide:shield-check" />
+          <span>一次访问，仅限指定任务</span>
+        </div>
+        <h1 class="mt-4 max-w-[20rem] text-[2.25rem] font-semibold leading-[1.12] tracking-[-0.045em]">
+          {{ heading }}
+        </h1>
+        <p class="mt-4 max-w-sm text-base leading-7 text-muted-foreground">
+          {{ description }}
+        </p>
       </div>
-      <p class="text-sm font-medium text-primary">
-        一次访问 · 仅限指定任务
-      </p>
-      <h1 class="mt-3 text-[2rem] font-semibold leading-tight tracking-[-0.035em]">
-        {{ heading }}
-      </h1>
-      <p class="mt-4 max-w-sm text-base leading-7 text-muted-foreground">
-        {{ description }}
-      </p>
     </div>
 
     <div class="mt-12">
-      <div
+      <ClientStatePanel
         v-if="state === 'checking'"
-        class="flex items-center gap-3 rounded-2xl border border-border bg-muted p-4"
-      >
-        <span class="h-2.5 w-2.5 animate-pulse rounded-full bg-primary motion-reduce:animate-none" />
-        <span class="text-sm text-muted-foreground">正在确认访问权限</span>
-      </div>
-      <div v-else-if="state === 'invalid'" class="space-y-3">
+        title="正在确认访问权限"
+        description="验证完成后会自动进入可访问的任务。"
+        tone="primary"
+        icon="lucide:loader-circle"
+      />
+      <div v-else-if="state === 'invalid'" class="grid grid-cols-1 gap-3">
         <el-button
-          class="!m-0 !h-12 !w-full !rounded-xl"
+          class="!m-0 !h-13 !w-full !rounded-xl"
           size="large"
           @click="reload"
         >
@@ -33,14 +38,14 @@
         </el-button>
         <el-button
           type="primary"
-          class="!m-0 !h-12 !w-full !rounded-xl"
+          class="!m-0 !h-13 !w-full !rounded-xl"
           size="large"
           @click="router.replace({ name: 'ClientLogin' })"
         >
           使用账号登录
         </el-button>
       </div>
-      <p class="mt-4 text-center text-xs leading-5 text-muted-foreground">
+      <p class="mt-6 border-t border-border pt-5 text-center text-xs leading-5 text-muted-foreground">
         为保护隐私，本页不会显示多余的个人信息
       </p>
     </div>
@@ -51,6 +56,8 @@
   import { computed, onMounted, ref } from 'vue'
   import { useRoute, useRouter } from 'vue-router'
   import { redeemClientAccess } from '@/api/sleep-care/client-access'
+  import SleepCareBrand from '@/components/sleep-care-brand/index.vue'
+  import ClientStatePanel from '@/components/client-mobile/client-state-panel.vue'
   import { clearAllClientLocalState, unwrapClientResponse } from './state'
   import {
     CLIENT_AUTH_MODE_GRANT,

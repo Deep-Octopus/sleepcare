@@ -1,78 +1,75 @@
 <template>
-  <section class="px-5 pb-[max(2rem,env(safe-area-inset-bottom))] pt-6">
-    <button
-      type="button"
-      class="mb-6 inline-flex min-h-10 items-center gap-2 rounded-lg px-1 text-sm text-primary focus-visible:outline-2 focus-visible:outline-primary"
+  <section class="px-5 pb-[max(2rem,env(safe-area-inset-bottom))] pt-4">
+    <ClientBackButton
+      class="mb-7"
+      label="返回咨询记录"
       @click="router.push({ name: 'ClientConsultations' })"
-    >
-      <span aria-hidden="true">←</span>
-      返回咨询记录
-    </button>
+    />
 
-    <div
+    <ClientStatePanel
       v-if="loading"
-      class="rounded-2xl border border-border bg-muted p-5 text-sm text-muted-foreground"
-    >
-      正在读取咨询详情…
-    </div>
+      title="正在读取咨询详情"
+      tone="muted"
+      icon="lucide:loader-circle"
+    />
 
-    <div
+    <ClientStatePanel
       v-else-if="errorMessage"
-      class="rounded-2xl border border-error/30 bg-error/8 p-5"
+      title="暂时无法读取咨询详情"
+      :description="errorMessage"
+      tone="danger"
+      icon="lucide:circle-alert"
     >
-      <p class="font-medium text-error">暂时无法读取咨询详情</p>
-      <p class="mt-2 text-sm leading-6 text-error">{{ errorMessage }}</p>
       <el-button
-        class="!mt-4 !h-11 !rounded-xl"
+        class="!h-11 !rounded-xl"
         @click="loadDetail"
       >
         重试
       </el-button>
-    </div>
+    </ClientStatePanel>
 
     <template v-else-if="detail">
       <div class="flex items-start justify-between gap-3">
         <div class="min-w-0">
-          <p class="text-sm text-muted-foreground">咨询编号 {{ detail.id }}</p>
-          <h1 class="mt-1 break-words text-[1.75rem] font-semibold leading-tight tracking-[-0.035em]">
+          <p class="text-sm font-medium text-primary">在线咨询</p>
+          <h1 class="mt-3 break-words text-[2rem] font-semibold leading-[1.15] tracking-[-0.04em]">
             {{ detail.subject }}
           </h1>
         </div>
-        <span
-          class="shrink-0 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary"
-        >
-          {{ statusLabel(detail.status) }}
-        </span>
+        <ClientStatusBadge
+          :label="statusLabel(detail.status)"
+          :tone="statusTone(detail.status)"
+        />
       </div>
 
-      <div class="mt-6 grid grid-cols-2 gap-3">
-        <div class="rounded-2xl bg-muted p-4">
-          <p class="text-xs text-muted-foreground">提交时间</p>
-          <p class="mt-1 text-sm font-medium">{{ formatTaskTime(detail.openedAt) }}</p>
+      <dl class="mt-7 grid grid-cols-2 border-y border-border">
+        <div class="border-r border-border py-4 pr-4">
+          <dt class="text-xs text-muted-foreground">提交时间</dt>
+          <dd class="mt-1.5 text-sm font-medium">{{ formatTaskTime(detail.openedAt) }}</dd>
         </div>
-        <div class="rounded-2xl bg-muted p-4">
-          <p class="text-xs text-muted-foreground">联系顺序</p>
-          <p class="mt-1 text-sm font-medium">{{ urgencyLabel(detail.urgency) }}</p>
+        <div class="py-4 pl-4">
+          <dt class="text-xs text-muted-foreground">联系顺序</dt>
+          <dd class="mt-1.5 text-sm font-medium">{{ urgencyLabel(detail.urgency) }}</dd>
         </div>
-      </div>
+      </dl>
 
       <section
         v-if="detail.resolution"
-        class="mt-6 rounded-2xl border border-success/30 bg-success/8 p-5"
+        class="mt-7 border-l-2 border-success bg-success-50 px-4 py-4"
       >
-        <p class="text-xs font-semibold tracking-[0.12em] text-success">处理结果</p>
+        <p class="text-sm font-semibold text-success-700">处理结果</p>
         <p class="mt-2 whitespace-pre-wrap text-sm leading-6">{{ detail.resolution }}</p>
         <p
           v-if="detail.followUpPlan"
-          class="mt-3 whitespace-pre-wrap border-t border-success/20 pt-3 text-sm leading-6 text-muted-foreground"
+          class="mt-3 whitespace-pre-wrap border-t border-success-200 pt-3 text-sm leading-6 text-muted-foreground"
         >
           后续安排：{{ detail.followUpPlan }}
         </p>
       </section>
 
-      <section class="mt-7">
-        <h2 class="text-lg font-semibold">沟通记录</h2>
-        <div class="mt-4 space-y-4">
+      <section class="mt-9">
+        <h2 class="text-xl font-semibold tracking-[-0.025em]">沟通记录</h2>
+        <div class="mt-5 space-y-4">
           <article
             v-for="interaction in detail.interactions"
             :key="interaction.id"
@@ -80,7 +77,7 @@
             :class="interaction.senderType === 'CLIENT' ? 'justify-end' : 'justify-start'"
           >
             <div
-              class="max-w-[86%] rounded-2xl px-4 py-3"
+              class="max-w-[86%] rounded-xl px-4 py-3"
               :class="messageClass(interaction.senderType)"
             >
               <p class="text-xs font-medium opacity-70">{{ senderLabel(interaction.senderType) }}</p>
@@ -93,9 +90,9 @@
 
       <section
         v-if="detail.status !== 'CLOSED'"
-        class="mt-8 rounded-2xl border border-border bg-container p-4"
+        class="mt-9 border-y border-border py-5"
       >
-        <h2 class="text-base font-semibold">补充信息</h2>
+        <h2 class="text-lg font-semibold">补充信息</h2>
         <p class="mt-1 text-xs leading-5 text-muted-foreground">补充后，服务团队会在当前咨询中继续处理。</p>
         <el-input
           v-model="message"
@@ -114,7 +111,7 @@
         </p>
         <el-button
           type="primary"
-          class="!mt-4 !h-11 !w-full !rounded-xl"
+          class="!mt-5 !h-12 !w-full !rounded-xl !font-semibold"
           :disabled="!message.trim()"
           :loading="submitting"
           @click="submitMessage"
@@ -123,21 +120,24 @@
         </el-button>
       </section>
 
-      <section
+      <ClientStatePanel
         v-else
-        class="mt-8 rounded-2xl border border-border bg-muted p-5"
+        class="mt-9"
+        title="本次咨询已经关闭"
+        description="如有新的事项，请重新发起咨询。"
+        tone="muted"
+        icon="lucide:message-circle-off"
       >
-        <p class="text-sm leading-6 text-muted-foreground">本次咨询已经关闭。如有新的事项，请重新发起咨询。</p>
         <el-button
           type="primary"
-          class="!mt-4 !h-11 !rounded-xl"
+          class="!h-11 !rounded-xl"
           @click="router.push({ name: 'ClientConsultationNew' })"
         >
           发起新咨询
         </el-button>
-      </section>
+      </ClientStatePanel>
 
-      <p class="mt-7 text-xs leading-5 text-muted-foreground">
+      <p class="mt-8 border-t border-border pt-5 text-xs leading-5 text-muted-foreground">
         人工回复时间以服务安排为准；如遇紧急情况，请使用当地正式急救或就医渠道。
       </p>
     </template>
@@ -156,6 +156,9 @@
     newIdempotencyKey,
     unwrapClientResponse
   } from './state'
+  import ClientBackButton from '@/components/client-mobile/client-back-button.vue'
+  import ClientStatePanel from '@/components/client-mobile/client-state-panel.vue'
+  import ClientStatusBadge from '@/components/client-mobile/client-status-badge.vue'
 
   defineOptions({
     name: 'ClientConsultationDetail'
@@ -183,6 +186,18 @@
   }
 
   const statusLabel = (value) => statusLabels[value] || '处理中'
+  const statusTone = (value) => {
+    if (value === 'RESOLVED') {
+      return 'success'
+    }
+    if (value === 'CLOSED') {
+      return 'muted'
+    }
+    if (value === 'WAITING_CLIENT') {
+      return 'warning'
+    }
+    return 'primary'
+  }
   const urgencyLabel = (value) => value === 'EXPEDITED' ? '优先联系' : '常规联系'
   const senderLabel = (value) => ({
     CLIENT: '你',

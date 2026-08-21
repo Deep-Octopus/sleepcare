@@ -1,143 +1,181 @@
 <template>
-  <section class="px-5 pb-8 pt-7">
-    <div
+  <section class="px-5 pb-8 pt-8">
+    <ClientStatePanel
       v-if="loading"
-      class="rounded-2xl bg-muted p-5 text-sm text-muted-foreground"
-    >
-      正在准备你的服务首页…
-    </div>
+      title="正在准备你的服务首页"
+      description="随访安排和服务消息马上就好。"
+      tone="muted"
+      icon="lucide:loader-circle"
+    />
 
-    <div
+    <ClientStatePanel
       v-else-if="errorMessage"
-      class="rounded-2xl border border-error-200 bg-error-50 p-5"
+      title="暂时无法打开首页"
+      :description="errorMessage"
+      tone="danger"
+      icon="lucide:circle-alert"
     >
-      <p class="font-medium text-error-700">暂时无法打开首页</p>
-      <p class="mt-2 text-sm leading-6 text-error-600">{{ errorMessage }}</p>
       <el-button
-        class="!mt-4 !h-11 !rounded-xl"
+        class="!h-11 !rounded-xl"
         @click="loadHome"
       >
         重新加载
       </el-button>
-    </div>
+    </ClientStatePanel>
 
     <template v-else>
-      <div class="flex items-start justify-between gap-5">
+      <div class="flex items-center justify-between gap-5">
         <div class="min-w-0">
           <p class="text-sm text-muted-foreground">{{ todayLabel }}</p>
-          <h1 class="mt-1 truncate text-3xl font-semibold tracking-tight">
+          <h1 class="mt-1.5 truncate text-[2rem] font-semibold leading-tight tracking-[-0.04em]">
             你好，{{ profile.displayName }}
           </h1>
         </div>
-        <span class="mt-1 inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-primary text-lg font-semibold text-white">
+        <span class="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-border bg-muted text-lg font-semibold text-primary">
           {{ profileInitial }}
         </span>
       </div>
 
-      <section class="relative mt-8 overflow-hidden rounded-3xl bg-primary p-5 text-white shadow-card">
-        <div class="absolute -right-5 -top-7 h-28 w-28 rounded-full border border-white/20" />
-        <div class="absolute -right-10 top-4 h-28 w-28 rounded-full border border-white/10" />
-        <div class="relative">
-          <div class="flex items-center gap-2 text-sm text-white/80">
-            <svg-icon icon="lucide:calendar-days" />
+      <section class="mt-9 border-y border-border py-6">
+        <div class="flex items-center justify-between gap-3">
+          <div class="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+            <svg-icon
+              icon="lucide:calendar-days"
+              class="text-primary"
+            />
             <span>接下来</span>
           </div>
+          <ClientStatusBadge
+            v-if="nextTask"
+            :label="taskStateCopy(nextTask).label"
+            :tone="nextTaskTone"
+          />
+        </div>
 
-          <template v-if="nextTask">
-            <h2 class="mt-4 max-w-[18rem] text-2xl font-semibold leading-tight">
-              {{ readableTaskTitle(nextTask.title, nextTask.dayCode) }}
-            </h2>
-            <p class="mt-3 text-sm leading-6 text-white/80">
-              {{ nextTaskHint }}
-            </p>
-            <button
-              type="button"
-              class="mt-5 inline-flex min-h-11 items-center gap-2 rounded-xl bg-white px-4 font-medium text-primary transition-colors hover:bg-primary-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-              @click="openNextTask"
-            >
-              {{ nextTask.executionStatus === 'SUBMITTED' ? '查看提交结果' : '继续处理' }}
-              <svg-icon icon="lucide:arrow-right" />
-            </button>
-          </template>
+        <template v-if="nextTask">
+          <h2 class="mt-5 max-w-[20rem] text-[1.65rem] font-semibold leading-[1.2] tracking-[-0.035em]">
+            {{ readableTaskTitle(nextTask.title, nextTask.dayCode) }}
+          </h2>
+          <p class="mt-3 text-sm leading-6 text-muted-foreground">
+            {{ nextTaskHint }}
+          </p>
+          <button
+            type="button"
+            class="mt-6 inline-flex min-h-12 items-center gap-2 rounded-xl bg-primary px-5 font-semibold text-white transition-transform focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary active:scale-[0.98]"
+            @click="openNextTask"
+          >
+            {{ nextTask.executionStatus === 'SUBMITTED' ? '查看提交结果' : '继续处理' }}
+            <svg-icon icon="lucide:arrow-right" />
+          </button>
+        </template>
 
-          <template v-else>
-            <h2 class="mt-4 text-2xl font-semibold">当前没有待处理随访</h2>
-            <p class="mt-3 text-sm leading-6 text-white/80">
-              新的安排会显示在这里，你也可以查看全部随访记录。
+        <template v-else>
+          <h2 class="mt-5 text-[1.65rem] font-semibold leading-[1.2] tracking-[-0.035em]">
+            当前没有待处理随访
+          </h2>
+          <p class="mt-3 text-sm leading-6 text-muted-foreground">
+            新的安排会显示在这里，你也可以查看全部随访记录。
+          </p>
+          <button
+            type="button"
+            class="mt-6 inline-flex min-h-12 items-center gap-2 rounded-xl border border-border px-5 font-semibold transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary active:scale-[0.98]"
+            @click="router.push({ name: 'ClientTasks' })"
+          >
+            查看全部随访
+            <svg-icon icon="lucide:arrow-right" />
+          </button>
+        </template>
+      </section>
+
+      <section class="mt-9">
+        <div class="flex items-center justify-between gap-4">
+          <h2 class="text-xl font-semibold tracking-[-0.025em]">随访概览</h2>
+          <button
+            type="button"
+            class="min-h-10 rounded-xl px-2 text-sm font-medium text-primary focus-visible:outline-2 focus-visible:outline-primary"
+            @click="router.push({ name: 'ClientTasks' })"
+          >
+            查看全部
+          </button>
+        </div>
+
+        <div class="mt-4 grid grid-cols-[1.1fr_1fr] border-y border-border">
+          <div class="border-r border-border py-5 pr-5">
+            <p class="text-sm text-muted-foreground">现在可填写</p>
+            <p class="mt-2 text-[2.5rem] font-semibold leading-none tracking-[-0.04em] tabular-nums text-primary">
+              {{ taskSummary.available }}
             </p>
-            <button
-              type="button"
-              class="mt-5 inline-flex min-h-11 items-center gap-2 rounded-xl bg-white px-4 font-medium text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-              @click="router.push({ name: 'ClientTasks' })"
-            >
-              查看全部随访
-              <svg-icon icon="lucide:arrow-right" />
-            </button>
-          </template>
+            <p class="mt-3 text-xs leading-5 text-muted-foreground">需要你处理的随访</p>
+          </div>
+          <dl class="divide-y divide-border pl-5">
+            <div class="flex items-center justify-between gap-3 py-3">
+              <dt class="text-sm text-muted-foreground">之后开放</dt>
+              <dd class="font-semibold tabular-nums">{{ taskSummary.upcoming }}</dd>
+            </div>
+            <div class="flex items-center justify-between gap-3 py-3">
+              <dt class="text-sm text-muted-foreground">已经提交</dt>
+              <dd class="font-semibold tabular-nums">{{ taskSummary.submitted }}</dd>
+            </div>
+            <div class="flex items-center justify-between gap-3 py-3">
+              <dt class="text-sm text-muted-foreground">已经结束</dt>
+              <dd class="font-semibold tabular-nums">{{ taskSummary.expired }}</dd>
+            </div>
+          </dl>
         </div>
       </section>
 
-      <div class="mt-4 grid grid-cols-4 divide-x divide-border rounded-2xl border border-border bg-container py-4">
-        <div
-          v-for="item in taskCounts"
-          :key="item.label"
-          class="text-center"
-        >
-          <p class="text-xl font-semibold tabular-nums">{{ item.value }}</p>
-          <p class="mt-1 text-xs text-muted-foreground">{{ item.label }}</p>
-        </div>
-      </div>
-
-      <section class="mt-8">
+      <section class="mt-10">
         <div class="flex items-center justify-between">
           <div>
-            <p class="text-sm text-muted-foreground">需要帮助时</p>
-            <h2 class="mt-1 text-xl font-semibold">联系服务团队</h2>
+            <h2 class="text-xl font-semibold tracking-[-0.025em]">服务与反馈</h2>
+            <p class="mt-1 text-sm text-muted-foreground">需要协助时，可在这里留言</p>
           </div>
           <button
             type="button"
-            class="min-h-10 rounded-lg px-2 text-sm font-medium text-primary focus-visible:outline-2 focus-visible:outline-primary"
+            class="min-h-10 rounded-xl px-2 text-sm font-medium text-primary focus-visible:outline-2 focus-visible:outline-primary"
             @click="router.push({ name: 'ClientConsultationNew' })"
           >
             发起咨询
           </button>
         </div>
 
-        <button
-          type="button"
-          class="mt-4 flex w-full items-center gap-4 rounded-2xl border border-border bg-container p-4 text-left transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-          @click="router.push({ name: 'ClientConsultations' })"
-        >
-          <span class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-muted text-xl text-primary">
-            <svg-icon icon="lucide:messages-square" />
-          </span>
-          <span class="min-w-0 flex-1">
-            <span class="block font-medium">在线咨询</span>
-            <span class="mt-1 block truncate text-sm text-muted-foreground">{{ consultationHint }}</span>
-          </span>
-          <svg-icon
-            icon="lucide:chevron-right"
-            class="text-muted-foreground"
-          />
-        </button>
+        <div class="mt-4 divide-y divide-border border-y border-border">
+          <button
+            type="button"
+            class="flex min-h-20 w-full items-center gap-4 py-4 text-left transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary active:scale-[0.99]"
+            @click="router.push({ name: 'ClientConsultations' })"
+          >
+            <span class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-muted text-xl text-primary">
+              <svg-icon icon="lucide:messages-square" />
+            </span>
+            <span class="min-w-0 flex-1">
+              <span class="block font-medium text-base-text">在线咨询</span>
+              <span class="mt-1 block truncate text-sm text-muted-foreground">{{ consultationHint }}</span>
+            </span>
+            <svg-icon
+              icon="lucide:chevron-right"
+              class="text-muted-foreground"
+            />
+          </button>
 
-        <button
-          type="button"
-          class="mt-3 flex w-full items-center gap-4 rounded-2xl border border-border bg-container p-4 text-left transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-          @click="router.push({ name: 'ClientSatisfaction' })"
-        >
-          <span class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-muted text-xl text-primary">
-            <svg-icon icon="lucide:star" />
-          </span>
-          <span class="min-w-0 flex-1">
-            <span class="block font-medium">服务评价</span>
-            <span class="mt-1 block text-sm text-muted-foreground">{{ satisfactionHint }}</span>
-          </span>
-          <svg-icon
-            icon="lucide:chevron-right"
-            class="text-muted-foreground"
-          />
-        </button>
+          <button
+            type="button"
+            class="flex min-h-20 w-full items-center gap-4 py-4 text-left transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary active:scale-[0.99]"
+            @click="router.push({ name: 'ClientSatisfaction' })"
+          >
+            <span class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-muted text-xl text-primary">
+              <svg-icon icon="lucide:star" />
+            </span>
+            <span class="min-w-0 flex-1">
+              <span class="block font-medium text-base-text">服务评价</span>
+              <span class="mt-1 block text-sm text-muted-foreground">{{ satisfactionHint }}</span>
+            </span>
+            <svg-icon
+              icon="lucide:chevron-right"
+              class="text-muted-foreground"
+            />
+          </button>
+        </div>
       </section>
 
       <button
@@ -163,11 +201,13 @@
     logoutClient
   } from '@/api/sleep-care/client-access'
   import { readableTaskTitle } from '@/utils/sleep-care-display'
+  import ClientStatePanel from '@/components/client-mobile/client-state-panel.vue'
+  import ClientStatusBadge from '@/components/client-mobile/client-status-badge.vue'
   import {
     clearClientAuthMode,
     clearClientDraftState
   } from '@/utils/client-session'
-  import { formatTaskTime, unwrapClientResponse } from './state'
+  import { formatTaskTime, taskStateCopy, unwrapClientResponse } from './state'
 
   defineOptions({
     name: 'ClientHome'
@@ -203,30 +243,29 @@
     }
     return `请在 ${formatTaskTime(nextTask.value.dueAt)} 前完成`
   })
-  const taskCounts = computed(() => [
-    {
-      label: '可填写',
-      value: tasks.value.filter((task) => (
+  const taskSummary = computed(() => ({
+    available: tasks.value.filter((task) => (
         task.accessible && task.executionStatus !== 'SUBMITTED'
-      )).length
-    },
-    {
-      label: '未开放',
-      value: tasks.value.filter((task) => (
+      )).length,
+    upcoming: tasks.value.filter((task) => (
         task.executionStatus !== 'SUBMITTED' && task.timingStatus === 'NOT_OPEN'
-      )).length
-    },
-    {
-      label: '已结束',
-      value: tasks.value.filter((task) => (
+      )).length,
+    expired: tasks.value.filter((task) => (
         task.executionStatus !== 'SUBMITTED' && task.timingStatus === 'EXPIRED'
-      )).length
-    },
-    {
-      label: '已提交',
-      value: tasks.value.filter((task) => task.executionStatus === 'SUBMITTED').length
+      )).length,
+    submitted: tasks.value.filter((task) => task.executionStatus === 'SUBMITTED').length
+  }))
+  const nextTaskTone = computed(() => {
+    if (!nextTask.value) {
+      return 'muted'
     }
-  ])
+    return ({
+      active: 'primary',
+      success: 'success',
+      danger: 'danger',
+      muted: 'muted'
+    })[taskStateCopy(nextTask.value).tone] || 'muted'
+  })
   const consultationHint = computed(() => {
     const waiting = consultations.value.filter((item) => item.status === 'WAITING_CLIENT').length
     if (waiting > 0) {

@@ -1,70 +1,75 @@
 <template>
-  <section class="px-5 pb-[max(2rem,env(safe-area-inset-bottom))] pt-6">
+  <section class="px-5 pb-[max(2rem,env(safe-area-inset-bottom))] pt-8">
     <div class="flex items-end justify-between gap-4">
       <div>
         <p class="text-sm text-muted-foreground">服务完成后的反馈</p>
-        <h1 class="mt-1 text-[1.8rem] font-semibold tracking-[-0.035em]">服务评价</h1>
+        <h1 class="mt-1.5 text-[2rem] font-semibold tracking-[-0.04em]">服务评价</h1>
       </div>
-      <span class="mb-1 text-sm tabular-nums text-primary">{{ requests.length }} 项</span>
+      <span class="mb-1 text-sm tabular-nums text-muted-foreground">{{ requests.length }} 项</span>
     </div>
 
-    <div class="mt-6 rounded-2xl border border-primary/20 bg-primary/6 p-4 text-sm leading-6">
-      工作人员查看时使用匿名编号；系统会保留服务关联，仅供授权的质量核查使用。
-    </div>
+    <ClientStatePanel
+      class="mt-7"
+      title="你的身份信息会被隐去"
+      description="反馈仅供服务改进和授权的质量核查使用。"
+      tone="primary"
+      icon="lucide:shield-check"
+    />
 
-    <div
+    <ClientStatePanel
       v-if="loading"
-      class="mt-7 rounded-2xl border border-border bg-muted p-5 text-sm text-muted-foreground"
-    >
-      正在读取评价邀请…
-    </div>
+      class="mt-8"
+      title="正在读取评价邀请"
+      tone="muted"
+      icon="lucide:loader-circle"
+    />
 
-    <div
+    <ClientStatePanel
       v-else-if="errorMessage"
-      class="mt-7 rounded-2xl border border-error/30 bg-error/8 p-5"
+      class="mt-8"
+      title="暂时无法读取服务评价"
+      :description="errorMessage"
+      tone="danger"
+      icon="lucide:circle-alert"
     >
-      <p class="font-medium text-error">暂时无法读取服务评价</p>
-      <p class="mt-2 text-sm leading-6 text-error">{{ errorMessage }}</p>
-      <el-button class="!mt-4 !h-11 !rounded-xl" @click="loadRequests">
+      <el-button class="!h-11 !rounded-xl" @click="loadRequests">
         重试
       </el-button>
-    </div>
+    </ClientStatePanel>
 
-    <div
+    <ClientStatePanel
       v-else-if="requests.length === 0"
-      class="mt-7 rounded-2xl border border-dashed border-border p-7 text-center"
-    >
-      <p class="text-base font-medium">当前没有评价邀请</p>
-      <p class="mt-2 text-sm leading-6 text-muted-foreground">
-        服务关闭后，符合条件的评价邀请会显示在这里。
-      </p>
-    </div>
+      class="mt-8"
+      title="当前没有评价邀请"
+      description="服务关闭后，符合条件的评价邀请会显示在这里。"
+      tone="muted"
+      icon="lucide:star"
+    />
 
-    <div v-else class="mt-7 space-y-3">
+    <div v-else class="mt-8 border-t border-border">
       <button
         v-for="item in requests"
         :key="item.id"
         type="button"
-        class="w-full rounded-2xl border border-border bg-container p-4 text-left transition-colors hover:border-primary/45 hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+        class="w-full border-b border-border py-5 text-left transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary active:scale-[0.99]"
         @click="openRequest(item.id)"
       >
         <div class="flex items-start justify-between gap-3">
-          <div>
-            <p class="text-xs font-medium tracking-[0.08em] text-muted-foreground">
-              匿名编号 {{ item.publicCode }}
-            </p>
+          <div class="min-w-0">
+            <p class="text-xs font-medium text-muted-foreground">在线服务反馈</p>
             <h2 class="mt-2 text-base font-semibold">本次在线服务</h2>
           </div>
-          <span
-            class="shrink-0 rounded-full px-2.5 py-1 text-xs font-medium"
-            :class="statusTone(item.status)"
-          >
-            {{ statusLabel(item.status) }}
-          </span>
+          <ClientStatusBadge
+            :label="statusLabel(item.status)"
+            :tone="statusTone(item.status)"
+          />
         </div>
         <div class="mt-4 flex items-center justify-between gap-3 text-xs text-muted-foreground">
           <span>{{ timeHint(item) }}</span>
-          <span aria-hidden="true">{{ item.status === 'PENDING' ? '去评价' : '查看详情' }} →</span>
+          <span class="inline-flex items-center gap-1" aria-hidden="true">
+            {{ item.status === 'PENDING' ? '去评价' : '查看详情' }}
+            <svg-icon icon="lucide:chevron-right" />
+          </span>
         </div>
       </button>
     </div>
@@ -76,6 +81,8 @@
   import { useRouter } from 'vue-router'
   import { getClientSatisfactionRequests } from '@/api/sleep-care/client-access'
   import { formatTaskTime, unwrapClientResponse } from './state'
+  import ClientStatePanel from '@/components/client-mobile/client-state-panel.vue'
+  import ClientStatusBadge from '@/components/client-mobile/client-status-badge.vue'
 
   defineOptions({
     name: 'ClientSatisfaction'
@@ -93,10 +100,10 @@
   }[value] || '未说明')
 
   const statusTone = (value) => ({
-    PENDING: 'bg-primary/10 text-primary',
-    SUBMITTED: 'bg-success/10 text-success',
-    EXPIRED: 'bg-muted text-muted-foreground'
-  }[value] || 'bg-muted text-muted-foreground')
+    PENDING: 'primary',
+    SUBMITTED: 'success',
+    EXPIRED: 'muted'
+  }[value] || 'muted')
 
   const timeHint = (item) => {
     if (item.status === 'SUBMITTED') {

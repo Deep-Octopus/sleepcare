@@ -1,58 +1,67 @@
 <template>
-  <section class="px-5 pb-[max(2rem,env(safe-area-inset-bottom))] pt-5">
-    <button
-      type="button"
-      class="mb-6 inline-flex min-h-10 items-center gap-2 rounded-lg px-1 text-sm text-[#47766b] focus-visible:outline-2 focus-visible:outline-[#2c806c] dark:text-emerald-300"
+  <section class="px-5 pb-[max(2rem,env(safe-area-inset-bottom))] pt-4">
+    <ClientBackButton
+      class="mb-7"
+      label="返回修改"
       @click="router.push({ name: 'ClientTaskForm', params: { taskId } })"
+    />
+
+    <ClientStatePanel
+      v-if="loading"
+      title="正在准备核对内容"
+      tone="muted"
+      icon="lucide:loader-circle"
+    />
+
+    <ClientStatePanel
+      v-else-if="errorMessage && !questionnaire"
+      title="暂时无法核对"
+      :description="errorMessage"
+      tone="danger"
+      icon="lucide:circle-alert"
     >
-      <span aria-hidden="true">←</span>
-      返回修改
-    </button>
-
-    <div v-if="loading" class="rounded-2xl border border-[#dce8e3] p-5 text-sm dark:border-slate-800">
-      正在准备核对内容…
-    </div>
-
-    <div v-else-if="errorMessage && !questionnaire" class="rounded-2xl border border-red-200 bg-red-50 p-5 dark:border-red-950 dark:bg-red-950/40">
-      <p class="font-medium text-red-700 dark:text-red-200">暂时无法核对</p>
-      <p class="mt-2 text-sm leading-6 text-red-600 dark:text-red-300">{{ errorMessage }}</p>
-      <el-button class="!mt-4 !h-11 !rounded-xl" @click="load">重试</el-button>
-    </div>
+      <el-button class="!h-11 !rounded-xl" @click="load">重试</el-button>
+    </ClientStatePanel>
 
     <template v-else-if="questionnaire">
-      <p class="text-sm font-medium text-[#47766b] dark:text-emerald-300">最后一步</p>
-      <h1 class="mt-2 text-[1.8rem] font-semibold tracking-[-0.035em]">核对后提交</h1>
-      <p class="mt-3 text-sm leading-6 text-[#60766f] dark:text-slate-300">
+      <p class="text-sm font-medium text-primary">最后一步</p>
+      <h1 class="mt-3 text-[2rem] font-semibold tracking-[-0.04em]">核对后提交</h1>
+      <p class="mt-4 text-sm leading-6 text-muted-foreground">
         请确认以下内容。返回修改不会丢失已经保存的进度。
       </p>
 
-      <div class="mt-7 overflow-hidden rounded-2xl border border-[#dce8e3] dark:border-slate-800">
+      <dl class="mt-7 border-y border-border">
         <div
-          v-for="(question, index) in questionnaire.questions"
+          v-for="question in questionnaire.questions"
           :key="question.code"
-          class="p-4"
-          :class="index ? 'border-t border-[#e5ece9] dark:border-slate-800' : ''"
+          class="border-b border-border py-4 last:border-b-0"
         >
-          <p class="text-sm leading-6 text-[#60766f] dark:text-slate-400">{{ readableQuestionTitle(question.title) }}</p>
-          <p class="mt-1.5 break-words text-base font-medium leading-6">{{ answerLabel(question) }}</p>
+          <dt class="text-sm leading-6 text-muted-foreground">{{ readableQuestionTitle(question.title) }}</dt>
+          <dd class="mt-1.5 break-words text-base font-medium leading-6">{{ answerLabel(question) }}</dd>
         </div>
-      </div>
+      </dl>
 
-      <p v-if="errorMessage" class="mt-5 rounded-xl bg-red-50 p-3 text-sm leading-6 text-red-700 dark:bg-red-950/40 dark:text-red-200">
-        {{ errorMessage }}
-      </p>
+      <ClientStatePanel
+        v-if="errorMessage"
+        class="mt-5"
+        title="提交没有完成"
+        :description="errorMessage"
+        tone="danger"
+        icon="lucide:circle-alert"
+      />
 
       <el-button
         type="primary"
-        class="!mt-7 !h-13 !w-full !rounded-xl !text-base"
+        class="!mt-7 !h-14 !w-full !rounded-xl !text-base !font-semibold"
         :loading="submitting"
         @click="submit"
       >
         确认提交
       </el-button>
-      <p class="mt-3 text-center text-xs leading-5 text-[#7b8e89] dark:text-slate-500">
-        网络中断时可以安全重试，不会产生重复提交
-      </p>
+      <div class="mt-4 flex items-center justify-center gap-1.5 text-center text-xs leading-5 text-muted-foreground">
+        <svg-icon icon="lucide:shield-check" />
+        <span>网络中断时可以安全重试，不会产生重复提交</span>
+      </div>
     </template>
   </section>
 </template>
@@ -63,6 +72,8 @@
   import { getClientQuestionnaire, submitClientTask } from '@/api/sleep-care/client-access'
   import { clearLocalTaskState, compactAnswers, getOrCreateSubmitKey, readLocalDraft, unwrapClientResponse } from './state'
   import { readableOptionLabel, readableQuestionTitle } from '@/utils/sleep-care-display'
+  import ClientBackButton from '@/components/client-mobile/client-back-button.vue'
+  import ClientStatePanel from '@/components/client-mobile/client-state-panel.vue'
 
   defineOptions({
     name: 'ClientTaskConfirm'

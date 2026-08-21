@@ -82,7 +82,7 @@ export const clearSatisfactionSubmitKey = (requestId) => {
 
 export const formatTaskTime = (value) => {
   if (!value) {
-    return '—'
+    return '暂无'
   }
   return new Intl.DateTimeFormat('zh-CN', {
     month: 'numeric',

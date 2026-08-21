@@ -1,68 +1,77 @@
 <template>
-  <section class="px-5 pb-[max(2rem,env(safe-area-inset-bottom))] pt-6">
+  <section class="px-5 pb-[max(2rem,env(safe-area-inset-bottom))] pt-8">
     <div class="flex items-start justify-between gap-4">
       <div>
         <p class="text-sm text-muted-foreground">服务沟通记录</p>
-        <h1 class="mt-1 text-[1.8rem] font-semibold tracking-[-0.035em]">联系服务</h1>
+        <h1 class="mt-1.5 text-[2rem] font-semibold tracking-[-0.04em]">联系服务</h1>
       </div>
       <el-button
         type="primary"
-        class="!h-10 !rounded-xl"
+        class="!h-11 !rounded-xl !font-semibold"
         @click="router.push({ name: 'ClientConsultationNew' })"
       >
         发起咨询
       </el-button>
     </div>
 
-    <div class="mt-6 rounded-2xl border border-warning/30 bg-warning/8 p-4 text-sm leading-6 text-base-text">
-      系统可随时接收；人工回复时间以服务安排为准。如遇紧急情况，请立即联系当地急救或前往正规医疗机构，本页面不提供急救服务。
-    </div>
+    <ClientStatePanel
+      class="mt-7"
+      title="此处不提供急救服务"
+      description="系统可随时接收留言，人工回复时间以服务安排为准。如遇紧急情况，请立即联系当地急救或前往正规医疗机构。"
+      tone="warning"
+      icon="lucide:triangle-alert"
+    />
 
-    <div
+    <ClientStatePanel
       v-if="loading"
-      class="mt-7 rounded-2xl border border-border bg-muted p-5 text-sm text-muted-foreground"
-    >
-      正在读取咨询记录…
-    </div>
+      class="mt-8"
+      title="正在读取咨询记录"
+      tone="muted"
+      icon="lucide:loader-circle"
+    />
 
-    <div
+    <ClientStatePanel
       v-else-if="errorMessage"
-      class="mt-7 rounded-2xl border border-error/30 bg-error/8 p-5"
+      class="mt-8"
+      title="暂时无法读取咨询记录"
+      :description="errorMessage"
+      tone="danger"
+      icon="lucide:circle-alert"
     >
-      <p class="font-medium text-error">暂时无法读取咨询记录</p>
-      <p class="mt-2 text-sm leading-6 text-error">{{ errorMessage }}</p>
       <el-button
-        class="!mt-4 !h-11 !rounded-xl"
+        class="!h-11 !rounded-xl"
         @click="loadConsultations"
       >
         重试
       </el-button>
-    </div>
+    </ClientStatePanel>
 
-    <div
+    <ClientStatePanel
       v-else-if="consultations.length === 0"
-      class="mt-7 rounded-2xl border border-dashed border-border p-7 text-center"
+      class="mt-8"
+      title="还没有咨询记录"
+      description="如需工作人员协助，可以发起一条在线咨询。"
+      tone="muted"
+      icon="lucide:message-circle-more"
     >
-      <p class="text-base font-medium">还没有咨询记录</p>
-      <p class="mt-2 text-sm leading-6 text-muted-foreground">如需工作人员协助，可以发起一条在线咨询。</p>
       <el-button
         type="primary"
-        class="!mt-5 !h-11 !rounded-xl"
+        class="!h-11 !rounded-xl"
         @click="router.push({ name: 'ClientConsultationNew' })"
       >
         发起咨询
       </el-button>
-    </div>
+    </ClientStatePanel>
 
     <div
       v-else
-      class="mt-7 space-y-3"
+      class="mt-8 border-t border-border"
     >
       <button
         v-for="item in consultations"
         :key="item.id"
         type="button"
-        class="w-full rounded-2xl border border-border bg-container p-4 text-left transition-colors hover:border-primary/45 hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+        class="w-full border-b border-border py-5 text-left transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary active:scale-[0.99]"
         @click="openConsultation(item.id)"
       >
         <div class="flex items-start justify-between gap-3">
@@ -70,16 +79,17 @@
             <p class="truncate text-base font-semibold">{{ item.subject }}</p>
             <p class="mt-2 text-sm text-muted-foreground">提交于 {{ formatTaskTime(item.openedAt) }}</p>
           </div>
-          <span
-            class="shrink-0 rounded-full px-2.5 py-1 text-xs font-medium"
-            :class="statusTone(item.status)"
-          >
-            {{ statusLabel(item.status) }}
-          </span>
+          <ClientStatusBadge
+            :label="statusLabel(item.status)"
+            :tone="statusTone(item.status)"
+          />
         </div>
-        <div class="mt-3 flex items-center justify-between gap-3 text-xs text-muted-foreground">
+        <div class="mt-4 flex items-center justify-between gap-3 text-xs text-muted-foreground">
           <span>{{ urgencyLabel(item.urgency) }}</span>
-          <span aria-hidden="true">查看详情 →</span>
+          <span class="inline-flex items-center gap-1" aria-hidden="true">
+            查看详情
+            <svg-icon icon="lucide:chevron-right" />
+          </span>
         </div>
       </button>
     </div>
@@ -91,6 +101,8 @@
   import { useRouter } from 'vue-router'
   import { getClientConsultations } from '@/api/sleep-care/client-access'
   import { formatTaskTime, unwrapClientResponse } from './state'
+  import ClientStatePanel from '@/components/client-mobile/client-state-panel.vue'
+  import ClientStatusBadge from '@/components/client-mobile/client-status-badge.vue'
 
   defineOptions({
     name: 'ClientConsultations'
@@ -116,15 +128,15 @@
 
   const statusTone = (value) => {
     if (value === 'RESOLVED') {
-      return 'bg-success/10 text-success'
+      return 'success'
     }
     if (value === 'CLOSED') {
-      return 'bg-muted text-muted-foreground'
+      return 'muted'
     }
     if (value === 'WAITING_CLIENT') {
-      return 'bg-warning/12 text-warning'
+      return 'warning'
     }
-    return 'bg-primary/10 text-primary'
+    return 'primary'
   }
 
   const urgencyLabel = (value) => value === 'EXPEDITED' ? '优先联系' : '常规联系'

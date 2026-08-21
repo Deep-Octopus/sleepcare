@@ -1,46 +1,64 @@
 <template>
-  <section class="px-5 pb-[max(2rem,env(safe-area-inset-bottom))] pt-5">
+  <section class="px-5 pb-[max(2rem,env(safe-area-inset-bottom))] pt-4">
     <div class="mb-6 flex items-center justify-between gap-4">
-      <button
-        type="button"
-        class="inline-flex min-h-10 items-center gap-2 rounded-lg px-1 text-sm text-[#47766b] focus-visible:outline-2 focus-visible:outline-[#2c806c] dark:text-emerald-300"
+      <ClientBackButton
+        label="任务说明"
         @click="router.push({ name: 'ClientTask', params: { taskId } })"
-      >
-        <span aria-hidden="true">←</span>
-        任务说明
-      </button>
-      <span class="text-xs text-[#71847e] dark:text-slate-400">{{ saveCopy }}</span>
+      />
+      <span class="flex items-center gap-1.5 text-xs text-muted-foreground">
+        <svg-icon icon="lucide:cloud-check" />
+        {{ saveCopy }}
+      </span>
     </div>
 
-    <div v-if="loading" class="rounded-2xl border border-[#dce8e3] p-5 text-sm dark:border-slate-800">
-      正在准备表单…
-    </div>
+    <ClientStatePanel
+      v-if="loading"
+      title="正在准备填写内容"
+      tone="muted"
+      icon="lucide:loader-circle"
+    />
 
-    <div v-else-if="errorMessage" class="rounded-2xl border border-red-200 bg-red-50 p-5 dark:border-red-950 dark:bg-red-950/40">
-      <p class="font-medium text-red-700 dark:text-red-200">表单暂不可用</p>
-      <p class="mt-2 text-sm leading-6 text-red-600 dark:text-red-300">{{ errorMessage }}</p>
-      <el-button class="!mt-4 !h-11 !rounded-xl" @click="loadQuestionnaire">重试</el-button>
-    </div>
+    <ClientStatePanel
+      v-else-if="errorMessage"
+      title="填写内容暂不可用"
+      :description="errorMessage"
+      tone="danger"
+      icon="lucide:circle-alert"
+    >
+      <el-button class="!h-11 !rounded-xl" @click="loadQuestionnaire">重试</el-button>
+    </ClientStatePanel>
 
     <template v-else-if="questionnaire">
-      <div class="border-b border-[#e5ece9] pb-6 dark:border-slate-800">
-        <p class="text-sm font-medium text-[#47766b] dark:text-emerald-300">
+      <div>
+        <p class="text-sm font-medium text-primary">
           预计 {{ questionnaire.expectedMinutes || 1 }} 分钟
         </p>
-        <h1 class="mt-2 text-[1.75rem] font-semibold leading-tight tracking-[-0.035em]">{{ readableQuestionnaireTitle(questionnaire.title) }}</h1>
-        <p v-if="questionnaire.purpose" class="mt-3 text-sm leading-6 text-[#60766f] dark:text-slate-300">{{ readableQuestionnairePurpose(questionnaire.purpose) }}</p>
+        <h1 class="mt-3 text-[2rem] font-semibold leading-[1.15] tracking-[-0.04em]">
+          {{ readableQuestionnaireTitle(questionnaire.title) }}
+        </h1>
+        <p
+          v-if="questionnaire.purpose"
+          class="mt-4 text-sm leading-6 text-muted-foreground"
+        >
+          {{ readableQuestionnairePurpose(questionnaire.purpose) }}
+        </p>
       </div>
 
-      <div class="mt-7 space-y-7">
+      <div class="mt-7 flex items-center justify-between gap-4 border-y border-border py-3 text-xs text-muted-foreground">
+        <span>已填写 {{ completedCount }} / {{ questionnaire.questions.length }} 项</span>
+        <span>带 * 的项目需要填写</span>
+      </div>
+
+      <div class="divide-y divide-border">
         <fieldset
           v-for="(question, index) in questionnaire.questions"
           :key="question.code"
-          class="m-0 min-w-0 border-0 p-0"
+          class="m-0 min-w-0 border-0 py-7"
         >
-          <legend class="mb-3 block w-full text-base font-semibold leading-6">
-            <span class="mr-2 text-sm font-medium text-[#47766b] dark:text-emerald-300">{{ String(index + 1).padStart(2, '0') }}</span>
-            {{ readableQuestionTitle(question.title) }}
-            <span v-if="question.required" class="ml-1 text-red-500">*</span>
+          <legend class="mb-4 block w-full text-base font-semibold leading-6">
+            <span class="mb-1 block text-xs font-medium text-muted-foreground">第 {{ index + 1 }} 项</span>
+            <span>{{ readableQuestionTitle(question.title) }}</span>
+            <span v-if="question.required" class="ml-1 text-error">*</span>
           </legend>
 
           <el-radio-group
@@ -53,7 +71,7 @@
               :key="option.code"
               :value="option.code"
               border
-              class="!m-0 !h-auto !min-h-12 !w-full !rounded-xl !px-4"
+              class="!m-0 !h-auto !min-h-13 !w-full !rounded-xl !px-4"
             >
               {{ readableOptionLabel(option.label) }}
             </el-radio>
@@ -69,7 +87,7 @@
               :key="option.code"
               :value="option.code"
               border
-              class="!m-0 !h-auto !min-h-12 !w-full !rounded-xl !px-4"
+              class="!m-0 !h-auto !min-h-13 !w-full !rounded-xl !px-4"
             >
               {{ readableOptionLabel(option.label) }}
             </el-checkbox>
@@ -118,15 +136,20 @@
         </fieldset>
       </div>
 
-      <p v-if="validationMessage" class="mt-6 rounded-xl bg-red-50 p-3 text-sm text-red-700 dark:bg-red-950/40 dark:text-red-200">
-        {{ validationMessage }}
-      </p>
+      <ClientStatePanel
+        v-if="validationMessage"
+        class="mt-2"
+        title="还有内容需要填写"
+        :description="validationMessage"
+        tone="danger"
+        icon="lucide:circle-alert"
+      />
 
-      <div class="mt-8 grid grid-cols-[0.9fr_1.1fr] gap-3">
-        <el-button class="!m-0 !h-12 !rounded-xl" :loading="saving" @click="syncDraft">
+      <div class="mt-8 grid grid-cols-[0.9fr_1.1fr] gap-3 border-t border-border pt-6">
+        <el-button class="!m-0 !h-13 !rounded-xl" :loading="saving" @click="syncDraft">
           保存进度
         </el-button>
-        <el-button type="primary" class="!m-0 !h-12 !rounded-xl" @click="goToConfirm">
+        <el-button type="primary" class="!m-0 !h-13 !rounded-xl !font-semibold" @click="goToConfirm">
           核对答案
         </el-button>
       </div>
@@ -145,6 +168,8 @@
     readableQuestionnaireTitle,
     readableQuestionTitle
   } from '@/utils/sleep-care-display'
+  import ClientBackButton from '@/components/client-mobile/client-back-button.vue'
+  import ClientStatePanel from '@/components/client-mobile/client-state-panel.vue'
 
   defineOptions({
     name: 'ClientTaskForm'
@@ -244,6 +269,10 @@
   }
 
   const answerIsEmpty = (value) => value === undefined || value === null || value === '' || (Array.isArray(value) && value.length === 0)
+
+  const completedCount = computed(() => questionnaire.value?.questions.filter((question) => (
+    !answerIsEmpty(answers[question.code])
+  )).length || 0)
 
   const goToConfirm = async () => {
     const missing = questionnaire.value.questions.find((question) => question.required && answerIsEmpty(answers[question.code]))

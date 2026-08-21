@@ -1,30 +1,32 @@
 <template>
-  <section class="px-5 pb-[max(2rem,env(safe-area-inset-bottom))] pt-6">
-    <button
-      type="button"
-      class="mb-6 inline-flex min-h-10 items-center gap-2 rounded-lg px-1 text-sm text-primary focus-visible:outline-2 focus-visible:outline-primary"
+  <section class="px-5 pb-[max(2rem,env(safe-area-inset-bottom))] pt-4">
+    <ClientBackButton
+      class="mb-7"
+      label="返回咨询记录"
       @click="router.push({ name: 'ClientConsultations' })"
-    >
-      <span aria-hidden="true">←</span>
-      返回咨询记录
-    </button>
+    />
 
-    <p class="text-sm text-muted-foreground">联系服务团队</p>
-    <h1 class="mt-1 text-[1.8rem] font-semibold tracking-[-0.035em]">发起在线咨询</h1>
-    <p class="mt-3 text-sm leading-6 text-muted-foreground">
+    <p class="text-sm font-medium text-primary">联系服务团队</p>
+    <h1 class="mt-3 text-[2rem] font-semibold tracking-[-0.04em]">发起在线咨询</h1>
+    <p class="mt-4 text-sm leading-6 text-muted-foreground">
       请描述希望工作人员协助确认的事项。提交后可以继续补充信息并查看回复。
     </p>
 
-    <div class="mt-6 rounded-2xl border border-warning/30 bg-warning/8 p-4 text-sm leading-6 text-base-text">
-      系统可随时接收；人工回复时间以服务安排为准。如遇紧急情况，请立即联系当地急救或前往正规医疗机构，本页面不提供急救服务。
-    </div>
+    <ClientStatePanel
+      class="mt-7"
+      title="此处不提供急救服务"
+      description="系统可随时接收留言，人工回复时间以服务安排为准。如遇紧急情况，请立即联系当地急救或前往正规医疗机构。"
+      tone="warning"
+      icon="lucide:triangle-alert"
+    />
 
     <el-form
-      class="mt-7"
+      class="client-service-form mt-7 border-t border-border"
       label-position="top"
       :model="form"
     >
       <el-form-item
+        class="!mb-0 border-b border-border py-6"
         label="咨询主题"
         required
       >
@@ -37,6 +39,7 @@
       </el-form-item>
 
       <el-form-item
+        class="!mb-0 border-b border-border py-6"
         label="希望如何联系"
         required
       >
@@ -63,6 +66,7 @@
       </el-form-item>
 
       <el-form-item
+        class="!mb-0 border-b border-border py-6"
         label="具体事项"
         required
       >
@@ -77,16 +81,18 @@
       </el-form-item>
     </el-form>
 
-    <p
+    <ClientStatePanel
       v-if="errorMessage"
-      class="mt-2 text-sm leading-6 text-error"
-    >
-      {{ errorMessage }}
-    </p>
+      class="mt-6"
+      title="咨询没有提交"
+      :description="errorMessage"
+      tone="danger"
+      icon="lucide:circle-alert"
+    />
 
     <el-button
       type="primary"
-      class="!mt-4 !h-13 !w-full !rounded-xl !text-base"
+      class="!mt-7 !h-14 !w-full !rounded-xl !text-base !font-semibold"
       :disabled="!canSubmit"
       :loading="submitting"
       @click="submit"
@@ -101,6 +107,8 @@
   import { useRouter } from 'vue-router'
   import { createClientConsultation } from '@/api/sleep-care/client-access'
   import { newIdempotencyKey, unwrapClientResponse } from './state'
+  import ClientBackButton from '@/components/client-mobile/client-back-button.vue'
+  import ClientStatePanel from '@/components/client-mobile/client-state-panel.vue'
 
   defineOptions({
     name: 'ClientConsultationNew'
@@ -144,3 +152,16 @@
     }
   }
 </script>
+
+<style scoped>
+  :deep(.client-service-form .el-form-item__label) {
+    margin-bottom: 0.625rem;
+    font-weight: 600;
+    color: inherit;
+  }
+
+  :deep(.client-service-form .el-input__wrapper),
+  :deep(.client-service-form .el-textarea__inner) {
+    border-radius: 0.75rem;
+  }
+</style>

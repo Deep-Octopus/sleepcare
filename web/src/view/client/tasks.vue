@@ -1,78 +1,78 @@
 <template>
-  <section class="px-5 pb-[max(2rem,env(safe-area-inset-bottom))] pt-7">
+  <section class="px-5 pb-[max(2rem,env(safe-area-inset-bottom))] pt-8">
     <div class="flex items-end justify-between gap-4">
       <div>
-        <p class="text-sm text-muted-foreground">
-          你的随访安排
-        </p>
-        <h1 class="mt-1 text-[1.8rem] font-semibold tracking-[-0.035em]">
+        <p class="text-sm text-muted-foreground">按时间查看服务安排</p>
+        <h1 class="mt-1.5 text-[2rem] font-semibold tracking-[-0.04em]">
           我的随访
         </h1>
       </div>
-      <span class="mb-1 text-sm tabular-nums text-primary">
+      <span class="mb-1 text-sm tabular-nums text-muted-foreground">
         {{ tasks.length }} 项
       </span>
     </div>
 
-    <div
+    <ClientStatePanel
       v-if="loading"
-      class="mt-10 rounded-2xl border border-border bg-muted p-5 text-sm text-muted-foreground"
-    >
-      正在读取任务…
-    </div>
+      class="mt-9"
+      title="正在读取随访安排"
+      tone="muted"
+      icon="lucide:loader-circle"
+    />
 
-    <div
+    <ClientStatePanel
       v-else-if="errorMessage"
-      class="mt-10 rounded-2xl border border-error-200 bg-error-50 p-5"
+      class="mt-9"
+      title="暂时无法读取随访安排"
+      :description="errorMessage"
+      tone="danger"
+      icon="lucide:circle-alert"
     >
-      <p class="font-medium text-error-700">
-        暂时无法读取任务
-      </p>
-      <p class="mt-2 text-sm leading-6 text-error-600">
-        {{ errorMessage }}
-      </p>
-      <el-button class="!mt-4 !h-11 !rounded-xl" @click="loadTasks">
+      <el-button class="!h-11 !rounded-xl" @click="loadTasks">
         重试
       </el-button>
-    </div>
+    </ClientStatePanel>
 
-    <div
+    <ClientStatePanel
       v-else-if="tasks.length === 0"
-      class="mt-10 rounded-2xl border border-dashed border-border p-7 text-center"
-    >
-      <p class="text-base font-medium">当前没有可展示的任务</p>
-      <p class="mt-2 text-sm text-muted-foreground">新的随访安排会显示在这里。</p>
-    </div>
+      class="mt-9"
+      title="当前没有随访安排"
+      description="新的安排会显示在这里。"
+      tone="muted"
+      icon="lucide:calendar-check"
+    />
 
-    <div v-else class="mt-7 space-y-3">
+    <div v-else class="mt-8 border-t border-border">
       <button
         v-for="task in tasks"
         :key="task.id"
         type="button"
-        class="group w-full rounded-2xl border border-border bg-container p-4 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-        :class="task.accessible || task.executionStatus === 'SUBMITTED' ? 'cursor-pointer hover:border-primary hover:bg-muted' : 'cursor-default opacity-72'"
+        class="grid w-full grid-cols-[3.75rem_1fr] gap-4 border-b border-border py-5 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+        :class="task.accessible || task.executionStatus === 'SUBMITTED' ? 'hover:bg-muted active:scale-[0.99]' : 'cursor-default text-muted-foreground'"
+        :disabled="!task.accessible && task.executionStatus !== 'SUBMITTED'"
         @click="openTask(task)"
       >
-        <div class="flex gap-4">
-          <div class="flex h-14 w-12 shrink-0 flex-col items-center justify-center rounded-xl bg-muted text-primary">
-            <span class="text-[10px] font-semibold">第</span>
-            <span class="text-lg font-bold leading-none">{{ task.dayCode.replace('D', '') }}</span>
-            <span class="text-[10px] font-semibold">次</span>
+        <div class="pt-0.5">
+          <p class="text-xs font-medium text-muted-foreground">第 {{ task.dayCode.replace('D', '') }} 次</p>
+          <span
+            class="mt-3 block h-8 w-0.5 rounded-full"
+            :class="task.accessible ? 'bg-primary' : 'bg-border'"
+            aria-hidden="true"
+          />
+        </div>
+        <div class="min-w-0">
+          <div class="flex items-start justify-between gap-3">
+            <h2 class="text-base font-semibold leading-6 text-base-text">
+              {{ readableTaskTitle(task.title, task.dayCode) }}
+            </h2>
+            <ClientStatusBadge
+              :label="taskStateCopy(task).label"
+              :tone="stateTone(taskStateCopy(task).tone)"
+            />
           </div>
-          <div class="min-w-0 flex-1">
-            <div class="flex items-start justify-between gap-3">
-              <h2 class="text-base font-semibold leading-6">{{ readableTaskTitle(task.title, task.dayCode) }}</h2>
-              <span
-                class="shrink-0 rounded-full px-2.5 py-1 text-xs font-medium"
-                :class="stateClass(taskStateCopy(task).tone)"
-              >
-                {{ taskStateCopy(task).label }}
-              </span>
-            </div>
-            <p class="mt-2 text-sm text-muted-foreground">
-              开放 {{ formatTaskTime(task.openAt) }} · 截止 {{ formatTaskTime(task.dueAt) }}
-            </p>
-          </div>
+          <p class="mt-2 text-sm leading-6 text-muted-foreground">
+            开放 {{ formatTaskTime(task.openAt) }} · 截止 {{ formatTaskTime(task.dueAt) }}
+          </p>
         </div>
       </button>
     </div>
@@ -89,6 +89,8 @@
   import { getClientTasks } from '@/api/sleep-care/client-access'
   import { formatTaskTime, taskStateCopy, unwrapClientResponse } from './state'
   import { readableTaskTitle } from '@/utils/sleep-care-display'
+  import ClientStatePanel from '@/components/client-mobile/client-state-panel.vue'
+  import ClientStatusBadge from '@/components/client-mobile/client-status-badge.vue'
 
   defineOptions({
     name: 'ClientTasks'
@@ -99,12 +101,12 @@
   const tasks = ref([])
   const errorMessage = ref('')
 
-  const stateClass = (tone) => ({
-    success: 'bg-success-50 text-success-700',
-    active: 'bg-primary-50 text-primary-700',
-    danger: 'bg-error-50 text-error-700',
-    muted: 'bg-muted text-muted-foreground'
-  })[tone]
+  const stateTone = (tone) => ({
+    success: 'success',
+    active: 'primary',
+    danger: 'danger',
+    muted: 'muted'
+  })[tone] || 'muted'
 
   const loadTasks = async () => {
     loading.value = true

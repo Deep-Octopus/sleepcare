@@ -1,53 +1,53 @@
 <template>
-  <section class="px-5 pb-[max(2rem,env(safe-area-inset-bottom))] pt-6">
-    <button
-      type="button"
-      class="mb-6 inline-flex min-h-10 items-center gap-2 rounded-lg px-1 text-sm text-primary focus-visible:outline-2 focus-visible:outline-primary"
+  <section class="px-5 pb-[max(2rem,env(safe-area-inset-bottom))] pt-4">
+    <ClientBackButton
+      class="mb-7"
+      label="返回服务评价"
       @click="router.push({ name: 'ClientSatisfaction' })"
-    >
-      <span aria-hidden="true">←</span>
-      返回服务评价
-    </button>
+    />
 
-    <div
+    <ClientStatePanel
       v-if="loading"
-      class="rounded-2xl border border-border bg-muted p-5 text-sm text-muted-foreground"
-    >
-      正在读取评价详情…
-    </div>
+      title="正在读取评价详情"
+      tone="muted"
+      icon="lucide:loader-circle"
+    />
 
-    <div
+    <ClientStatePanel
       v-else-if="errorMessage"
-      class="rounded-2xl border border-error/30 bg-error/8 p-5"
+      title="暂时无法读取评价详情"
+      :description="errorMessage"
+      tone="danger"
+      icon="lucide:circle-alert"
     >
-      <p class="font-medium text-error">暂时无法读取评价详情</p>
-      <p class="mt-2 text-sm leading-6 text-error">{{ errorMessage }}</p>
-      <el-button class="!mt-4 !h-11 !rounded-xl" @click="loadDetail">
+      <el-button class="!h-11 !rounded-xl" @click="loadDetail">
         重试
       </el-button>
-    </div>
+    </ClientStatePanel>
 
     <template v-else-if="detail">
       <div class="flex items-start justify-between gap-3">
         <div>
-          <p class="text-sm text-muted-foreground">匿名编号 {{ detail.publicCode }}</p>
-          <h1 class="mt-1 text-[1.75rem] font-semibold tracking-[-0.035em]">本次在线服务</h1>
+          <p class="text-sm font-medium text-primary">服务反馈</p>
+          <h1 class="mt-3 text-[2rem] font-semibold tracking-[-0.04em]">本次在线服务</h1>
         </div>
-        <span
-          class="shrink-0 rounded-full px-2.5 py-1 text-xs font-medium"
-          :class="statusTone(detail.status)"
-        >
-          {{ statusLabel(detail.status) }}
-        </span>
+        <ClientStatusBadge
+          :label="statusLabel(detail.status)"
+          :tone="statusTone(detail.status)"
+        />
       </div>
 
-      <div class="mt-6 rounded-2xl border border-primary/20 bg-primary/6 p-4 text-sm leading-6">
-        工作人员查看时不显示你的身份或本次服务责任人。系统关联仅供授权质量核查使用。
-      </div>
+      <ClientStatePanel
+        class="mt-7"
+        title="你的身份信息会被隐去"
+        description="工作人员查看反馈时不会看到你的身份或本次服务责任人，系统关联仅供授权质量核查使用。"
+        tone="primary"
+        icon="lucide:shield-check"
+      />
 
       <section
         v-if="detail.status === 'PENDING'"
-        class="mt-6 rounded-2xl border border-border bg-container p-5"
+        class="mt-8 border-y border-border py-7"
       >
         <div class="text-center">
           <p class="text-base font-semibold">你对本次服务的整体感受如何？</p>
@@ -57,7 +57,7 @@
           <el-rate
             v-model="form.rating"
             class="!mt-5 !h-auto justify-center"
-            :colors="['#d09128', '#d09128', '#2c806c']"
+            :colors="rateColors"
             size="large"
           />
           <p class="mt-2 min-h-5 text-sm font-medium text-primary">
@@ -77,7 +77,7 @@
         <p v-if="submitError" class="mt-3 text-sm text-error">{{ submitError }}</p>
         <el-button
           type="primary"
-          class="!mt-5 !h-12 !w-full !rounded-xl"
+          class="!mt-6 !h-13 !w-full !rounded-xl !font-semibold"
           :disabled="form.rating === 0"
           :loading="submitting"
           @click="submitResponse"
@@ -88,9 +88,9 @@
 
       <section
         v-else-if="detail.status === 'SUBMITTED' && detail.response"
-        class="mt-6 rounded-2xl border border-success/25 bg-success/6 p-5"
+        class="mt-8 border-l-2 border-success bg-success-50 px-4 py-5"
       >
-        <p class="text-xs font-semibold tracking-[0.12em] text-success">感谢你的反馈</p>
+        <p class="text-sm font-semibold text-success-700">感谢你的反馈</p>
         <el-rate
           class="!mt-4"
           :model-value="detail.response.rating"
@@ -99,7 +99,7 @@
         />
         <p
           v-if="detail.response.comment"
-          class="mt-4 whitespace-pre-wrap break-words border-t border-success/20 pt-4 text-sm leading-6"
+          class="mt-4 whitespace-pre-wrap break-words border-t border-success-200 pt-4 text-sm leading-6"
         >
           {{ detail.response.comment }}
         </p>
@@ -109,17 +109,16 @@
         </p>
       </section>
 
-      <section
+      <ClientStatePanel
         v-else
-        class="mt-6 rounded-2xl border border-border bg-muted p-5"
-      >
-        <p class="font-medium">本次评价邀请已结束</p>
-        <p class="mt-2 text-sm leading-6 text-muted-foreground">
-          有效期结束后不能再提交；如有新的服务事项，可以通过联系服务发起咨询。
-        </p>
-      </section>
+        class="mt-8"
+        title="本次评价邀请已结束"
+        description="有效期结束后不能再提交；如有新的服务事项，可以通过联系服务发起咨询。"
+        tone="muted"
+        icon="lucide:clock"
+      />
 
-      <p class="mt-7 text-xs leading-5 text-muted-foreground">
+      <p class="mt-8 border-t border-border pt-5 text-xs leading-5 text-muted-foreground">
         单次评价用于发现服务流程中的改进线索，不会单独形成对工作人员的结论。
       </p>
     </template>
@@ -139,6 +138,9 @@
     getOrCreateSatisfactionSubmitKey,
     unwrapClientResponse
   } from './state'
+  import ClientBackButton from '@/components/client-mobile/client-back-button.vue'
+  import ClientStatePanel from '@/components/client-mobile/client-state-panel.vue'
+  import ClientStatusBadge from '@/components/client-mobile/client-status-badge.vue'
 
   defineOptions({
     name: 'ClientSatisfactionDetail'
@@ -156,6 +158,11 @@
     rating: 0,
     comment: ''
   })
+  const rateColors = [
+    'var(--el-color-primary)',
+    'var(--el-color-primary)',
+    'var(--el-color-primary)'
+  ]
 
   const statusLabel = (value) => ({
     PENDING: '待评价',
@@ -164,10 +171,10 @@
   }[value] || '未说明')
 
   const statusTone = (value) => ({
-    PENDING: 'bg-primary/10 text-primary',
-    SUBMITTED: 'bg-success/10 text-success',
-    EXPIRED: 'bg-muted text-muted-foreground'
-  }[value] || 'bg-muted text-muted-foreground')
+    PENDING: 'primary',
+    SUBMITTED: 'success',
+    EXPIRED: 'muted'
+  }[value] || 'muted')
 
   const ratingHint = (value) => ({
     1: '体验未达到预期',
