@@ -1,9 +1,9 @@
 <template>
   <main class="client-shell h-full overflow-y-auto bg-layout text-base-text">
-    <div class="relative mx-auto min-h-full w-full max-w-[30rem] bg-container shadow-sider">
+    <div class="client-canvas relative mx-auto min-h-full w-full max-w-[30rem] shadow-sider">
       <header
         v-if="showChrome"
-        class="sticky top-0 z-20 border-b border-border bg-container px-5 pb-3.5 pt-[max(0.875rem,env(safe-area-inset-top))]"
+        class="client-topbar sticky top-0 z-20 border-b border-border px-5 pb-3.5 pt-[max(0.875rem,env(safe-area-inset-top))]"
       >
         <div class="flex items-center justify-between gap-4">
           <router-link
@@ -24,7 +24,7 @@
           >
             <button
               type="button"
-              class="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-border bg-muted text-sm font-semibold text-primary transition-[transform,border-color,background-color] hover:border-primary-200 hover:bg-primary-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary active:scale-[0.98]"
+              class="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-border bg-muted text-sm font-semibold text-primary shadow-card transition-[transform,border-color,background-color] hover:border-primary-200 hover:bg-primary-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary active:scale-[0.98]"
               :aria-label="profile.displayName ? `打开${profile.displayName}的账号菜单` : '打开账号菜单'"
             >
               {{ profileInitial }}
@@ -61,7 +61,7 @@
 
       <nav
         v-if="showNavigation"
-        class="fixed bottom-[max(2.75rem,env(safe-area-inset-bottom))] left-1/2 z-30 w-[calc(100%-1rem)] max-w-[29rem] -translate-x-1/2 rounded-2xl border border-border bg-container px-2 py-2 shadow-sider"
+        class="client-bottom-nav fixed bottom-[max(2.75rem,env(safe-area-inset-bottom))] left-1/2 z-30 w-[calc(100%-1rem)] max-w-[29rem] -translate-x-1/2 rounded-2xl border border-border px-2 py-2 shadow-sider"
         aria-label="康养用户端主导航"
       >
         <div class="grid grid-cols-4 gap-1">
@@ -70,13 +70,8 @@
             :key="item.key"
             :to="{ name: item.routeName }"
             class="relative flex min-h-13 flex-col items-center justify-center gap-1 rounded-xl px-2 text-xs transition-colors focus-visible:outline-2 focus-visible:outline-primary active:scale-[0.98]"
-            :class="activeNavigation === item.key ? 'font-semibold text-primary' : 'text-muted-foreground hover:bg-muted hover:text-base-text'"
+            :class="activeNavigation === item.key ? 'bg-primary-50 font-semibold text-primary shadow-card' : 'text-muted-foreground hover:bg-muted hover:text-base-text'"
           >
-            <span
-              v-if="activeNavigation === item.key"
-              class="absolute top-0 h-0.5 w-5 rounded-full bg-primary"
-              aria-hidden="true"
-            />
             <svg-icon
               :icon="item.icon"
               class="text-xl"
@@ -182,6 +177,43 @@
     --el-color-primary-light-8: rgb(var(--primary-100-color));
     --el-color-primary-light-9: rgb(var(--primary-50-color));
     --el-color-primary-dark-2: rgb(var(--primary-700-color));
+  }
+
+  .client-canvas {
+    background:
+      linear-gradient(
+        180deg,
+        rgb(var(--primary-50-color)) 0,
+        rgb(var(--container-bg-color)) 18rem
+      );
+  }
+
+  .client-topbar,
+  .client-bottom-nav {
+    background-color: rgb(var(--container-bg-color) / 0.9);
+    backdrop-filter: blur(18px) saturate(135%);
+    -webkit-backdrop-filter: blur(18px) saturate(135%);
+  }
+
+  .client-bottom-nav {
+    box-shadow:
+      inset 0 1px 0 rgb(var(--container-bg-color) / 0.8),
+      var(--sider-box-shadow);
+  }
+
+  .client-shell :deep(.el-button--primary) {
+    box-shadow:
+      inset 0 1px 0 rgb(var(--primary-300-color)),
+      0 8px 20px rgb(var(--primary-950-color) / 0.14);
+  }
+
+  @media (prefers-reduced-transparency: reduce) {
+    .client-topbar,
+    .client-bottom-nav {
+      background-color: rgb(var(--container-bg-color));
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+    }
   }
 
   :global(.dark) .client-shell {

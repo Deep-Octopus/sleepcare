@@ -6,18 +6,34 @@
         :show-tagline="false"
       />
 
-      <div class="mt-12 border-t border-border pt-10">
-        <div class="flex items-center gap-2 text-sm font-medium text-primary">
-          <svg-icon icon="lucide:shield-check" />
-          <span>私密服务入口</span>
+      <section class="client-login-scene relative isolate mt-8 min-h-48 overflow-hidden rounded-2xl border border-border shadow-card">
+        <img
+          :src="wellnessHorizon"
+          alt=""
+          width="960"
+          height="640"
+          class="pointer-events-none absolute inset-0 h-full w-full select-none object-cover object-center"
+          aria-hidden="true"
+          draggable="false"
+          fetchpriority="high"
+        >
+        <span
+          class="client-login-scene__scrim absolute inset-0"
+          aria-hidden="true"
+        />
+        <div class="relative max-w-[15rem] p-5">
+          <div class="flex items-center gap-2 text-sm font-medium text-primary-700">
+            <svg-icon icon="lucide:shield-check" />
+            <span>私密服务入口</span>
+          </div>
+          <h1 class="mt-3 text-[2rem] font-semibold leading-[1.12] tracking-[-0.045em]">
+            欢迎回来
+          </h1>
+          <p class="mt-3 text-sm leading-6 text-muted-foreground">
+            登录后查看随访安排、服务消息和评价邀请。
+          </p>
         </div>
-        <h1 class="mt-4 max-w-[19rem] text-[2.25rem] font-semibold leading-[1.12] tracking-[-0.045em]">
-          欢迎回来
-        </h1>
-        <p class="mt-4 max-w-sm text-base leading-7 text-muted-foreground">
-          登录后查看随访安排、服务消息和评价邀请。
-        </p>
-      </div>
+      </section>
 
       <ClientStatePanel
         v-if="route.query.state === 'session'"
@@ -29,7 +45,7 @@
       />
 
       <form
-        class="mt-9 space-y-6"
+        class="mt-7 space-y-6"
         @submit.prevent="submitLogin"
       >
         <label class="block">
@@ -72,11 +88,16 @@
           native-type="submit"
           type="primary"
           size="large"
-          class="!h-14 !w-full !rounded-xl !text-base !font-semibold"
+          class="client-login-submit !h-14 !w-full !rounded-xl !px-3 !text-base !font-semibold"
           :loading="submitting"
           :disabled="!canSubmit"
         >
-          登录
+          <span class="flex w-full items-center justify-between pl-2">
+            登录
+            <span class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-container text-primary shadow-card">
+              <svg-icon icon="lucide:arrow-right" />
+            </span>
+          </span>
         </el-button>
       </form>
     </div>
@@ -94,6 +115,7 @@
   import { loginClient } from '@/api/sleep-care/client-access'
   import SleepCareBrand from '@/components/sleep-care-brand/index.vue'
   import ClientStatePanel from '@/components/client-mobile/client-state-panel.vue'
+  import wellnessHorizon from '@/assets/client/wellness-horizon.webp'
   import {
     CLIENT_AUTH_MODE_ACCOUNT,
     clearClientDraftState,
@@ -144,6 +166,33 @@
 </script>
 
 <style scoped>
+  .client-login-scene {
+    background-color: rgb(var(--primary-50-color));
+    box-shadow:
+      inset 0 1px 0 rgb(var(--container-bg-color) / 0.72),
+      var(--card-box-shadow);
+  }
+
+  .client-login-scene__scrim {
+    background: linear-gradient(
+      90deg,
+      rgb(var(--container-bg-color)) 0%,
+      rgb(var(--container-bg-color) / 0.94) 48%,
+      rgb(var(--container-bg-color) / 0.28) 76%,
+      transparent 100%
+    );
+  }
+
+  :global(.dark) .client-login-scene > img {
+    filter: brightness(0.72) saturate(0.72);
+  }
+
+  :deep(.client-login-submit) {
+    box-shadow:
+      inset 0 1px 0 rgb(var(--primary-300-color)),
+      0 10px 24px rgb(var(--primary-950-color) / 0.16);
+  }
+
   :deep(.client-login-field .el-input__wrapper) {
     min-height: 3.5rem;
     border-radius: 0.75rem;

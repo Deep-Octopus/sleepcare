@@ -1,14 +1,14 @@
 <template>
   <button
     type="button"
-    class="group w-full rounded-2xl border p-4 text-left shadow-card transition-[transform,border-color,background-color] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+    class="client-record-card group relative w-full overflow-hidden rounded-2xl border p-4 text-left shadow-card transition-[transform,border-color,background-color] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
     :class="cardClass"
     :disabled="disabled"
     @click="emit('click')"
   >
     <div class="flex items-start gap-3.5">
       <span
-        class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary-50 text-xl text-primary-700"
+        class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-primary-100 bg-primary-50 text-xl text-primary-700 shadow-card"
         aria-hidden="true"
       >
         <svg-icon :icon="icon" />
@@ -53,8 +53,8 @@
         <slot name="meta" />
       </span>
       <span
-        class="inline-flex shrink-0 items-center gap-1 text-sm font-medium"
-        :class="disabled ? 'text-muted-foreground' : 'text-primary'"
+        class="inline-flex min-h-8 shrink-0 items-center gap-1 rounded-lg px-2.5 text-sm font-medium transition-colors"
+        :class="actionClass"
       >
         {{ actionLabel }}
         <svg-icon
@@ -129,4 +129,29 @@
     }
     return 'border-border bg-container hover:-translate-y-0.5 hover:border-primary-200 active:scale-[0.99]'
   })
+
+  const actionClass = computed(() => {
+    if (props.disabled) {
+      return 'bg-muted text-muted-foreground'
+    }
+    if (props.emphasized) {
+      return 'bg-primary text-white'
+    }
+    return 'bg-muted text-primary group-hover:bg-primary-50'
+  })
 </script>
+
+<style scoped>
+  .client-record-card::after {
+    position: absolute;
+    top: -3.5rem;
+    right: -3.5rem;
+    width: 7rem;
+    height: 7rem;
+    border: 1px solid rgb(var(--primary-100-color));
+    border-radius: 999px;
+    content: '';
+    opacity: 0.55;
+    pointer-events: none;
+  }
+</style>

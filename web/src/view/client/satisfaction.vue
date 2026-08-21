@@ -1,15 +1,14 @@
 <template>
   <section class="px-5 pb-[max(2rem,env(safe-area-inset-bottom))] pt-8">
-    <div class="flex items-end justify-between gap-4">
-      <div>
-        <p class="text-sm text-muted-foreground">服务完成后的反馈</p>
-        <h1 class="mt-1.5 text-[2rem] font-semibold tracking-[-0.04em]">服务评价</h1>
-      </div>
-      <span class="mb-1 text-sm tabular-nums text-muted-foreground">{{ requests.length }} 项</span>
-    </div>
+    <ClientPageHero
+      eyebrow="服务完成后的反馈"
+      title="服务评价"
+      :description="satisfactionHeroDescription"
+      :illustration="feedbackBloom"
+    />
 
     <ClientStatePanel
-      class="mt-7"
+      class="mt-5"
       title="你的身份信息会被隐去"
       description="反馈仅供服务改进和授权的质量核查使用。"
       tone="primary"
@@ -18,7 +17,7 @@
 
     <ClientStatePanel
       v-if="loading"
-      class="mt-8"
+      class="mt-6"
       title="正在读取评价邀请"
       tone="muted"
       icon="lucide:loader-circle"
@@ -26,7 +25,7 @@
 
     <ClientStatePanel
       v-else-if="errorMessage"
-      class="mt-8"
+      class="mt-6"
       title="暂时无法读取服务评价"
       :description="errorMessage"
       tone="danger"
@@ -39,14 +38,14 @@
 
     <ClientStatePanel
       v-else-if="requests.length === 0"
-      class="mt-8"
+      class="mt-6"
       title="当前没有评价邀请"
       description="服务关闭后，符合条件的评价邀请会显示在这里。"
       tone="muted"
       icon="lucide:star"
     />
 
-    <div v-else class="mt-8 space-y-3">
+    <div v-else class="mt-6 space-y-3">
       <ClientRecordCard
         v-for="item in requests"
         :key="item.id"
@@ -76,10 +75,12 @@
 </template>
 
 <script setup>
-  import { onMounted, ref } from 'vue'
+  import { computed, onMounted, ref } from 'vue'
   import { useRouter } from 'vue-router'
   import { getClientSatisfactionRequests } from '@/api/sleep-care/client-access'
   import { formatTaskTime, unwrapClientResponse } from './state'
+  import feedbackBloom from '@/assets/client/feedback-bloom.webp'
+  import ClientPageHero from '@/components/client-mobile/client-page-hero.vue'
   import ClientStatePanel from '@/components/client-mobile/client-state-panel.vue'
   import ClientRecordCard from '@/components/client-mobile/client-record-card.vue'
 
@@ -91,6 +92,10 @@
   const loading = ref(true)
   const errorMessage = ref('')
   const requests = ref([])
+
+  const satisfactionHeroDescription = computed(() => loading.value
+    ? '正在整理你的评价邀请'
+    : `当前共 ${requests.value.length} 项，可在这里查看和填写`)
 
   const statusLabel = (value) => ({
     PENDING: '待评价',

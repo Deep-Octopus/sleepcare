@@ -24,21 +24,41 @@
     </ClientStatePanel>
 
     <template v-else>
-      <div>
-        <p class="text-sm text-muted-foreground">{{ todayLabel }}</p>
-        <h1 class="mt-1.5 truncate text-[2rem] font-semibold leading-tight tracking-[-0.04em]">
-          你好，{{ profile.displayName }}
-        </h1>
-        <p class="mt-2 text-sm leading-6 text-muted-foreground">
-          今天的服务安排已经为你整理好了。
-        </p>
-      </div>
+      <section class="client-home-scene relative isolate min-h-52 overflow-hidden rounded-2xl border border-border shadow-card">
+        <img
+          :src="wellnessHorizon"
+          alt=""
+          width="960"
+          height="640"
+          class="pointer-events-none absolute inset-0 h-full w-full select-none object-cover object-center"
+          aria-hidden="true"
+          draggable="false"
+          fetchpriority="high"
+        >
+        <span
+          class="client-home-scene__scrim absolute inset-0"
+          aria-hidden="true"
+        />
+        <div class="relative max-w-[14rem] p-5">
+          <p class="text-sm font-medium text-primary-700">{{ todayLabel }}</p>
+          <h1 class="mt-2 text-[1.9rem] font-semibold leading-tight tracking-[-0.04em] text-base-text">
+            你好，{{ profile.displayName }}
+          </h1>
+          <p class="mt-3 text-sm leading-6 text-muted-foreground">
+            今天的服务安排已经为你整理好了。
+          </p>
+        </div>
+      </section>
 
       <section
-        class="mt-8 rounded-2xl border p-5 shadow-card"
+        class="relative mt-5 overflow-hidden rounded-2xl border p-5 shadow-card"
         :class="nextTask ? 'border-primary-100 bg-primary-50' : 'border-border bg-muted'"
       >
-        <div class="flex items-center justify-between gap-3">
+        <span
+          class="pointer-events-none absolute -bottom-18 -right-12 h-40 w-40 rounded-full border border-primary-200 opacity-60"
+          aria-hidden="true"
+        />
+        <div class="relative flex items-center justify-between gap-3">
           <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-container text-lg text-primary shadow-card">
             <svg-icon icon="lucide:calendar-days" />
           </span>
@@ -50,36 +70,40 @@
         </div>
 
         <template v-if="nextTask">
-          <h2 class="mt-5 max-w-[20rem] text-[1.65rem] font-semibold leading-[1.2] tracking-[-0.035em]">
+          <h2 class="relative mt-5 max-w-[20rem] text-[1.65rem] font-semibold leading-[1.2] tracking-[-0.035em]">
             {{ readableTaskTitle(nextTask.title, nextTask.dayCode) }}
           </h2>
-          <p class="mt-3 text-sm leading-6 text-muted-foreground">
+          <p class="relative mt-3 text-sm leading-6 text-muted-foreground">
             {{ nextTaskHint }}
           </p>
           <button
             type="button"
-            class="mt-6 inline-flex min-h-12 items-center gap-2 rounded-xl bg-primary px-5 font-semibold text-white transition-transform focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary active:scale-[0.98]"
+            class="client-primary-action relative mt-6 flex min-h-13 w-full items-center justify-between gap-3 rounded-xl bg-primary py-2 pl-5 pr-2 font-semibold text-white transition-transform focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary active:scale-[0.98]"
             @click="openNextTask"
           >
             {{ nextTask.executionStatus === 'SUBMITTED' ? '查看提交结果' : '继续处理' }}
-            <svg-icon icon="lucide:arrow-right" />
+            <span class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-container text-primary shadow-card">
+              <svg-icon icon="lucide:arrow-right" />
+            </span>
           </button>
         </template>
 
         <template v-else>
-          <h2 class="mt-5 text-[1.65rem] font-semibold leading-[1.2] tracking-[-0.035em]">
+          <h2 class="relative mt-5 text-[1.65rem] font-semibold leading-[1.2] tracking-[-0.035em]">
             当前没有待处理随访
           </h2>
-          <p class="mt-3 text-sm leading-6 text-muted-foreground">
+          <p class="relative mt-3 text-sm leading-6 text-muted-foreground">
             新的安排会显示在这里，你也可以查看全部随访记录。
           </p>
           <button
             type="button"
-            class="mt-6 inline-flex min-h-12 items-center gap-2 rounded-xl border border-border bg-container px-5 font-semibold transition-colors hover:border-primary-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary active:scale-[0.98]"
+            class="relative mt-6 flex min-h-13 w-full items-center justify-between gap-3 rounded-xl border border-border bg-container py-2 pl-5 pr-2 font-semibold transition-colors hover:border-primary-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary active:scale-[0.98]"
             @click="router.push({ name: 'ClientTasks' })"
           >
             查看全部随访
-            <svg-icon icon="lucide:arrow-right" />
+            <span class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-muted text-primary">
+              <svg-icon icon="lucide:arrow-right" />
+            </span>
           </button>
         </template>
       </section>
@@ -96,13 +120,18 @@
           </button>
         </div>
 
-        <div class="mt-4 grid grid-cols-[1.1fr_1fr] overflow-hidden rounded-2xl border border-border bg-container shadow-card">
-          <div class="border-r border-border bg-primary-50 p-5">
+        <div class="client-summary mt-4 grid grid-cols-[1.1fr_1fr] overflow-hidden rounded-2xl border border-border bg-container shadow-card">
+          <div class="relative overflow-hidden border-r border-border bg-primary-50 p-5">
+            <svg-icon
+              icon="lucide:chart-no-axes-column-increasing"
+              class="pointer-events-none absolute -bottom-4 -right-3 text-[5rem] text-primary-200 opacity-60"
+              aria-hidden="true"
+            />
             <p class="text-sm text-muted-foreground">现在可填写</p>
-            <p class="mt-2 text-[2.5rem] font-semibold leading-none tracking-[-0.04em] tabular-nums text-primary">
+            <p class="relative mt-2 text-[2.5rem] font-semibold leading-none tracking-[-0.04em] tabular-nums text-primary">
               {{ taskSummary.available }}
             </p>
-            <p class="mt-3 text-xs leading-5 text-muted-foreground">需要你处理的随访</p>
+            <p class="relative mt-3 text-xs leading-5 text-muted-foreground">需要你处理的随访</p>
           </div>
           <dl class="divide-y divide-border px-4">
             <div class="flex items-center justify-between gap-3 py-3.5">
@@ -139,41 +168,67 @@
         <div class="mt-4 grid grid-cols-2 gap-3">
           <button
             type="button"
-            class="group flex min-h-36 flex-col rounded-2xl border border-border bg-container p-4 text-left shadow-card transition-[transform,border-color] hover:-translate-y-0.5 hover:border-primary-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary active:scale-[0.99]"
+            class="client-service-card group relative flex min-h-52 overflow-hidden rounded-2xl border border-primary-100 bg-primary-50 p-4 text-left shadow-card transition-[transform,border-color] hover:-translate-y-0.5 hover:border-primary-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary active:scale-[0.99]"
             @click="router.push({ name: 'ClientConsultations' })"
           >
-            <span class="flex w-full items-start justify-between">
-              <span class="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-primary-50 text-xl text-primary-700">
+            <img
+              :src="serviceRibbons"
+              alt=""
+              width="640"
+              height="640"
+              class="pointer-events-none absolute -right-7 -top-5 h-30 w-30 select-none object-contain opacity-80"
+              aria-hidden="true"
+              draggable="false"
+              loading="lazy"
+            >
+            <span class="relative flex h-full min-w-0 flex-1 flex-col">
+              <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-primary-100 bg-container text-lg text-primary-700 shadow-card">
                 <svg-icon icon="lucide:messages-square" />
               </span>
-              <svg-icon
-                icon="lucide:arrow-up-right"
-                class="text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
-              />
-            </span>
-            <span class="mt-6 block font-semibold text-base-text">在线咨询</span>
-            <span class="mt-1 block text-sm leading-5 text-muted-foreground">
-              {{ consultationHint }}
+              <span class="mt-auto block font-semibold text-base-text">在线咨询</span>
+              <span class="mt-1 block text-sm leading-5 text-muted-foreground">
+                {{ consultationHint }}
+              </span>
+              <span class="mt-3 inline-flex items-center gap-1 text-sm font-medium text-primary">
+                查看记录
+                <svg-icon
+                  icon="lucide:arrow-right"
+                  class="transition-transform group-hover:translate-x-0.5"
+                />
+              </span>
             </span>
           </button>
 
           <button
             type="button"
-            class="group flex min-h-36 flex-col rounded-2xl border border-border bg-container p-4 text-left shadow-card transition-[transform,border-color] hover:-translate-y-0.5 hover:border-primary-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary active:scale-[0.99]"
+            class="client-service-card group relative flex min-h-52 overflow-hidden rounded-2xl border border-border bg-muted p-4 text-left shadow-card transition-[transform,border-color] hover:-translate-y-0.5 hover:border-primary-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary active:scale-[0.99]"
             @click="router.push({ name: 'ClientSatisfaction' })"
           >
-            <span class="flex w-full items-start justify-between">
-              <span class="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-primary-50 text-xl text-primary-700">
+            <img
+              :src="feedbackBloom"
+              alt=""
+              width="640"
+              height="640"
+              class="pointer-events-none absolute -right-6 -top-5 h-30 w-30 select-none object-contain opacity-80"
+              aria-hidden="true"
+              draggable="false"
+              loading="lazy"
+            >
+            <span class="relative flex h-full min-w-0 flex-1 flex-col">
+              <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-container text-lg text-primary-700 shadow-card">
                 <svg-icon icon="lucide:star" />
               </span>
-              <svg-icon
-                icon="lucide:arrow-up-right"
-                class="text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
-              />
-            </span>
-            <span class="mt-6 block font-semibold text-base-text">服务评价</span>
-            <span class="mt-1 block text-sm leading-5 text-muted-foreground">
-              {{ satisfactionHint }}
+              <span class="mt-auto block font-semibold text-base-text">服务评价</span>
+              <span class="mt-1 block text-sm leading-5 text-muted-foreground">
+                {{ satisfactionHint }}
+              </span>
+              <span class="mt-3 inline-flex items-center gap-1 text-sm font-medium text-primary">
+                查看邀请
+                <svg-icon
+                  icon="lucide:arrow-right"
+                  class="transition-transform group-hover:translate-x-0.5"
+                />
+              </span>
             </span>
           </button>
         </div>
@@ -194,6 +249,9 @@
   import { readableTaskTitle } from '@/utils/sleep-care-display'
   import ClientStatePanel from '@/components/client-mobile/client-state-panel.vue'
   import ClientStatusBadge from '@/components/client-mobile/client-status-badge.vue'
+  import feedbackBloom from '@/assets/client/feedback-bloom.webp'
+  import serviceRibbons from '@/assets/client/service-ribbons.webp'
+  import wellnessHorizon from '@/assets/client/wellness-horizon.webp'
   import { formatTaskTime, taskStateCopy, unwrapClientResponse } from './state'
 
   defineOptions({
@@ -301,3 +359,40 @@
 
   onMounted(loadHome)
 </script>
+
+<style scoped>
+  .client-home-scene {
+    background-color: rgb(var(--primary-50-color));
+    box-shadow:
+      inset 0 1px 0 rgb(var(--container-bg-color) / 0.7),
+      var(--card-box-shadow);
+  }
+
+  .client-home-scene__scrim {
+    background: linear-gradient(
+      90deg,
+      rgb(var(--container-bg-color)) 0%,
+      rgb(var(--container-bg-color) / 0.94) 45%,
+      rgb(var(--container-bg-color) / 0.34) 72%,
+      transparent 100%
+    );
+  }
+
+  .client-primary-action {
+    box-shadow:
+      inset 0 1px 0 rgb(var(--primary-300-color)),
+      0 10px 24px rgb(var(--primary-950-color) / 0.16);
+  }
+
+  .client-summary,
+  .client-service-card {
+    box-shadow:
+      inset 0 1px 0 rgb(var(--container-bg-color) / 0.72),
+      var(--card-box-shadow);
+  }
+
+  :global(.dark) .client-home-scene > img,
+  :global(.dark) .client-service-card > img {
+    filter: brightness(0.72) saturate(0.72);
+  }
+</style>

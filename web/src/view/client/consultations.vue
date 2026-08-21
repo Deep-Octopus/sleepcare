@@ -1,25 +1,28 @@
 <template>
   <section class="px-5 pb-[max(2rem,env(safe-area-inset-bottom))] pt-8">
-    <div class="flex items-start justify-between gap-4">
-      <div>
-        <p class="text-sm text-muted-foreground">服务沟通记录</p>
-        <h1 class="mt-1.5 text-[2rem] font-semibold tracking-[-0.04em]">联系服务</h1>
-      </div>
-      <el-button
-        type="primary"
-        class="!h-11 !rounded-xl !font-semibold"
-        @click="router.push({ name: 'ClientConsultationNew' })"
-      >
-        <svg-icon
-          icon="lucide:message-circle-plus"
-          class="mr-1"
-        />
-        发起咨询
-      </el-button>
-    </div>
+    <ClientPageHero
+      eyebrow="服务沟通记录"
+      title="联系服务"
+      description="查看留言和每次沟通的处理进度"
+      :illustration="serviceRibbons"
+    >
+      <template #action>
+        <el-button
+          type="primary"
+          class="!min-h-11 !rounded-xl !px-4 !font-semibold"
+          @click="router.push({ name: 'ClientConsultationNew' })"
+        >
+          <svg-icon
+            icon="lucide:message-circle-plus"
+            class="mr-1"
+          />
+          发起咨询
+        </el-button>
+      </template>
+    </ClientPageHero>
 
     <ClientStatePanel
-      class="mt-7"
+      class="mt-5"
       title="此处不提供急救服务"
       description="系统可随时接收留言，人工回复时间以服务安排为准。如遇紧急情况，请立即联系当地急救或前往正规医疗机构。"
       tone="warning"
@@ -28,7 +31,7 @@
 
     <ClientStatePanel
       v-if="loading"
-      class="mt-8"
+      class="mt-6"
       title="正在读取咨询记录"
       tone="muted"
       icon="lucide:loader-circle"
@@ -36,7 +39,7 @@
 
     <ClientStatePanel
       v-else-if="errorMessage"
-      class="mt-8"
+      class="mt-6"
       title="暂时无法读取咨询记录"
       :description="errorMessage"
       tone="danger"
@@ -52,24 +55,16 @@
 
     <ClientStatePanel
       v-else-if="consultations.length === 0"
-      class="mt-8"
+      class="mt-6"
       title="还没有咨询记录"
       description="如需工作人员协助，可以发起一条在线咨询。"
       tone="muted"
       icon="lucide:message-circle-more"
-    >
-      <el-button
-        type="primary"
-        class="!h-11 !rounded-xl"
-        @click="router.push({ name: 'ClientConsultationNew' })"
-      >
-        发起咨询
-      </el-button>
-    </ClientStatePanel>
+    />
 
     <div
       v-else
-      class="mt-8 space-y-3"
+      class="mt-6 space-y-3"
     >
       <ClientRecordCard
         v-for="item in consultations"
@@ -104,6 +99,8 @@
   import { useRouter } from 'vue-router'
   import { getClientConsultations } from '@/api/sleep-care/client-access'
   import { formatTaskTime, unwrapClientResponse } from './state'
+  import serviceRibbons from '@/assets/client/service-ribbons.webp'
+  import ClientPageHero from '@/components/client-mobile/client-page-hero.vue'
   import ClientStatePanel from '@/components/client-mobile/client-state-panel.vue'
   import ClientRecordCard from '@/components/client-mobile/client-record-card.vue'
 
