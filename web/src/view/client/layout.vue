@@ -16,16 +16,42 @@
               :show-tagline="false"
             />
           </router-link>
-          <router-link
-            :to="{ name: 'ClientHome' }"
-            class="inline-flex h-10 w-10 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-muted hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary active:scale-[0.98]"
-            aria-label="打开首页"
+          <g-dropdown-menu
+            :arrow="false"
+            align="end"
+            :side-offset="10"
+            content-class="!w-[15rem] !rounded-2xl !p-2"
           >
-            <svg-icon
-              icon="lucide:house"
-              class="text-lg"
-            />
-          </router-link>
+            <button
+              type="button"
+              class="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-border bg-muted text-sm font-semibold text-primary transition-[transform,border-color,background-color] hover:border-primary-200 hover:bg-primary-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary active:scale-[0.98]"
+              :aria-label="profile.displayName ? `打开${profile.displayName}的账号菜单` : '打开账号菜单'"
+            >
+              {{ profileInitial }}
+            </button>
+
+            <template #content>
+              <g-dropdown-menu-label class="!px-3 !py-3">
+                <span class="block text-xs text-muted-foreground">当前登录</span>
+                <span class="mt-1 block truncate text-sm font-semibold text-base-text">
+                  {{ profile.displayName || '康养用户' }}
+                </span>
+              </g-dropdown-menu-label>
+              <g-dropdown-menu-separator />
+              <g-dropdown-menu-item @select="openHome">
+                <svg-icon icon="lucide:house" />
+                我的首页
+              </g-dropdown-menu-item>
+              <g-dropdown-menu-item
+                danger
+                :disabled="signingOut"
+                @select="signOut"
+              >
+                <svg-icon icon="lucide:log-out" />
+                {{ signingOut ? '正在退出' : '退出当前账号' }}
+              </g-dropdown-menu-item>
+            </template>
+          </g-dropdown-menu>
         </div>
       </header>
 
@@ -64,15 +90,25 @@
 </template>
 
 <script setup>
-  import { computed } from 'vue'
-  import { useRoute } from 'vue-router'
+  import { computed, ref, watch } from 'vue'
+  import { ElMessage } from 'element-plus'
+  import { useRoute, useRouter } from 'vue-router'
+  import { getClientProfile, logoutClient } from '@/api/sleep-care/client-access'
   import SleepCareBrand from '@/components/sleep-care-brand/index.vue'
+  import {
+    clearClientAuthMode,
+    clearClientDraftState
+  } from '@/utils/client-session'
+  import { unwrapClientResponse } from './state'
 
   defineOptions({
     name: 'ClientLayout'
   })
 
   const route = useRoute()
+  const router = useRouter()
+  const signingOut = ref(false)
+  const profile = ref({ displayName: '', displayCode: '' })
 
   const navigationItems = [
     { key: 'home', label: '首页', routeName: 'ClientHome', icon: 'lucide:house' },
@@ -84,6 +120,45 @@
   const showChrome = computed(() => route.meta.clientChrome !== false)
   const activeNavigation = computed(() => route.meta.clientNav || '')
   const showNavigation = computed(() => Boolean(activeNavigation.value))
+  const profileInitial = computed(() => profile.value.displayName?.slice(0, 1) || '我')
+
+  const loadProfile = async () => {
+    if (!showChrome.value) {
+      return
+    }
+    try {
+      profile.value = unwrapClientResponse(await getClientProfile())
+    } catch {
+      profile.value = { displayName: '', displayCode: '' }
+    }
+  }
+
+  const openHome = () => {
+    router.push({ name: 'ClientHome' })
+  }
+
+  const signOut = async () => {
+    signingOut.value = true
+    try {
+      unwrapClientResponse(await logoutClient())
+      clearClientDraftState()
+      clearClientAuthMode()
+      profile.value = { displayName: '', displayCode: '' }
+      await router.replace({ name: 'ClientLogin' })
+    } catch (error) {
+      ElMessage.error(error.message || '暂时无法退出，请稍后重试。')
+    } finally {
+      signingOut.value = false
+    }
+  }
+
+  watch(showChrome, (visible) => {
+    if (visible) {
+      loadProfile()
+      return
+    }
+    profile.value = { displayName: '', displayCode: '' }
+  }, { immediate: true })
 </script>
 
 <style scoped>

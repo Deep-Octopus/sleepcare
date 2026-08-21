@@ -92,6 +92,32 @@ export const formatTaskTime = (value) => {
   }).format(new Date(value))
 }
 
+export const formatTaskWindow = (openAt, dueAt) => {
+  if (!openAt || !dueAt) {
+    return `${formatTaskTime(openAt)} - ${formatTaskTime(dueAt)}`
+  }
+
+  const openDate = new Date(openAt)
+  const dueDate = new Date(dueAt)
+  const sameDay = openDate.getFullYear() === dueDate.getFullYear() &&
+    openDate.getMonth() === dueDate.getMonth() &&
+    openDate.getDate() === dueDate.getDate()
+
+  if (!sameDay) {
+    return `${formatTaskTime(openAt)} - ${formatTaskTime(dueAt)}`
+  }
+
+  const dateLabel = new Intl.DateTimeFormat('zh-CN', {
+    month: 'long',
+    day: 'numeric'
+  }).format(openDate)
+  const timeFormatter = new Intl.DateTimeFormat('zh-CN', {
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+  return `${dateLabel} ${timeFormatter.format(openDate)} - ${timeFormatter.format(dueDate)}`
+}
+
 export const taskStateCopy = (task) => {
   if (task.executionStatus === 'SUBMITTED') {
     return { label: '已提交', tone: 'success' }

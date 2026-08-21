@@ -10,6 +10,10 @@
         class="!h-11 !rounded-xl !font-semibold"
         @click="router.push({ name: 'ClientConsultationNew' })"
       >
+        <svg-icon
+          icon="lucide:message-circle-plus"
+          class="mr-1"
+        />
         发起咨询
       </el-button>
     </div>
@@ -65,33 +69,32 @@
 
     <div
       v-else
-      class="mt-8 border-t border-border"
+      class="mt-8 space-y-3"
     >
-      <button
+      <ClientRecordCard
         v-for="item in consultations"
         :key="item.id"
-        type="button"
-        class="w-full border-b border-border py-5 text-left transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary active:scale-[0.99]"
+        icon="lucide:message-square-text"
+        category="在线咨询"
+        :title="item.subject"
+        :description="`提交于 ${formatTaskTime(item.openedAt)}`"
+        :status-label="statusLabel(item.status)"
+        :status-tone="statusTone(item.status)"
+        :status-icon="statusIcon(item.status)"
+        :action-label="item.status === 'WAITING_CLIENT' ? '补充信息' : '查看详情'"
+        :emphasized="item.status === 'WAITING_CLIENT'"
         @click="openConsultation(item.id)"
       >
-        <div class="flex items-start justify-between gap-3">
-          <div class="min-w-0">
-            <p class="truncate text-base font-semibold">{{ item.subject }}</p>
-            <p class="mt-2 text-sm text-muted-foreground">提交于 {{ formatTaskTime(item.openedAt) }}</p>
-          </div>
-          <ClientStatusBadge
-            :label="statusLabel(item.status)"
-            :tone="statusTone(item.status)"
-          />
-        </div>
-        <div class="mt-4 flex items-center justify-between gap-3 text-xs text-muted-foreground">
-          <span>{{ urgencyLabel(item.urgency) }}</span>
-          <span class="inline-flex items-center gap-1" aria-hidden="true">
-            查看详情
-            <svg-icon icon="lucide:chevron-right" />
+        <template #meta>
+          <span class="inline-flex items-center gap-1.5">
+            <svg-icon
+              icon="lucide:user-round-check"
+              aria-hidden="true"
+            />
+            {{ urgencyLabel(item.urgency) }}
           </span>
-        </div>
-      </button>
+        </template>
+      </ClientRecordCard>
     </div>
   </section>
 </template>
@@ -102,7 +105,7 @@
   import { getClientConsultations } from '@/api/sleep-care/client-access'
   import { formatTaskTime, unwrapClientResponse } from './state'
   import ClientStatePanel from '@/components/client-mobile/client-state-panel.vue'
-  import ClientStatusBadge from '@/components/client-mobile/client-status-badge.vue'
+  import ClientRecordCard from '@/components/client-mobile/client-record-card.vue'
 
   defineOptions({
     name: 'ClientConsultations'
@@ -138,6 +141,17 @@
     }
     return 'primary'
   }
+
+  const statusIcon = (value) => ({
+    NEW: 'lucide:message-circle-plus',
+    WAITING_ASSIGNMENT: 'lucide:clock-3',
+    ASSIGNED: 'lucide:user-round-check',
+    HANDLING: 'lucide:messages-square',
+    WAITING_CLIENT: 'lucide:message-circle-more',
+    WAITING_COLLABORATION: 'lucide:users-round',
+    RESOLVED: 'lucide:circle-check',
+    CLOSED: 'lucide:circle-minus'
+  }[value] || 'lucide:messages-square')
 
   const urgencyLabel = (value) => value === 'EXPEDITED' ? '优先联系' : '常规联系'
 

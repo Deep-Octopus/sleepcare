@@ -24,27 +24,24 @@
     </ClientStatePanel>
 
     <template v-else>
-      <div class="flex items-center justify-between gap-5">
-        <div class="min-w-0">
-          <p class="text-sm text-muted-foreground">{{ todayLabel }}</p>
-          <h1 class="mt-1.5 truncate text-[2rem] font-semibold leading-tight tracking-[-0.04em]">
-            你好，{{ profile.displayName }}
-          </h1>
-        </div>
-        <span class="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-border bg-muted text-lg font-semibold text-primary">
-          {{ profileInitial }}
-        </span>
+      <div>
+        <p class="text-sm text-muted-foreground">{{ todayLabel }}</p>
+        <h1 class="mt-1.5 truncate text-[2rem] font-semibold leading-tight tracking-[-0.04em]">
+          你好，{{ profile.displayName }}
+        </h1>
+        <p class="mt-2 text-sm leading-6 text-muted-foreground">
+          今天的服务安排已经为你整理好了。
+        </p>
       </div>
 
-      <section class="mt-9 border-y border-border py-6">
+      <section
+        class="mt-8 rounded-2xl border p-5 shadow-card"
+        :class="nextTask ? 'border-primary-100 bg-primary-50' : 'border-border bg-muted'"
+      >
         <div class="flex items-center justify-between gap-3">
-          <div class="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-            <svg-icon
-              icon="lucide:calendar-days"
-              class="text-primary"
-            />
-            <span>接下来</span>
-          </div>
+          <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-container text-lg text-primary shadow-card">
+            <svg-icon icon="lucide:calendar-days" />
+          </span>
           <ClientStatusBadge
             v-if="nextTask"
             :label="taskStateCopy(nextTask).label"
@@ -78,7 +75,7 @@
           </p>
           <button
             type="button"
-            class="mt-6 inline-flex min-h-12 items-center gap-2 rounded-xl border border-border px-5 font-semibold transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary active:scale-[0.98]"
+            class="mt-6 inline-flex min-h-12 items-center gap-2 rounded-xl border border-border bg-container px-5 font-semibold transition-colors hover:border-primary-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary active:scale-[0.98]"
             @click="router.push({ name: 'ClientTasks' })"
           >
             查看全部随访
@@ -99,24 +96,24 @@
           </button>
         </div>
 
-        <div class="mt-4 grid grid-cols-[1.1fr_1fr] border-y border-border">
-          <div class="border-r border-border py-5 pr-5">
+        <div class="mt-4 grid grid-cols-[1.1fr_1fr] overflow-hidden rounded-2xl border border-border bg-container shadow-card">
+          <div class="border-r border-border bg-primary-50 p-5">
             <p class="text-sm text-muted-foreground">现在可填写</p>
             <p class="mt-2 text-[2.5rem] font-semibold leading-none tracking-[-0.04em] tabular-nums text-primary">
               {{ taskSummary.available }}
             </p>
             <p class="mt-3 text-xs leading-5 text-muted-foreground">需要你处理的随访</p>
           </div>
-          <dl class="divide-y divide-border pl-5">
-            <div class="flex items-center justify-between gap-3 py-3">
+          <dl class="divide-y divide-border px-4">
+            <div class="flex items-center justify-between gap-3 py-3.5">
               <dt class="text-sm text-muted-foreground">之后开放</dt>
               <dd class="font-semibold tabular-nums">{{ taskSummary.upcoming }}</dd>
             </div>
-            <div class="flex items-center justify-between gap-3 py-3">
+            <div class="flex items-center justify-between gap-3 py-3.5">
               <dt class="text-sm text-muted-foreground">已经提交</dt>
               <dd class="font-semibold tabular-nums">{{ taskSummary.submitted }}</dd>
             </div>
-            <div class="flex items-center justify-between gap-3 py-3">
+            <div class="flex items-center justify-between gap-3 py-3.5">
               <dt class="text-sm text-muted-foreground">已经结束</dt>
               <dd class="font-semibold tabular-nums">{{ taskSummary.expired }}</dd>
             </div>
@@ -139,53 +136,48 @@
           </button>
         </div>
 
-        <div class="mt-4 divide-y divide-border border-y border-border">
+        <div class="mt-4 grid grid-cols-2 gap-3">
           <button
             type="button"
-            class="flex min-h-20 w-full items-center gap-4 py-4 text-left transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary active:scale-[0.99]"
+            class="group flex min-h-36 flex-col rounded-2xl border border-border bg-container p-4 text-left shadow-card transition-[transform,border-color] hover:-translate-y-0.5 hover:border-primary-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary active:scale-[0.99]"
             @click="router.push({ name: 'ClientConsultations' })"
           >
-            <span class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-muted text-xl text-primary">
-              <svg-icon icon="lucide:messages-square" />
+            <span class="flex w-full items-start justify-between">
+              <span class="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-primary-50 text-xl text-primary-700">
+                <svg-icon icon="lucide:messages-square" />
+              </span>
+              <svg-icon
+                icon="lucide:arrow-up-right"
+                class="text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+              />
             </span>
-            <span class="min-w-0 flex-1">
-              <span class="block font-medium text-base-text">在线咨询</span>
-              <span class="mt-1 block truncate text-sm text-muted-foreground">{{ consultationHint }}</span>
+            <span class="mt-6 block font-semibold text-base-text">在线咨询</span>
+            <span class="mt-1 block text-sm leading-5 text-muted-foreground">
+              {{ consultationHint }}
             </span>
-            <svg-icon
-              icon="lucide:chevron-right"
-              class="text-muted-foreground"
-            />
           </button>
 
           <button
             type="button"
-            class="flex min-h-20 w-full items-center gap-4 py-4 text-left transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary active:scale-[0.99]"
+            class="group flex min-h-36 flex-col rounded-2xl border border-border bg-container p-4 text-left shadow-card transition-[transform,border-color] hover:-translate-y-0.5 hover:border-primary-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary active:scale-[0.99]"
             @click="router.push({ name: 'ClientSatisfaction' })"
           >
-            <span class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-muted text-xl text-primary">
-              <svg-icon icon="lucide:star" />
+            <span class="flex w-full items-start justify-between">
+              <span class="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-primary-50 text-xl text-primary-700">
+                <svg-icon icon="lucide:star" />
+              </span>
+              <svg-icon
+                icon="lucide:arrow-up-right"
+                class="text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+              />
             </span>
-            <span class="min-w-0 flex-1">
-              <span class="block font-medium text-base-text">服务评价</span>
-              <span class="mt-1 block text-sm text-muted-foreground">{{ satisfactionHint }}</span>
+            <span class="mt-6 block font-semibold text-base-text">服务评价</span>
+            <span class="mt-1 block text-sm leading-5 text-muted-foreground">
+              {{ satisfactionHint }}
             </span>
-            <svg-icon
-              icon="lucide:chevron-right"
-              class="text-muted-foreground"
-            />
           </button>
         </div>
       </section>
-
-      <button
-        type="button"
-        class="mx-auto mt-10 block min-h-10 rounded-lg px-3 text-sm text-muted-foreground hover:text-error focus-visible:outline-2 focus-visible:outline-error"
-        :disabled="signingOut"
-        @click="signOut"
-      >
-        {{ signingOut ? '正在退出…' : '退出当前账号' }}
-      </button>
     </template>
   </section>
 </template>
@@ -197,16 +189,11 @@
     getClientConsultations,
     getClientProfile,
     getClientSatisfactionRequests,
-    getClientTasks,
-    logoutClient
+    getClientTasks
   } from '@/api/sleep-care/client-access'
   import { readableTaskTitle } from '@/utils/sleep-care-display'
   import ClientStatePanel from '@/components/client-mobile/client-state-panel.vue'
   import ClientStatusBadge from '@/components/client-mobile/client-status-badge.vue'
-  import {
-    clearClientAuthMode,
-    clearClientDraftState
-  } from '@/utils/client-session'
   import { formatTaskTime, taskStateCopy, unwrapClientResponse } from './state'
 
   defineOptions({
@@ -215,7 +202,6 @@
 
   const router = useRouter()
   const loading = ref(true)
-  const signingOut = ref(false)
   const errorMessage = ref('')
   const profile = ref({ displayName: '', displayCode: '' })
   const tasks = ref([])
@@ -228,7 +214,6 @@
     weekday: 'long'
   }).format(new Date())
 
-  const profileInitial = computed(() => profile.value.displayName?.slice(0, 1) || '我')
   const nextTask = computed(() => (
     tasks.value.find((task) => task.executionStatus === 'IN_PROGRESS') ||
     tasks.value.find((task) => task.accessible) ||
@@ -312,20 +297,6 @@
       name: routeName,
       params: { taskId: nextTask.value.id }
     })
-  }
-
-  const signOut = async () => {
-    signingOut.value = true
-    try {
-      unwrapClientResponse(await logoutClient())
-      clearClientDraftState()
-      clearClientAuthMode()
-      await router.replace({ name: 'ClientLogin' })
-    } catch (error) {
-      errorMessage.value = error.message || '暂时无法退出，请稍后重试。'
-    } finally {
-      signingOut.value = false
-    }
   }
 
   onMounted(loadHome)

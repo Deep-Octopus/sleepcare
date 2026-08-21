@@ -46,32 +46,31 @@
       icon="lucide:star"
     />
 
-    <div v-else class="mt-8 border-t border-border">
-      <button
+    <div v-else class="mt-8 space-y-3">
+      <ClientRecordCard
         v-for="item in requests"
         :key="item.id"
-        type="button"
-        class="w-full border-b border-border py-5 text-left transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary active:scale-[0.99]"
+        icon="lucide:star"
+        category="服务评价"
+        title="本次在线服务"
+        :description="timeHint(item)"
+        :status-label="statusLabel(item.status)"
+        :status-tone="statusTone(item.status)"
+        :status-icon="statusIcon(item.status)"
+        :action-label="item.status === 'PENDING' ? '去评价' : '查看详情'"
+        :emphasized="item.status === 'PENDING'"
         @click="openRequest(item.id)"
       >
-        <div class="flex items-start justify-between gap-3">
-          <div class="min-w-0">
-            <p class="text-xs font-medium text-muted-foreground">在线服务反馈</p>
-            <h2 class="mt-2 text-base font-semibold">本次在线服务</h2>
-          </div>
-          <ClientStatusBadge
-            :label="statusLabel(item.status)"
-            :tone="statusTone(item.status)"
-          />
-        </div>
-        <div class="mt-4 flex items-center justify-between gap-3 text-xs text-muted-foreground">
-          <span>{{ timeHint(item) }}</span>
-          <span class="inline-flex items-center gap-1" aria-hidden="true">
-            {{ item.status === 'PENDING' ? '去评价' : '查看详情' }}
-            <svg-icon icon="lucide:chevron-right" />
+        <template #meta>
+          <span class="inline-flex items-center gap-1.5">
+            <svg-icon
+              icon="lucide:shield-check"
+              aria-hidden="true"
+            />
+            身份信息已隐去
           </span>
-        </div>
-      </button>
+        </template>
+      </ClientRecordCard>
     </div>
   </section>
 </template>
@@ -82,7 +81,7 @@
   import { getClientSatisfactionRequests } from '@/api/sleep-care/client-access'
   import { formatTaskTime, unwrapClientResponse } from './state'
   import ClientStatePanel from '@/components/client-mobile/client-state-panel.vue'
-  import ClientStatusBadge from '@/components/client-mobile/client-status-badge.vue'
+  import ClientRecordCard from '@/components/client-mobile/client-record-card.vue'
 
   defineOptions({
     name: 'ClientSatisfaction'
@@ -104,6 +103,12 @@
     SUBMITTED: 'success',
     EXPIRED: 'muted'
   }[value] || 'muted')
+
+  const statusIcon = (value) => ({
+    PENDING: 'lucide:pen-line',
+    SUBMITTED: 'lucide:circle-check',
+    EXPIRED: 'lucide:clock-3'
+  }[value] || 'lucide:circle-minus')
 
   const timeHint = (item) => {
     if (item.status === 'SUBMITTED') {

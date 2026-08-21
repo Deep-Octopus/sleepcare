@@ -1,10 +1,11 @@
 <template>
   <span
-    class="inline-flex min-h-7 shrink-0 items-center gap-1.5 rounded-full px-2.5 text-xs font-medium"
+    class="inline-flex min-h-7 shrink-0 items-center gap-1.5 rounded-lg px-2.5 text-xs font-medium"
     :class="toneClass"
   >
-    <span
-      class="h-1.5 w-1.5 rounded-full bg-current"
+    <svg-icon
+      :icon="resolvedIcon"
+      class="text-sm"
       aria-hidden="true"
     />
     {{ label }}
@@ -26,8 +27,20 @@
     tone: {
       type: String,
       default: 'primary'
+    },
+    icon: {
+      type: String,
+      default: ''
     }
   })
+
+  const resolvedIcon = computed(() => props.icon || ({
+    primary: 'lucide:circle-play',
+    success: 'lucide:circle-check',
+    warning: 'lucide:clock-3',
+    danger: 'lucide:circle-alert',
+    muted: 'lucide:circle-minus'
+  })[props.tone] || 'lucide:circle-minus')
 
   const toneClass = computed(() => ({
     primary: 'bg-primary-50 text-primary-700',
